@@ -88,8 +88,8 @@ public class Cirugia implements Agendable, Cancelable {
     public void setBandejaInstrumental(BandejaInstrumental bandejaInstrumental) {
         this.bandejaInstrumental = bandejaInstrumental;
     }
-    
-    //metodos de la interfaz Agendable
+
+    //metodos de la interfaz Agendable, Cancelable
     @Override
     public String getIdentificador() {
         return String.valueOf(id_cirugia);
