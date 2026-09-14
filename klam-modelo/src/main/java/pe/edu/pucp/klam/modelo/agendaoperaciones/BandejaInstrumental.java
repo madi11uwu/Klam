@@ -1,21 +1,14 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
+import pe.edu.pucp.klam.modelo.Registro;
+
 import java.util.Map;
 
-public class BandejaInstrumental {
+public class BandejaInstrumental extends Registro {
 
-    private int id_bandeja;
     private String tipo;
     private boolean esterilizado;
     private Map<Consumible,Integer> consumibles;
-
-    public int getId_banceja() {
-        return id_bandeja;
-    }
-
-    public void setId_banceja(int id_banceja) {
-        this.id_bandeja = id_banceja;
-    }
 
     public String getTipo() {
         return tipo;
@@ -43,13 +36,13 @@ public class BandejaInstrumental {
         if (tipoCirugia.equalsIgnoreCase("CEREBRO")) {
 
             Consumible fresaCortante70 =
-                    new Consumible(1, "Fresa cortante", "Sin especificar", "70");
+                    new Consumible("Fresa cortante", "Sin especificar", "70");
 
             Consumible fresaDiamante70 =
-                    new Consumible(2, "Fresa diamante", "Sin especificar", "70");
+                    new Consumible("Fresa diamante", "Sin especificar", "70");
 
             Consumible cuchilla70 =
-                    new Consumible(3, "Cuchilla quirúrgica", "Sin especificar", "70");
+                    new Consumible("Cuchilla quirúrgica", "Sin especificar", "70");
 
             agregarConsumible(fresaCortante70, 1);
             agregarConsumible(fresaDiamante70, 1);
@@ -59,22 +52,22 @@ public class BandejaInstrumental {
         else if (tipoCirugia.equalsIgnoreCase("COLUMNA")) {
 
             Consumible fresaCortante125 =
-                    new Consumible(4, "Fresa cortante", "Sin especificar", "125");
+                    new Consumible("Fresa cortante", "Sin especificar", "125");
 
             Consumible fresaDiamante125 =
-                    new Consumible(5, "Fresa diamante", "Sin especificar", "125");
+                    new Consumible( "Fresa diamante", "Sin especificar", "125");
 
             Consumible cuchilla125 =
-                    new Consumible(6, "Cuchilla quirúrgica", "Sin especificar", "125");
+                    new Consumible( "Cuchilla quirúrgica", "Sin especificar", "125");
 
             Consumible fresaCortante150 =
-                    new Consumible(7, "Fresa cortante", "Sin especificar", "150");
+                    new Consumible( "Fresa cortante", "Sin especificar", "150");
 
             Consumible fresaDiamante150 =
-                    new Consumible(8, "Fresa diamante", "Sin especificar", "150");
+                    new Consumible( "Fresa diamante", "Sin especificar", "150");
 
             Consumible cuchilla150 =
-                    new Consumible(9, "Cuchilla quirúrgica", "Sin especificar", "150");
+                    new Consumible( "Cuchilla quirúrgica", "Sin especificar", "150");
 
             agregarConsumible(fresaCortante125, 1);
             agregarConsumible(fresaDiamante125, 1);
@@ -90,14 +83,6 @@ public class BandejaInstrumental {
         consumibles.remove(consumible);
     }
 
-    public boolean contieneConsumible(int idConsumible) {
-        for (Consumible consumible : consumibles.keySet()) {
-            if (consumible.getId_consumible() == idConsumible) {
-                return true;
-            }
-        }
-        return false;
-    }
     public int obtenerCantidadConsumibles(Consumible consumible) {
         return consumibles.getOrDefault(consumible,0);
     }
