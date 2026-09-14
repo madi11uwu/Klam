@@ -4,6 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BandejaInstrumental {
+
+    private int id_bandeja;
+    private String tipo;
+    private boolean esterilizado;
+    private List<Consumible> consumbiles;
+    public BandejaInstrumental() {
+        consumbiles=new ArrayList<>();
+    }
     public int getId_banceja() {
         return id_bandeja;
     }
@@ -36,12 +44,5 @@ public class BandejaInstrumental {
         this.consumbiles = consumbiles;
     }
 
-    private int id_bandeja;
-    private String tipo;
-    private boolean esterilizado;
-    private List<Consumible> consumbiles;
-    public BandejaInstrumental() {
-        consumbiles=new ArrayList<>();
-    }
 
 }
