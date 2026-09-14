@@ -1,19 +1,26 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
-import pe.edu.pucp.klam.modelo.Registro;
-
-public class Consumible extends Registro {
+public class Consumible {
+    int id_consumible;
     private String nombreComercial;
     private String marca;
     private String medida;
 
-    public Consumible(String nombreComercial,
+    public Consumible(int id,String nombreComercial,
                       String marca,
                       String medida) {
-        super();
+        this.id_consumible = id;
         this.nombreComercial = nombreComercial;
         this.marca = marca;
         this.medida = medida;
+    }
+
+    public int getId_consumible() {
+        return id_consumible;
+    }
+
+    public void setId_consumible(int id_consumible) {
+        this.id_consumible = id_consumible;
     }
 
     public String getNombreComercial() {
