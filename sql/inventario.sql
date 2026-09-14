@@ -7,7 +7,7 @@
 -- TABLA: EQUIPO
 -- =========================
 CREATE TABLE equipo (
-    id_equipo VARCHAR(20) PRIMARY KEY,
+    id_equipo INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     categoria VARCHAR(30) NOT NULL,
     disponible BOOLEAN NOT NULL DEFAULT TRUE,
@@ -39,10 +39,10 @@ CREATE TABLE equipo_especificacion (
 -- TABLA: CONSUMIBLE
 -- =========================
 CREATE TABLE consumible (
-    id_consumible VARCHAR(20) PRIMARY KEY,
+    id_consumible INT AUTO_INCREMENT PRIMARY KEY,
     nombre_comercial VARCHAR(100) NOT NULL,
     marca VARCHAR(100),
-    medida VARCHAR(50),
+    medida VARCHAR(50)
 );
 
 
@@ -50,7 +50,7 @@ CREATE TABLE consumible (
 -- TABLA: BANDEJA_INSTRUMENTAL
 -- =========================
 CREATE TABLE bandeja_instrumental (
-  id_bandeja VARCHAR(20) PRIMARY KEY,
+  id_bandeja VARCHAR(20) INT AUTO_INCREMENT PRIMARY KEY,
   tipo VARCHAR(100) NOT NULL,
   esterilizado BOOLEAN NOT NULL DEFAULT FALSE,
 );
@@ -62,7 +62,7 @@ CREATE TABLE bandeja_instrumental (
 -- Representa List<Consumible>
 -- =========================
 CREATE TABLE bandeja_consumible (
-    id_bandeja INT NOT NULL,
+    id_bandeja INT AUTO_INCREMENT NOT NULL,
     id_consumible INT NOT NULL,
 
     PRIMARY KEY (id_bandeja, id_consumible),

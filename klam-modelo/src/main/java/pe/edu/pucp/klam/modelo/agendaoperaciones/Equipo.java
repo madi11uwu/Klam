@@ -60,4 +60,43 @@ public class Equipo {
     public void setActivo(boolean activo) {
         this.activo = activo;
     }
+
+    //Dominio
+
+    public boolean verificarDisponibilidad() {
+        return activo && disponible;
+    }
+
+    public void reservar() {
+        if (activo && disponible) {
+            disponible = false;
+        }
+    }
+
+    public void liberar() {
+        if (activo) {
+            disponible = true;
+        }
+    }
+
+    public void desactivar() {
+        activo = false;
+        disponible = false;
+    }
+
+    public void activar() {
+        activo = true;
+    }
+
+    public void agregarEspecificacion(String clave, Object valor) {
+        especificaciones.put(clave, valor);
+    }
+
+    public Object obtenerEspecificacion(String clave) {
+        return especificaciones.get(clave);
+    }
+
+    public void eliminarEspecificacion(String clave) {
+        especificaciones.remove(clave);
+    }
 }
