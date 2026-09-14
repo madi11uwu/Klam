@@ -6,6 +6,24 @@ public class Consumible {
     private String marca;
     private String medida;
 
+    public Consumible(String nombreComercial,
+                      String marca,
+                      String medida) {
+        this.nombreComercial = nombreComercial;
+        this.marca = marca;
+        this.medida = medida;
+    }
+
+    public Consumible(int id_consumible,
+                      String nombreComercial,
+                      String marca,
+                      String medida) {
+        this.id_consumible = id_consumible;
+        this.nombreComercial = nombreComercial;
+        this.marca = marca;
+        this.medida = medida;
+    }
+
     public int getId_consumible() {
         return id_consumible;
     }
