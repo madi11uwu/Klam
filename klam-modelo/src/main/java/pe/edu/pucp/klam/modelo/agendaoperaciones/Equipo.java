@@ -1,12 +1,22 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
+import java.util.Map;
+
 public class Equipo {
     private int id_equipo;
     private String nombre;
     private CategoriaEquipo categoria;
-    //Map<String,Object> especificaciones
+    private Map<String,Object> especificaciones;
     private boolean disponible;
     private boolean activo;
+
+    public Map<String, Object> getEspecificaciones() {
+        return especificaciones;
+    }
+
+    public void setEspecificaciones(Map<String, Object> especificaciones) {
+        this.especificaciones = especificaciones;
+    }
 
     public int getId_equipo() {
         return id_equipo;

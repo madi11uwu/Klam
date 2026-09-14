@@ -13,7 +13,6 @@
         <module>klam-modelo</module>
         <module>klam-accesodatos</module>
         <module>klam-app</module>
-        <module>sql</module>
     </modules>
 
     <properties>
