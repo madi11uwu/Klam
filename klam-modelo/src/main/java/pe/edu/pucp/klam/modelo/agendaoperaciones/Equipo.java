@@ -1,14 +1,14 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
+import pe.edu.pucp.klam.modelo.Registro;
+
 import java.util.Map;
 
-public class Equipo {
-    private int id_equipo;
+public class Equipo extends Registro {
     private String nombre;
     private CategoriaEquipo categoria;
     private Map<String,Object> especificaciones;
     private boolean disponible;
-    private boolean activo;
 
     public Map<String, Object> getEspecificaciones() {
         return especificaciones;
@@ -16,14 +16,6 @@ public class Equipo {
 
     public void setEspecificaciones(Map<String, Object> especificaciones) {
         this.especificaciones = especificaciones;
-    }
-
-    public int getId_equipo() {
-        return id_equipo;
-    }
-
-    public void setId_equipo(int id_equipo) {
-        this.id_equipo = id_equipo;
     }
 
     public String getNombre() {
@@ -53,39 +45,31 @@ public class Equipo {
         this.disponible = disponible;
     }
 
-    public boolean isActivo() {
-        return activo;
-    }
-
-    public void setActivo(boolean activo) {
-        this.activo = activo;
-    }
-
     //Dominio
 
     public boolean verificarDisponibilidad() {
-        return activo && disponible;
+        return super.isActivo() && disponible;
     }
 
     public void reservar() {
-        if (activo && disponible) {
+        if (super.isActivo() && disponible) {
             disponible = false;
         }
     }
 
     public void liberar() {
-        if (activo) {
+        if (super.isActivo()) {
             disponible = true;
         }
     }
 
     public void desactivar() {
-        activo = false;
+        setActivo(false);
         disponible = false;
     }
 
     public void activar() {
-        activo = true;
+        setActivo(true);
     }
 
     public void agregarEspecificacion(String clave, Object valor) {

@@ -2,7 +2,6 @@
 -- MÓDULO: AGENDA Y OPERACIONES - INVENTARIO
 -- =========================================
 
-
 -- =========================
 -- TABLA: EQUIPO
 -- =========================
@@ -13,7 +12,6 @@ CREATE TABLE equipo (
     disponible BOOLEAN NOT NULL DEFAULT TRUE,
     activo BOOLEAN NOT NULL DEFAULT TRUE
 );
-
 
 -- =========================
 -- TABLA: EQUIPO_ESPECIFICACION
@@ -34,7 +32,6 @@ CREATE TABLE equipo_especificacion (
        UNIQUE (id_equipo, clave)
 );
 
-
 -- =========================
 -- TABLA: CONSUMIBLE
 -- =========================
@@ -45,16 +42,14 @@ CREATE TABLE consumible (
     medida VARCHAR(50)
 );
 
-
 -- =========================
 -- TABLA: BANDEJA_INSTRUMENTAL
 -- =========================
 CREATE TABLE bandeja_instrumental (
-  id_bandeja VARCHAR(20) INT AUTO_INCREMENT PRIMARY KEY,
+  id_bandeja INT AUTO_INCREMENT PRIMARY KEY,
   tipo VARCHAR(100) NOT NULL,
-  esterilizado BOOLEAN NOT NULL DEFAULT FALSE,
+  esterilizado BOOLEAN NOT NULL DEFAULT FALSE
 );
-
 
 -- =========================
 -- TABLA INTERMEDIA:
