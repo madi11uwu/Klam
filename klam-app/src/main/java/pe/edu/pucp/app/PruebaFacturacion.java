@@ -186,6 +186,26 @@ public class PruebaFacturacion {
                 1200.00, nota.getMontoTotal());
         verificar("La nota no excede el total del documento original",
                 false, nota.excedeAlDocumentoOriginal());
+
+        // setLineas no debe ser una puerta trasera para meter lineas nulas
+        List<LineaNotaCredito> conNula = new ArrayList<>();
+        conNula.add(null);
+        try {
+            nota.setLineas(conNula);
+            registrarFallo("setLineas de la nota no debe aceptar lineas nulas", "acepto la lista");
+        } catch (IllegalArgumentException e) {
+            verificar("setLineas de la nota rechaza lineas nulas", true, true);
+        }
+        verificar("La nota conserva su detalle tras el rechazo",
+                1, nota.getLineas().size());
+
+        // reemplazar el detalle debe recalcular sin intervencion manual
+        List<LineaNotaCredito> nuevas = new ArrayList<>();
+        nuevas.add(new LineaNotaCredito(2, 1200.00, "Fresa de corte 4mm",
+                fresa, "CONS-001", "No utilizadas durante el procedimiento"));
+        nota.setLineas(nuevas);
+        verificar("setLineas de la nota recalcula el total (2x1200)",
+                2400.00, nota.getMontoTotal());
     }
 
     // -----------------------------------------------------------------
