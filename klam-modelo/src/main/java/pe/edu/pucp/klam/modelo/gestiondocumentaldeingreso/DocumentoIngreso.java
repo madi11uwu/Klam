@@ -9,6 +9,16 @@ public class DocumentoIngreso {
     private String estadoValidacion;
     private LocalDateTime fechaCarga;
 
+    public DocumentoIngreso(final DocumentoIngreso documentoIngreso){
+        if(documentoIngreso==null){
+            throw new IllegalArgumentException("documentoIngreso no puede ser nulo");
+        }
+        setId_documento(documentoIngreso.getId_documento());
+        setTipoDocumento(documentoIngreso.getTipoDocumento());
+        setArchivoPath(documentoIngreso.getArchivoPath());
+        setEstadoValidacion(documentoIngreso.getEstadoValidacion());
+        setFechaCarga(documentoIngreso.getFechaCarga());
+    }
     public TipoDocumentoIngreso getTipoDocumento() {
         return tipoDocumento;
     }

@@ -15,7 +15,7 @@ public abstract class  UsuarioPlataforma {
         setUsername(usuarioPlataforma.getUsername());
         setPasswordHash(usuarioPlataforma.getPasswordHash());
         setEmail(usuarioPlataforma.getEmail());
-        setApellidos(usuarioPlataforma.getApellidos());
+        setNombres(usuarioPlataforma.getNombres());
         setApellidos(usuarioPlataforma.getApellidos());
         setEstado(usuarioPlataforma.getEstado());
     }
