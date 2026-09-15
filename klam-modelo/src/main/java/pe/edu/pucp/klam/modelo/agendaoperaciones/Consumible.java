@@ -15,6 +15,16 @@ public class Consumible {
         this.medida = medida;
     }
 
+    public Consumible(final Consumible consumible){
+        if (consumible == null){
+            throw new IllegalArgumentException("Consumible no puede ser nulo");
+        }
+        setId_consumible(consumible.getId_consumible());
+        setNombreComercial(consumible.getNombreComercial());
+        setMarca(consumible.getMarca());
+        setMedida(consumible.getMedida());
+    }
+
     public int getId_consumible() {
         return id_consumible;
     }

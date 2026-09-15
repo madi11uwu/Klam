@@ -1,24 +1,33 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
+import pe.edu.pucp.klam.modelo.interfaces.Verificable;
+
+import java.util.HashMap;
 import java.util.Map;
 
-public class BandejaInstrumental {
+public class BandejaInstrumental implements Verificable {
 
     private int id_bandeja;
     private String tipo;
     private boolean esterilizado;
     private Map<Consumible,Integer> consumibles;
 
-    public int getId_banceja() {
-        return id_bandeja;
+    public BandejaInstrumental(final BandejaInstrumental bandejaInstrumental) {
+        if (bandejaInstrumental == null){
+            throw new IllegalArgumentException("bandejaInstrumental nula");
+        }
+        setId_bandeja(bandejaInstrumental.getId_bandeja());
+        setTipo(bandejaInstrumental.getTipo());
+        setEsterilizado(bandejaInstrumental.isEsterilizado());
+        setConsumibles(bandejaInstrumental.getConsumibles());
     }
 
-    public void setId_banceja(int id_banceja) {
-        this.id_bandeja = id_banceja;
+    public Map<Consumible,Integer> getConsumibles() {
+        return new HashMap<>(consumibles);
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
+    public void setConsumibles(Map<Consumible,Integer> consumibles) {
+        this.consumibles = new HashMap<>(consumibles);
     }
 
     public boolean isEsterilizado() {
@@ -29,4 +38,25 @@ public class BandejaInstrumental {
         this.esterilizado = esterilizado;
     }
 
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public int getId_bandeja() {
+        return id_bandeja;
+    }
+
+    public void setId_bandeja(int id_bandeja) {
+        this.id_bandeja = id_bandeja;
+    }
+
+    @Override
+    public boolean verificar() {
+        if (esterilizado) return true;
+        return false;
+    }
 }
