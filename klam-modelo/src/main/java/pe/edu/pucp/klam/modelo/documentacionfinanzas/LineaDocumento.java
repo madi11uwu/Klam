@@ -16,6 +16,7 @@ public abstract class LineaDocumento {
     public LineaDocumento(int cantidad, double precioUnitario, String descripcion, Consumible consumible) {
         validarCantidad(cantidad);
         validarPrecioUnitario(precioUnitario);
+        validarDescripcion(descripcion);
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
         this.descripcion = descripcion;
@@ -42,6 +43,13 @@ public abstract class LineaDocumento {
         }
     }
 
+    /** descripcion es NOT NULL en el script SQL. */
+    private static void validarDescripcion(String descripcion) {
+        if (descripcion == null || descripcion.isBlank()) {
+            throw new IllegalArgumentException("La descripcion no puede ser nula ni vacia");
+        }
+    }
+
     public int getIdLinea() { return idLinea; }
     public void setIdLinea(int idLinea) { this.idLinea = idLinea; }
 
@@ -58,7 +66,10 @@ public abstract class LineaDocumento {
     }
 
     public String getDescripcion() { return descripcion; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public void setDescripcion(String descripcion) {
+        validarDescripcion(descripcion);
+        this.descripcion = descripcion;
+    }
 
     public Consumible getConsumible() { return consumible; }
     public void setConsumible(Consumible consumible) { this.consumible = consumible; }

@@ -18,6 +18,7 @@ public class Cotizacion {
 
     public Cotizacion(int idCirugia, double precioPactado, LocalDateTime fechaEmision) {
         this();
+        validarPrecioPactado(precioPactado);
         this.idCirugia = idCirugia;
         this.precioPactado = precioPactado;
         this.fechaEmision = fechaEmision;
@@ -47,7 +48,17 @@ public class Cotizacion {
     public void setIdCotizacion(int idCotizacion) { this.idCotizacion = idCotizacion; }
 
     public double getPrecioPactado() { return precioPactado; }
-    public void setPrecioPactado(double precioPactado) { this.precioPactado = precioPactado; }
+    public void setPrecioPactado(double precioPactado) {
+        validarPrecioPactado(precioPactado);
+        this.precioPactado = precioPactado;
+    }
+
+    /** Misma regla que el CHECK del script SQL: precio_pactado >= 0. */
+    private static void validarPrecioPactado(double precioPactado) {
+        if (precioPactado < 0) {
+            throw new IllegalArgumentException("El precio pactado no puede ser negativo");
+        }
+    }
 
     public EstadoCotizacion getEstado() { return estado; }
     public void setEstado(EstadoCotizacion estado) {

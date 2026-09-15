@@ -71,6 +71,22 @@ public class PruebaFacturacion {
         verificar("La cotizacion sigue EMITIDA tras el rechazo",
                 "EMITIDA", cotizacion.getEstado().name());
 
+        // precio pactado negativo, igual que el CHECK del script SQL
+        try {
+            new Cotizacion(1, -4500.00, LocalDateTime.now());
+            registrarFallo("Una cotizacion no debe aceptar precio pactado negativo", "acepto la cotizacion");
+        } catch (IllegalArgumentException e) {
+            verificar("El constructor de Cotizacion rechaza precio pactado negativo", true, true);
+        }
+        try {
+            cotizacion.setPrecioPactado(-1.00);
+            registrarFallo("setPrecioPactado no debe aceptar precio negativo", "acepto el valor");
+        } catch (IllegalArgumentException e) {
+            verificar("setPrecioPactado rechaza precio negativo", true, true);
+        }
+        verificar("La cotizacion conserva su precio tras el rechazo",
+                4500.00, cotizacion.getPrecioPactado());
+
         cotizacion.aceptar();
         verificar("La cotizacion queda ACEPTADA",
                 "ACEPTADA", cotizacion.getEstado().name());
@@ -101,6 +117,28 @@ public class PruebaFacturacion {
                 "PENDIENTE", factura.getEstadoPago().name());
         verificar("La linea conserva la referencia al consumible",
                 "Fresa de corte 4mm", factura.getLineas().get(0).getConsumible().getNombreComercial());
+
+        // ruc_receptor es CHAR(11) NOT NULL en el script SQL
+        try {
+            new Factura(1, LocalDateTime.now(), null);
+            registrarFallo("Una factura no debe aceptar RUC nulo", "acepto la factura");
+        } catch (IllegalArgumentException e) {
+            verificar("El constructor de Factura rechaza RUC nulo", true, true);
+        }
+        try {
+            new Factura(1, LocalDateTime.now(), "2048123456");
+            registrarFallo("Una factura no debe aceptar RUC de 10 digitos", "acepto la factura");
+        } catch (IllegalArgumentException e) {
+            verificar("El constructor de Factura rechaza RUC de 10 digitos", true, true);
+        }
+        try {
+            factura.setRucReceptor("2048123456A");
+            registrarFallo("setRucReceptor no debe aceptar letras", "acepto el valor");
+        } catch (IllegalArgumentException e) {
+            verificar("setRucReceptor rechaza un RUC con letras", true, true);
+        }
+        verificar("La factura conserva su RUC tras el rechazo",
+                "20481234567", factura.getRucReceptor());
 
         return factura;
     }
@@ -142,6 +180,22 @@ public class PruebaFacturacion {
         }
         verificar("La boleta sigue PAGADO tras el rechazo",
                 "PAGADO", boleta.getEstadoPago().name());
+
+        // dni_receptor es CHAR(8) NOT NULL en el script SQL
+        try {
+            new Boleta(2, LocalDateTime.now(), "7012345");
+            registrarFallo("Una boleta no debe aceptar DNI de 7 digitos", "acepto la boleta");
+        } catch (IllegalArgumentException e) {
+            verificar("El constructor de Boleta rechaza DNI de 7 digitos", true, true);
+        }
+        try {
+            boleta.setDniReceptor(null);
+            registrarFallo("setDniReceptor no debe aceptar DNI nulo", "acepto el valor");
+        } catch (IllegalArgumentException e) {
+            verificar("setDniReceptor rechaza DNI nulo", true, true);
+        }
+        verificar("La boleta conserva su DNI tras el rechazo",
+                "70123456", boleta.getDniReceptor());
 
         // Factura y boleta comparten el mismo calculo heredado del padre.
         DocumentoFacturacion comoDocumento = boleta;
@@ -222,6 +276,61 @@ public class PruebaFacturacion {
         }
         verificar("La factura no cambia tras los valores rechazados",
                 5310.00, factura.getMontoTotal());
+
+        // una linea creada con el constructor vacio queda con cantidad 0
+        try {
+            factura.agregarLinea(new LineaFactura());
+            registrarFallo("agregarLinea no debe aceptar una linea con cantidad 0", "acepto la linea");
+        } catch (IllegalArgumentException e) {
+            verificar("agregarLinea rechaza una linea creada vacia (cantidad 0)", true, true);
+        }
+        List<LineaDocumento> conVacia = new ArrayList<>();
+        conVacia.add(new LineaFactura(1, 300.00, "Linea valida", fresa, "CONS-006"));
+        conVacia.add(new LineaFactura());
+        try {
+            factura.setLineas(conVacia);
+            registrarFallo("setLineas no debe aceptar una linea con cantidad 0", "acepto la lista");
+        } catch (IllegalArgumentException e) {
+            verificar("setLineas rechaza una lista con una linea creada vacia", true, true);
+        }
+        verificar("La factura conserva su detalle tras los rechazos",
+                2, factura.getLineas().size());
+
+        // completada con setters, la misma linea si es valida
+        Factura otra = new Factura(3, LocalDateTime.now(), "20481234567");
+        LineaFactura completada = new LineaFactura();
+        completada.setCantidad(1);
+        completada.setPrecioUnitario(300.00);
+        completada.setDescripcion("Linea completada con setters");
+        otra.agregarLinea(completada);
+        verificar("Una linea vacia completada con setters si se acepta",
+                300.00, otra.getMontoBase());
+
+        // descripcion es NOT NULL en el script SQL
+        try {
+            new LineaFactura(1, 100.00, null, fresa, "CONS-005");
+            registrarFallo("Una linea no debe aceptar descripcion nula", "acepto la linea");
+        } catch (IllegalArgumentException e) {
+            verificar("El constructor rechaza descripcion nula", true, true);
+        }
+        try {
+            primera.setDescripcion("   ");
+            registrarFallo("setDescripcion no debe aceptar descripcion vacia", "acepto el valor");
+        } catch (IllegalArgumentException e) {
+            verificar("setDescripcion rechaza descripcion vacia", true, true);
+        }
+        verificar("La linea conserva su descripcion tras el rechazo",
+                "Fresa de corte 4mm", primera.getDescripcion());
+
+        // tasa de IGV negativa
+        try {
+            factura.setTasaIgv(-0.18);
+            registrarFallo("setTasaIgv no debe aceptar tasa negativa", "acepto el valor");
+        } catch (IllegalArgumentException e) {
+            verificar("setTasaIgv rechaza tasa negativa", true, true);
+        }
+        verificar("La factura conserva su tasa y su total tras el rechazo",
+                5310.00, factura.getMontoTotal());
     }
 
     // -----------------------------------------------------------------
@@ -269,6 +378,24 @@ public class PruebaFacturacion {
         // modificar una linea ya agregada no debe dejar el total viejo
         nota.getLineas().get(0).setPrecioUnitario(1000.00);
         verificar("Cambiar el precio de una linea ya agregada actualiza el total de la nota (2x1000)",
+                2000.00, nota.getMontoTotal());
+
+        // una linea creada con el constructor vacio queda con cantidad 0
+        try {
+            nota.agregarLinea(new LineaNotaCredito());
+            registrarFallo("agregarLinea de la nota no debe aceptar cantidad 0", "acepto la linea");
+        } catch (IllegalArgumentException e) {
+            verificar("agregarLinea de la nota rechaza una linea creada vacia", true, true);
+        }
+        List<LineaNotaCredito> conVacia = new ArrayList<>();
+        conVacia.add(new LineaNotaCredito());
+        try {
+            nota.setLineas(conVacia);
+            registrarFallo("setLineas de la nota no debe aceptar cantidad 0", "acepto la lista");
+        } catch (IllegalArgumentException e) {
+            verificar("setLineas de la nota rechaza una linea creada vacia", true, true);
+        }
+        verificar("La nota conserva su total tras los rechazos",
                 2000.00, nota.getMontoTotal());
     }
 
