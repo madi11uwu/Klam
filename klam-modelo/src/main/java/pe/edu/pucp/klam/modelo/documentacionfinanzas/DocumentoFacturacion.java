@@ -35,7 +35,7 @@ public abstract class DocumentoFacturacion implements Facturable {
 
     /**
      * Cada documento concreto define que tipo de linea acepta.
-     * */
+     */
     protected abstract boolean esLineaValida(LineaDocumento linea);
 
     public void agregarLinea(LineaDocumento linea) {
@@ -47,6 +47,7 @@ public abstract class DocumentoFacturacion implements Facturable {
                     "Tipo de linea no valido para un " + this.getClass().getSimpleName());
         }
         this.lineas.add(linea);
+        this.calcularMontoTotal();
     }
 
     @Override
@@ -63,6 +64,10 @@ public abstract class DocumentoFacturacion implements Facturable {
 
     public void anular() {
         this.estadoPago = EstadoPago.ANULADO;
+    }
+
+    public boolean estaAnulado() {
+        return this.estadoPago == EstadoPago.ANULADO;
     }
 
     public int getIdDocumento() { return idDocumento; }
@@ -84,7 +89,18 @@ public abstract class DocumentoFacturacion implements Facturable {
     public void setFechaEmision(LocalDateTime fechaEmision) { this.fechaEmision = fechaEmision; }
 
     public EstadoPago getEstadoPago() { return estadoPago; }
-    public void setEstadoPago(EstadoPago estadoPago) { this.estadoPago = estadoPago; }
+
+    /**
+     * Un documento anulado no vuelve a otro estado: se corrige emitiendo
+     * una nota de credito, no reabriendo el comprobante.
+     */
+    public void setEstadoPago(EstadoPago estadoPago) {
+        if (this.estadoPago == EstadoPago.ANULADO && estadoPago != EstadoPago.ANULADO) {
+            throw new IllegalStateException(
+                    "Un documento anulado no puede cambiar de estado de pago");
+        }
+        this.estadoPago = estadoPago;
+    }
 
     public int getIdCirugia() { return idCirugia; }
     public void setIdCirugia(int idCirugia) { this.idCirugia = idCirugia; }

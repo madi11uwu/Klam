@@ -28,7 +28,11 @@ public class NotaCredito implements Facturable {
     }
 
     public void agregarLinea(LineaNotaCredito linea) {
+        if (linea == null) {
+            throw new IllegalArgumentException("La linea no puede ser nula");
+        }
         this.lineas.add(linea);
+        this.calcularMontoTotal();
     }
 
     @Override
@@ -45,7 +49,9 @@ public class NotaCredito implements Facturable {
         if (this.documentoOriginal == null) {
             return false;
         }
-        return this.calcularMontoTotal() > this.documentoOriginal.getMontoTotal();
+        // Se comparan montos sin IGV: las lineas de la nota suman base,
+        // igual que el monto base del documento original.
+        return this.calcularMontoTotal() > this.documentoOriginal.getMontoBase();
     }
 
     public int getIdNotaCredito() { return idNotaCredito; }

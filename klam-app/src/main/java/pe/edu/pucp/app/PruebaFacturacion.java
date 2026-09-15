@@ -14,7 +14,7 @@ import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaNotaCredito;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.NotaCredito;
 
 /**
- * Prueba del modulo de Documentacion y Finanzas.
+ * Prueba del modulo de Documentacion y Finanzas (Rol 6).
  *
  * Verifica que la capa de dominio da soporte al modelo de negocio de BIOKLAM:
  * se cotiza una cirugia, se factura lo consumido a una clinica, se emite una
@@ -33,7 +33,7 @@ public class PruebaFacturacion {
     }
 
     public static void ejecutar() {
-        titulo("MODULO DE DOCUMENTACION Y FINANZAS");
+        titulo("MODULO DE DOCUMENTACION Y FINANZAS - ROL 6");
 
         Consumible fresa = crearConsumible(1, "Fresa de corte 4mm", "Medtronic", "4mm");
         Consumible esfera = crearConsumible(2, "Esfera de navegacion", "Brainlab", "Estandar");
@@ -165,6 +165,14 @@ public class PruebaFacturacion {
         factura.anular();
         verificar("La factura queda ANULADO tras anularse",
                 "ANULADO", factura.getEstadoPago().name());
+
+        try {
+            factura.setEstadoPago(EstadoPago.PAGADO);
+            registrarFallo("Un documento ANULADO no debe volver a PAGADO", "acepto el cambio");
+        } catch (IllegalStateException e) {
+            verificar("Un documento ANULADO no puede volver a PAGADO", true, true);
+            System.out.println("   Mensaje: " + e.getMessage());
+        }
 
         factura.setActivo(false);
         verificar("La factura se desactiva sin perderse (eliminacion logica)",
