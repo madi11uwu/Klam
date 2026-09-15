@@ -1,10 +1,8 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
-import pe.edu.pucp.klam.modelo.Registro;
-
 import java.util.Map;
 
-public class Equipo extends Registro {
+public class Equipo {
     private String nombre;
     private CategoriaEquipo categoria;
     private Map<String,Object> especificaciones;
