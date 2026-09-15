@@ -1,6 +1,8 @@
 package pe.edu.pucp.app;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.Boleta;
@@ -9,6 +11,7 @@ import pe.edu.pucp.klam.modelo.documentacionfinanzas.DocumentoFacturacion;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.EstadoPago;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.Factura;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaBoleta;
+import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaDocumento;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaFactura;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaNotaCredito;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.NotaCredito;
@@ -60,6 +63,12 @@ public class PruebaFacturacion {
         cotizacion.aceptar();
         verificar("La cotizacion queda ACEPTADA",
                 "ACEPTADA", cotizacion.getEstado().name());
+        try {
+            cotizacion.rechazar();
+            registrarFallo("Una cotizacion aceptada no debe poder rechazarse", "acepto el cambio");
+        } catch (IllegalStateException e) {
+            verificar("Una cotizacion ya resuelta no cambia de estado", true, true);
+        }
 
         Factura factura = new Factura(1, LocalDateTime.now(), "20481234567");
         factura.setIdDocumento(1);
@@ -107,6 +116,13 @@ public class PruebaFacturacion {
         verificar("Queda registrada como PAGADO",
                 "PAGADO", boleta.getEstadoPago().name());
 
+        try {
+            boleta.setEstadoPago(EstadoPago.PENDIENTE);
+            registrarFallo("Un documento PAGADO no debe volver a PENDIENTE", "acepto el cambio");
+        } catch (IllegalStateException e) {
+            verificar("Un documento PAGADO no vuelve a PENDIENTE", true, true);
+        }
+
         // Factura y boleta comparten el mismo calculo heredado del padre.
         DocumentoFacturacion comoDocumento = boleta;
         verificar("Una Boleta es tratable como DocumentoFacturacion",
@@ -131,6 +147,22 @@ public class PruebaFacturacion {
 
         verificar("La factura no se contamino con la linea rechazada",
                 lineasAntes, factura.getLineas().size());
+
+        // setLineas no debe ser una puerta trasera para saltarse la validacion
+        List<LineaDocumento> ajenas = new ArrayList<>();
+        ajenas.add(new LineaBoleta(1, 500.00, "Linea ajena", fresa, "CONS-004"));
+        try {
+            factura.setLineas(ajenas);
+            registrarFallo("setLineas tampoco debe aceptar lineas de otro tipo", "acepto la lista");
+        } catch (IllegalArgumentException e) {
+            verificar("setLineas rechaza lineas de otro tipo", true, true);
+        }
+
+        // cambiar la tasa debe recalcular sin intervencion manual
+        factura.setTasaIgv(0.10);
+        verificar("Cambiar la tasa de IGV recalcula el total",
+                4950.00, factura.getMontoTotal());
+        factura.setTasaIgv(0.18);
     }
 
     // -----------------------------------------------------------------
