@@ -80,7 +80,11 @@ public abstract class DocumentoFacturacion implements Facturable {
     public void setIgv(double igv) { this.igv = igv; }
 
     public double getTasaIgv() { return tasaIgv; }
-    public void setTasaIgv(double tasaIgv) { this.tasaIgv = tasaIgv; }
+
+    public void setTasaIgv(double tasaIgv) {
+        this.tasaIgv = tasaIgv;
+        this.calcularMontoTotal();
+    }
 
     public double getMontoTotal() { return montoTotal; }
     public void setMontoTotal(double montoTotal) { this.montoTotal = montoTotal; }
@@ -99,6 +103,10 @@ public abstract class DocumentoFacturacion implements Facturable {
             throw new IllegalStateException(
                     "Un documento anulado no puede cambiar de estado de pago");
         }
+        if (this.estadoPago == EstadoPago.PAGADO && estadoPago == EstadoPago.PENDIENTE) {
+            throw new IllegalStateException(
+                    "Un documento pagado no vuelve a estado pendiente");
+        }
         this.estadoPago = estadoPago;
     }
 
@@ -109,7 +117,27 @@ public abstract class DocumentoFacturacion implements Facturable {
     public void setActivo(boolean activo) { this.activo = activo; }
 
     public List<LineaDocumento> getLineas() { return new ArrayList<>(lineas); }
+    /**
+     * Reemplaza el detalle completo. Cada linea pasa por la misma
+     * validacion de tipo que agregarLinea, y el total se recalcula.
+     */
     public void setLineas(List<LineaDocumento> lineas) {
-        this.lineas = (lineas == null) ? new ArrayList<>() : new ArrayList<>(lineas);
+        List<LineaDocumento> nuevas = new ArrayList<>();
+        if (lineas != null) {
+            for (LineaDocumento linea : lineas) {
+                if (linea == null) {
+                    throw new IllegalArgumentException("La linea no puede ser nula");
+                }
+                if (!esLineaValida(linea)) {
+                    throw new IllegalArgumentException(
+                            "Tipo de linea no valido para un " + this.getClass().getSimpleName());
+                }
+                nuevas.add(linea);
+            }
+        }
+        // Solo se reemplaza el detalle si todas las lineas son validas:
+        // un rechazo no debe dejar el documento a medias.
+        this.lineas = nuevas;
+        this.calcularMontoTotal();
     }
 }

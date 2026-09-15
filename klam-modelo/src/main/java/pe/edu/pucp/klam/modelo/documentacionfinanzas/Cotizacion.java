@@ -23,8 +23,25 @@ public class Cotizacion {
         this.fechaEmision = fechaEmision;
     }
 
-    public void aceptar() { this.estado = EstadoCotizacion.ACEPTADA; }
-    public void rechazar() { this.estado = EstadoCotizacion.RECHAZADA; }
+    public void aceptar()  { this.transitar(EstadoCotizacion.ACEPTADA); }
+    public void rechazar() { this.transitar(EstadoCotizacion.RECHAZADA); }
+    public void vencer()   { this.transitar(EstadoCotizacion.VENCIDA); }
+
+    /**
+     * Una cotizacion solo se resuelve una vez: desde EMITIDA pasa a
+     * ACEPTADA, RECHAZADA o VENCIDA, y de ahi no se mueve.
+     */
+    private void transitar(EstadoCotizacion nuevo) {
+        if (this.estado != EstadoCotizacion.EMITIDA) {
+            throw new IllegalStateException(
+                    "La cotizacion ya esta " + this.estado + " y no puede pasar a " + nuevo);
+        }
+        this.estado = nuevo;
+    }
+
+    public boolean estaResuelta() {
+        return this.estado != EstadoCotizacion.EMITIDA;
+    }
 
     public int getIdCotizacion() { return idCotizacion; }
     public void setIdCotizacion(int idCotizacion) { this.idCotizacion = idCotizacion; }
@@ -33,7 +50,13 @@ public class Cotizacion {
     public void setPrecioPactado(double precioPactado) { this.precioPactado = precioPactado; }
 
     public EstadoCotizacion getEstado() { return estado; }
-    public void setEstado(EstadoCotizacion estado) { this.estado = estado; }
+    public void setEstado(EstadoCotizacion estado) {
+        if (this.estaResuelta() && estado != this.estado) {
+            throw new IllegalStateException(
+                    "La cotizacion ya esta " + this.estado + " y no puede cambiar de estado");
+        }
+        this.estado = estado;
+    }
 
     public LocalDateTime getFechaEmision() { return fechaEmision; }
     public void setFechaEmision(LocalDateTime fechaEmision) { this.fechaEmision = fechaEmision; }
