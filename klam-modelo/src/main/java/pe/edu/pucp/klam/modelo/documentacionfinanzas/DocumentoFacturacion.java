@@ -73,10 +73,20 @@ public abstract class DocumentoFacturacion implements Facturable {
     public int getIdDocumento() { return idDocumento; }
     public void setIdDocumento(int idDocumento) { this.idDocumento = idDocumento; }
 
-    public double getMontoBase() { return montoBase; }
+    /**
+     * Los montos se recalculan al leerlos: si alguien cambia la cantidad
+     * o el precio de una linea ya agregada, el valor nunca queda viejo.
+     */
+    public double getMontoBase() {
+        this.calcularMontoTotal();
+        return montoBase;
+    }
     public void setMontoBase(double montoBase) { this.montoBase = montoBase; }
 
-    public double getIgv() { return igv; }
+    public double getIgv() {
+        this.calcularMontoTotal();
+        return igv;
+    }
     public void setIgv(double igv) { this.igv = igv; }
 
     public double getTasaIgv() { return tasaIgv; }
@@ -86,7 +96,9 @@ public abstract class DocumentoFacturacion implements Facturable {
         this.calcularMontoTotal();
     }
 
-    public double getMontoTotal() { return montoTotal; }
+    public double getMontoTotal() {
+        return this.calcularMontoTotal();
+    }
     public void setMontoTotal(double montoTotal) { this.montoTotal = montoTotal; }
 
     public LocalDateTime getFechaEmision() { return fechaEmision; }
@@ -99,6 +111,9 @@ public abstract class DocumentoFacturacion implements Facturable {
      * una nota de credito, no reabriendo el comprobante.
      */
     public void setEstadoPago(EstadoPago estadoPago) {
+        if (estadoPago == null) {
+            throw new IllegalArgumentException("El estado de pago no puede ser nulo");
+        }
         if (this.estadoPago == EstadoPago.ANULADO && estadoPago != EstadoPago.ANULADO) {
             throw new IllegalStateException(
                     "Un documento anulado no puede cambiar de estado de pago");

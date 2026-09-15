@@ -63,7 +63,13 @@ public class NotaCredito implements Facturable {
     public LocalDateTime getFechaEmision() { return fechaEmision; }
     public void setFechaEmision(LocalDateTime fechaEmision) { this.fechaEmision = fechaEmision; }
 
-    public double getMontoTotal() { return montoTotal; }
+    /**
+     * El total se recalcula al leerlo: si alguien cambia la cantidad o el
+     * precio de una linea ya agregada, el valor nunca queda viejo.
+     */
+    public double getMontoTotal() {
+        return this.calcularMontoTotal();
+    }
     public void setMontoTotal(double montoTotal) { this.montoTotal = montoTotal; }
 
     public boolean isActivo() { return activo; }

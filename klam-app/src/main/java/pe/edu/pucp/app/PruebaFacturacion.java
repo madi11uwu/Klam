@@ -60,6 +60,17 @@ public class PruebaFacturacion {
         Cotizacion cotizacion = new Cotizacion(1, 4500.00, LocalDateTime.now());
         cotizacion.setIdCotizacion(1);
         System.out.println("   " + cotizacion);
+
+        // el estado nunca puede quedar nulo, ni siquiera mientras esta EMITIDA
+        try {
+            cotizacion.setEstado(null);
+            registrarFallo("Una cotizacion no debe aceptar estado nulo", "acepto el null");
+        } catch (IllegalArgumentException e) {
+            verificar("Una cotizacion rechaza estado nulo", true, true);
+        }
+        verificar("La cotizacion sigue EMITIDA tras el rechazo",
+                "EMITIDA", cotizacion.getEstado().name());
+
         cotizacion.aceptar();
         verificar("La cotizacion queda ACEPTADA",
                 "ACEPTADA", cotizacion.getEstado().name());
@@ -123,6 +134,15 @@ public class PruebaFacturacion {
             verificar("Un documento PAGADO no vuelve a PENDIENTE", true, true);
         }
 
+        try {
+            boleta.setEstadoPago(null);
+            registrarFallo("Un documento no debe aceptar estado de pago nulo", "acepto el null");
+        } catch (IllegalArgumentException e) {
+            verificar("Un documento rechaza estado de pago nulo", true, true);
+        }
+        verificar("La boleta sigue PAGADO tras el rechazo",
+                "PAGADO", boleta.getEstadoPago().name());
+
         // Factura y boleta comparten el mismo calculo heredado del padre.
         DocumentoFacturacion comoDocumento = boleta;
         verificar("Una Boleta es tratable como DocumentoFacturacion",
@@ -163,6 +183,45 @@ public class PruebaFacturacion {
         verificar("Cambiar la tasa de IGV recalcula el total",
                 4950.00, factura.getMontoTotal());
         factura.setTasaIgv(0.18);
+
+        // modificar una linea ya agregada no debe dejar los montos viejos
+        LineaDocumento primera = factura.getLineas().get(0);
+        primera.setCantidad(3);
+        verificar("Cambiar la cantidad de una linea ya agregada actualiza la base (3x1200 + 1x2100)",
+                5700.00, factura.getMontoBase());
+        verificar("Cambiar la cantidad de una linea ya agregada actualiza el IGV",
+                1026.00, factura.getIgv());
+        verificar("Cambiar la cantidad de una linea ya agregada actualiza el total",
+                6726.00, factura.getMontoTotal());
+        primera.setCantidad(2);
+
+        // valores que el CHECK del script SQL rechazaria
+        try {
+            new LineaFactura(0, 100.00, "Cantidad cero", fresa, "CONS-005");
+            registrarFallo("Una linea no debe aceptar cantidad cero", "acepto la linea");
+        } catch (IllegalArgumentException e) {
+            verificar("El constructor rechaza cantidad cero", true, true);
+        }
+        try {
+            new LineaFactura(1, -100.00, "Precio negativo", fresa, "CONS-005");
+            registrarFallo("Una linea no debe aceptar precio negativo", "acepto la linea");
+        } catch (IllegalArgumentException e) {
+            verificar("El constructor rechaza precio unitario negativo", true, true);
+        }
+        try {
+            primera.setCantidad(-3);
+            registrarFallo("setCantidad no debe aceptar cantidad negativa", "acepto el valor");
+        } catch (IllegalArgumentException e) {
+            verificar("setCantidad rechaza cantidad negativa", true, true);
+        }
+        try {
+            primera.setPrecioUnitario(-50.00);
+            registrarFallo("setPrecioUnitario no debe aceptar precio negativo", "acepto el valor");
+        } catch (IllegalArgumentException e) {
+            verificar("setPrecioUnitario rechaza precio negativo", true, true);
+        }
+        verificar("La factura no cambia tras los valores rechazados",
+                5310.00, factura.getMontoTotal());
     }
 
     // -----------------------------------------------------------------
@@ -206,6 +265,11 @@ public class PruebaFacturacion {
         nota.setLineas(nuevas);
         verificar("setLineas de la nota recalcula el total (2x1200)",
                 2400.00, nota.getMontoTotal());
+
+        // modificar una linea ya agregada no debe dejar el total viejo
+        nota.getLineas().get(0).setPrecioUnitario(1000.00);
+        verificar("Cambiar el precio de una linea ya agregada actualiza el total de la nota (2x1000)",
+                2000.00, nota.getMontoTotal());
     }
 
     // -----------------------------------------------------------------

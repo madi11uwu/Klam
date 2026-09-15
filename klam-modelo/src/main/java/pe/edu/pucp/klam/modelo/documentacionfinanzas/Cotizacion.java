@@ -51,6 +51,9 @@ public class Cotizacion {
 
     public EstadoCotizacion getEstado() { return estado; }
     public void setEstado(EstadoCotizacion estado) {
+        if (estado == null) {
+            throw new IllegalArgumentException("El estado de la cotizacion no puede ser nulo");
+        }
         if (this.estaResuelta() && estado != this.estado) {
             throw new IllegalStateException(
                     "La cotizacion ya esta " + this.estado + " y no puede cambiar de estado");

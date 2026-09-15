@@ -14,6 +14,8 @@ public abstract class LineaDocumento {
     }
 
     public LineaDocumento(int cantidad, double precioUnitario, String descripcion, Consumible consumible) {
+        validarCantidad(cantidad);
+        validarPrecioUnitario(precioUnitario);
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
         this.descripcion = descripcion;
@@ -24,14 +26,36 @@ public abstract class LineaDocumento {
         return this.cantidad * this.precioUnitario;
     }
 
+    /**
+     * Mismas reglas que los CHECK del script SQL:
+     * cantidad > 0 y precio_unitario >= 0.
+     */
+    private static void validarCantidad(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
+        }
+    }
+
+    private static void validarPrecioUnitario(double precioUnitario) {
+        if (precioUnitario < 0) {
+            throw new IllegalArgumentException("El precio unitario no puede ser negativo");
+        }
+    }
+
     public int getIdLinea() { return idLinea; }
     public void setIdLinea(int idLinea) { this.idLinea = idLinea; }
 
     public int getCantidad() { return cantidad; }
-    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
+    public void setCantidad(int cantidad) {
+        validarCantidad(cantidad);
+        this.cantidad = cantidad;
+    }
 
     public double getPrecioUnitario() { return precioUnitario; }
-    public void setPrecioUnitario(double precioUnitario) { this.precioUnitario = precioUnitario; }
+    public void setPrecioUnitario(double precioUnitario) {
+        validarPrecioUnitario(precioUnitario);
+        this.precioUnitario = precioUnitario;
+    }
 
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
