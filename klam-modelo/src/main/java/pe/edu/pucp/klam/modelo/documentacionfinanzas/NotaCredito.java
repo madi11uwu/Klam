@@ -75,8 +75,24 @@ public class NotaCredito implements Facturable {
     }
 
     public List<LineaNotaCredito> getLineas() { return new ArrayList<>(lineas); }
+    /**
+     * Reemplaza el detalle completo. Cada linea pasa por la misma
+     * validacion que agregarLinea, y el total se recalcula.
+     */
     public void setLineas(List<LineaNotaCredito> lineas) {
-        this.lineas = (lineas == null) ? new ArrayList<>() : new ArrayList<>(lineas);
+        List<LineaNotaCredito> nuevas = new ArrayList<>();
+        if (lineas != null) {
+            for (LineaNotaCredito linea : lineas) {
+                if (linea == null) {
+                    throw new IllegalArgumentException("La linea no puede ser nula");
+                }
+                nuevas.add(linea);
+            }
+        }
+        // Solo se reemplaza el detalle si todas las lineas son validas:
+        // un rechazo no debe dejar la nota a medias.
+        this.lineas = nuevas;
+        this.calcularMontoTotal();
     }
 
     @Override
