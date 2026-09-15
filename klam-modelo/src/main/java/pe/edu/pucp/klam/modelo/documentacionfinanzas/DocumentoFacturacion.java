@@ -38,7 +38,11 @@ public abstract class DocumentoFacturacion implements Facturable {
      */
     protected abstract boolean esLineaValida(LineaDocumento linea);
 
-    public void agregarLinea(LineaDocumento linea) {
+    /**
+     * Validacion comun de agregarLinea y setLineas. Revisa cantidad y precio
+     * porque una linea creada con el constructor vacio queda con cantidad 0.
+     */
+    private void validarLinea(LineaDocumento linea) {
         if (linea == null) {
             throw new IllegalArgumentException("La linea no puede ser nula");
         }
@@ -46,6 +50,16 @@ public abstract class DocumentoFacturacion implements Facturable {
             throw new IllegalArgumentException(
                     "Tipo de linea no valido para un " + this.getClass().getSimpleName());
         }
+        if (linea.getCantidad() <= 0) {
+            throw new IllegalArgumentException("La linea debe tener cantidad mayor que cero");
+        }
+        if (linea.getPrecioUnitario() < 0) {
+            throw new IllegalArgumentException("La linea no puede tener precio unitario negativo");
+        }
+    }
+
+    public void agregarLinea(LineaDocumento linea) {
+        validarLinea(linea);
         this.lineas.add(linea);
         this.calcularMontoTotal();
     }
@@ -81,17 +95,24 @@ public abstract class DocumentoFacturacion implements Facturable {
         this.calcularMontoTotal();
         return montoBase;
     }
+    // Valor derivado de las lineas: getMontoBase() lo recalcula,
+    // asi que asignarlo directamente no tiene efecto.
     public void setMontoBase(double montoBase) { this.montoBase = montoBase; }
 
     public double getIgv() {
         this.calcularMontoTotal();
         return igv;
     }
+    // Valor derivado de las lineas: getIgv() lo recalcula,
+    // asi que asignarlo directamente no tiene efecto.
     public void setIgv(double igv) { this.igv = igv; }
 
     public double getTasaIgv() { return tasaIgv; }
 
     public void setTasaIgv(double tasaIgv) {
+        if (tasaIgv < 0) {
+            throw new IllegalArgumentException("La tasa de IGV no puede ser negativa");
+        }
         this.tasaIgv = tasaIgv;
         this.calcularMontoTotal();
     }
@@ -99,6 +120,8 @@ public abstract class DocumentoFacturacion implements Facturable {
     public double getMontoTotal() {
         return this.calcularMontoTotal();
     }
+    // Valor derivado de las lineas: getMontoTotal() lo recalcula,
+    // asi que asignarlo directamente no tiene efecto.
     public void setMontoTotal(double montoTotal) { this.montoTotal = montoTotal; }
 
     public LocalDateTime getFechaEmision() { return fechaEmision; }
@@ -134,19 +157,13 @@ public abstract class DocumentoFacturacion implements Facturable {
     public List<LineaDocumento> getLineas() { return new ArrayList<>(lineas); }
     /**
      * Reemplaza el detalle completo. Cada linea pasa por la misma
-     * validacion de tipo que agregarLinea, y el total se recalcula.
+     * validacion que agregarLinea, y el total se recalcula.
      */
     public void setLineas(List<LineaDocumento> lineas) {
         List<LineaDocumento> nuevas = new ArrayList<>();
         if (lineas != null) {
             for (LineaDocumento linea : lineas) {
-                if (linea == null) {
-                    throw new IllegalArgumentException("La linea no puede ser nula");
-                }
-                if (!esLineaValida(linea)) {
-                    throw new IllegalArgumentException(
-                            "Tipo de linea no valido para un " + this.getClass().getSimpleName());
-                }
+                validarLinea(linea);
                 nuevas.add(linea);
             }
         }

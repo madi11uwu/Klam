@@ -27,10 +27,24 @@ public class NotaCredito implements Facturable {
         this.fechaEmision = fechaEmision;
     }
 
-    public void agregarLinea(LineaNotaCredito linea) {
+    /**
+     * Validacion comun de agregarLinea y setLineas. Revisa cantidad y precio
+     * porque una linea creada con el constructor vacio queda con cantidad 0.
+     */
+    private void validarLinea(LineaNotaCredito linea) {
         if (linea == null) {
             throw new IllegalArgumentException("La linea no puede ser nula");
         }
+        if (linea.getCantidad() <= 0) {
+            throw new IllegalArgumentException("La linea debe tener cantidad mayor que cero");
+        }
+        if (linea.getPrecioUnitario() < 0) {
+            throw new IllegalArgumentException("La linea no puede tener precio unitario negativo");
+        }
+    }
+
+    public void agregarLinea(LineaNotaCredito linea) {
+        validarLinea(linea);
         this.lineas.add(linea);
         this.calcularMontoTotal();
     }
@@ -70,6 +84,8 @@ public class NotaCredito implements Facturable {
     public double getMontoTotal() {
         return this.calcularMontoTotal();
     }
+    // Valor derivado de las lineas: getMontoTotal() lo recalcula,
+    // asi que asignarlo directamente no tiene efecto.
     public void setMontoTotal(double montoTotal) { this.montoTotal = montoTotal; }
 
     public boolean isActivo() { return activo; }
@@ -89,9 +105,7 @@ public class NotaCredito implements Facturable {
         List<LineaNotaCredito> nuevas = new ArrayList<>();
         if (lineas != null) {
             for (LineaNotaCredito linea : lineas) {
-                if (linea == null) {
-                    throw new IllegalArgumentException("La linea no puede ser nula");
-                }
+                validarLinea(linea);
                 nuevas.add(linea);
             }
         }
