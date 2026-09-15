@@ -8,6 +8,16 @@ public class Equipo {
     private boolean disponible;
     private boolean activo;
 
+    public Equipo(final Equipo equipo){
+        if(equipo==null){
+            throw new IllegalArgumentException("equipo no puede ser nulo");
+        }
+        setId_equipo(equipo.getId_equipo());
+        setNombre(equipo.getNombre());
+        setCategoria(equipo.getCategoria());
+        setDisponible(equipo.isDisponible());
+        setActivo(equipo.isActivo());
+    }
     public int getId_equipo() {
         return id_equipo;
     }
@@ -50,4 +60,5 @@ public class Equipo {
     public void setActivo(boolean activo) {
         this.activo = activo;
     }
+
 }

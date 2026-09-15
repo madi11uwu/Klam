@@ -44,4 +44,14 @@ public class BandejaInstrumental {
         consumbiles=new ArrayList<>();
     }
 
+    public BandejaInstrumental(final BandejaInstrumental bandejaInstrumental){
+        if(bandejaInstrumental==null){
+            throw new IllegalArgumentException("bandejaInstrumental no puede ser nulo");
+        }
+        setId_banceja(bandejaInstrumental.getId_banceja());
+        setTipo(bandejaInstrumental.getTipo());
+        setEsterilizado(bandejaInstrumental.isEsterilizado());
+        setConsumbiles(bandejaInstrumental.getConsumbiles());
+    }
+
 }
