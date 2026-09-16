@@ -4,6 +4,41 @@
 -- Requiere que ya existan (creadas por Rol 2): equipo, bandeja_instrumental
 -- ============================================================
 
+
+--LA IA ME DIJO Q LE PONGA ESTO XD
+--========================================
+-- Limpieza preventiva (en orden inverso a las relaciones)
+DROP TABLE IF EXISTS alerta;
+DROP TABLE IF EXISTS cirugia;
+
+-- ------------------------------------------------------------
+-- Tablas referenciadas (Estructura base del Rol 2 para pruebas independientes)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS equipo (
+    id_equipo INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_equipo VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bandeja_instrumental (
+    id_bandeja INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_bandeja VARCHAR(50) NOT NULL
+);
+
+-- Inserción de registros base para evitar fallos de Foreign Key
+INSERT IGNORE INTO equipo (id_equipo, nombre_equipo) VALUES 
+(1, 'Equipo Quirúrgico A'), 
+(2, 'Equipo Quirúrgico B'), 
+(3, 'Equipo Quirúrgico C');
+
+INSERT IGNORE INTO bandeja_instrumental (id_bandeja, codigo_bandeja) VALUES 
+(1, 'BAN-001'), 
+(2, 'BAN-002'), 
+(3, 'BAN-003');
+--========================================================================
+
+
+
+
 -- Tabla CIRUGIA
 CREATE TABLE cirugia (
     id_cirugia          INT AUTO_INCREMENT PRIMARY KEY,
