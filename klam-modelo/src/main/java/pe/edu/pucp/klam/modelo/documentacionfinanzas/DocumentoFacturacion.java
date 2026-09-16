@@ -3,6 +3,7 @@ package pe.edu.pucp.klam.modelo.documentacionfinanzas;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.interfaces.Facturable;
 
 public abstract class DocumentoFacturacion implements Facturable {
@@ -16,7 +17,7 @@ public abstract class DocumentoFacturacion implements Facturable {
     private double montoTotal;
     private LocalDateTime fechaEmision;
     private EstadoPago estadoPago;
-    private int idCirugia;
+    private Cirugia cirugia;
     private boolean activo;
     private List<LineaDocumento> lineas;
 
@@ -27,9 +28,9 @@ public abstract class DocumentoFacturacion implements Facturable {
         this.activo = true;
     }
 
-    public DocumentoFacturacion(int idCirugia, LocalDateTime fechaEmision) {
+    public DocumentoFacturacion(Cirugia cirugia, LocalDateTime fechaEmision) {
         this();
-        this.idCirugia = idCirugia;
+        this.cirugia = cirugia;
         this.fechaEmision = fechaEmision;
     }
 
@@ -148,8 +149,9 @@ public abstract class DocumentoFacturacion implements Facturable {
         this.estadoPago = estadoPago;
     }
 
-    public int getIdCirugia() { return idCirugia; }
-    public void setIdCirugia(int idCirugia) { this.idCirugia = idCirugia; }
+    /** La relacion con la cirugia se modela con la referencia, no con su id. */
+    public Cirugia getCirugia() { return cirugia; }
+    public void setCirugia(Cirugia cirugia) { this.cirugia = cirugia; }
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }

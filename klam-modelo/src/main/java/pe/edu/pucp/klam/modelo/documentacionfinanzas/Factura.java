@@ -2,6 +2,8 @@ package pe.edu.pucp.klam.modelo.documentacionfinanzas;
 
 import java.time.LocalDateTime;
 
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+
 public class Factura extends DocumentoFacturacion {
 
     private String rucReceptor;
@@ -10,8 +12,8 @@ public class Factura extends DocumentoFacturacion {
         super();
     }
 
-    public Factura(int idCirugia, LocalDateTime fechaEmision, String rucReceptor) {
-        super(idCirugia, fechaEmision);
+    public Factura(Cirugia cirugia, LocalDateTime fechaEmision, String rucReceptor) {
+        super(cirugia, fechaEmision);
         validarRuc(rucReceptor);
         this.rucReceptor = rucReceptor;
     }
