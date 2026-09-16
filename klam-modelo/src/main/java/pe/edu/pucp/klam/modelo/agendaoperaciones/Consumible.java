@@ -6,6 +6,25 @@ public class Consumible {
     private String marca;
     private String medida;
 
+    public Consumible(int id,String nombreComercial,
+                      String marca,
+                      String medida) {
+        this.id_consumible = id;
+        this.nombreComercial = nombreComercial;
+        this.marca = marca;
+        this.medida = medida;
+    }
+
+    public Consumible(final Consumible consumible){
+        if (consumible == null){
+            throw new IllegalArgumentException("Consumible no puede ser nulo");
+        }
+        setId_consumible(consumible.getId_consumible());
+        setNombreComercial(consumible.getNombreComercial());
+        setMarca(consumible.getMarca());
+        setMedida(consumible.getMedida());
+    }
+
     public int getId_consumible() {
         return id_consumible;
     }
