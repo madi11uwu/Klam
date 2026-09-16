@@ -53,6 +53,30 @@ public class BandejaInstrumental implements Verificable {
         this.id_bandeja = id_bandeja;
     }
 
+    public BandejaInstrumental() {
+        this.consumibles = new HashMap<>();
+    }
+
+    public void agregarConsumible(Consumible consumible, int cantidad) {
+        if (consumible == null) {
+            throw new IllegalArgumentException("Consumible no puede ser nulo");
+        }
+
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
+        }
+
+        consumibles.put(consumible, cantidad);
+    }
+
+    public void eliminarConsumible(Consumible consumible) {
+        consumibles.remove(consumible);
+    }
+
+    public int obtenerCantidadConsumible(Consumible consumible) {
+        return consumibles.getOrDefault(consumible, 0);
+    }
+
     @Override
     public boolean verificar() {
         if (esterilizado) return true;
