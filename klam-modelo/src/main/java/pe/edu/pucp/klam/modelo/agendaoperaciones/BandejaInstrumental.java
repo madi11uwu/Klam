@@ -9,11 +9,26 @@ public class BandejaInstrumental implements Verificable {
     private int id_bandeja;
     private String tipo;
     private boolean esterilizado;
-    private Map<Consumible,Integer> consumibles;
-    private Map<Consumible,Integer> consumiblesConsumidos;
+    private Map<Consumible,Integer> consumibles;            // despachados a la cirugia
+    private Map<Consumible,Integer> consumiblesConsumidos;  // usados realmente
+    private boolean activo;
+
+    public BandejaInstrumental() {
+        this.consumibles = new HashMap<>();
+        this.consumiblesConsumidos = new HashMap<>();
+        this.activo = true;
+    }
+
+    public BandejaInstrumental(int i, String s) {
+        this.id_bandeja = i;
+        this.tipo = s;
+        this.consumibles = new HashMap<>();
+        this.consumiblesConsumidos = new HashMap<>();
+        this.activo = true;
+    }
 
     public BandejaInstrumental(final BandejaInstrumental bandejaInstrumental) {
-        if (bandejaInstrumental == null){
+        if (bandejaInstrumental == null) {
             throw new IllegalArgumentException("bandejaInstrumental nula");
         }
         setId_bandeja(bandejaInstrumental.getId_bandeja());
@@ -21,18 +36,15 @@ public class BandejaInstrumental implements Verificable {
         setEsterilizado(bandejaInstrumental.isEsterilizado());
         setConsumibles(bandejaInstrumental.getConsumibles());
         setConsumiblesConsumidos(bandejaInstrumental.getConsumiblesConsumidos());
-
-    }
-
-    public BandejaInstrumental(int i, String s) {
-        this.id_bandeja=i;
-        this.tipo=s;
-        this.consumiblesConsumidos = new HashMap<>();
-
+        setActivo(bandejaInstrumental.isActivo());
     }
 
     public Map<Consumible,Integer> getConsumibles() {
         return new HashMap<>(consumibles);
+    }
+
+    public void setConsumibles(Map<Consumible,Integer> consumibles) {
+        this.consumibles = new HashMap<>(consumibles);
     }
 
     public Map<Consumible,Integer> getConsumiblesConsumidos() {
@@ -43,8 +55,13 @@ public class BandejaInstrumental implements Verificable {
         this.consumiblesConsumidos = new HashMap<>(consumiblesConsumidos);
     }
 
-    public void setConsumibles(Map<Consumible,Integer> consumibles) {
-        this.consumibles = new HashMap<>(consumibles);
+    /** Eliminacion logica: la bandeja se conserva aunque se de de baja. */
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public boolean isEsterilizado() {
@@ -71,19 +88,13 @@ public class BandejaInstrumental implements Verificable {
         this.id_bandeja = id_bandeja;
     }
 
-    public BandejaInstrumental() {
-        this.consumibles = new HashMap<>();
-    }
-
     public void agregarConsumible(Consumible consumible, int cantidad) {
         if (consumible == null) {
             throw new IllegalArgumentException("Consumible no puede ser nulo");
         }
-
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
-
         consumibles.put(consumible, cantidad);
     }
 
@@ -95,27 +106,28 @@ public class BandejaInstrumental implements Verificable {
         return consumibles.getOrDefault(consumible, 0);
     }
 
-    @Override
-    public boolean verificar() {
-        if (esterilizado) return true;
-        return false;
-    }
+    /** Registra cuanto se uso realmente de un consumible despues de la cirugia. */
     public void registrarConsumo(Consumible consumible, int cantidad) {
         if (consumible == null) {
             throw new IllegalArgumentException("Consumible no puede ser nulo");
         }
-
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
-
         consumiblesConsumidos.put(consumible, cantidad);
     }
+
     public int obtenerCantidadConsumida(Consumible consumible) {
         return consumiblesConsumidos.getOrDefault(consumible, 0);
     }
 
+    /** Lo despachado menos lo consumido: lo que deberia regresar a inventario. */
     public int obtenerDiferencia(Consumible consumible) {
         return obtenerCantidadConsumible(consumible) - obtenerCantidadConsumida(consumible);
+    }
+
+    @Override
+    public boolean verificar() {
+        return esterilizado;
     }
 }

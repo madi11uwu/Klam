@@ -1,5 +1,8 @@
 package pe.edu.pucp.app;
 
+import java.time.LocalDateTime;
+
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
@@ -20,6 +23,7 @@ public class PruebaClientes {
         PacienteParticular paciente = probarCreacionPaciente();
 
         probarPolimorfismoYEstado(clinica, paciente);
+        probarCirugiasDelCliente(clinica);
         probarEliminacionLogica(paciente);
 
         resumen();
@@ -53,10 +57,41 @@ public class PruebaClientes {
         verificar("El paciente es tratable como Cliente base", "PAC-001", cliente2.getId_cliente());
     }
 
+    private static void probarCirugiasDelCliente(Cliente cliente) {
+        titulo("4. Cirugias del Cliente");
+
+        verificar("Un cliente nace sin cirugias", 0, cliente.getCirugias().size());
+
+        cliente.agregarCirugia(crearCirugia(1, "Craneotomia con navegacion"));
+        cliente.agregarCirugia(crearCirugia(2, "Biopsia estereotaxica"));
+        verificar("El cliente acumula sus cirugias", 2, cliente.getCirugias().size());
+        verificar("Desde el cliente se llega al tipo de procedimiento de su cirugia",
+                "Craneotomia con navegacion", cliente.getCirugias().get(0).getTipoProcedimiento());
+
+        // la lista devuelta es una copia: modificarla no altera al cliente
+        cliente.getCirugias().add(crearCirugia(3, "Cirugia ajena"));
+        verificar("La lista devuelta es una copia defensiva", 2, cliente.getCirugias().size());
+
+        try {
+            cliente.agregarCirugia(null);
+            registrarFallo("Un cliente no debe aceptar una cirugia nula", "acepto el null");
+        } catch (IllegalArgumentException e) {
+            verificar("agregarCirugia rechaza una cirugia nula", true, true);
+        }
+    }
+
+    private static Cirugia crearCirugia(int id, String tipoProcedimiento) {
+        Cirugia c = new Cirugia();
+        c.setId_cirugia(id);
+        c.setTipoProcedimiento(tipoProcedimiento);
+        c.setFechaHoraInicio(LocalDateTime.now());
+        return c;
+    }
+
     private static void probarEliminacionLogica(Cliente cliente) {
-        titulo("4. Eliminacion logica del Cliente");
-        cliente.setEstado(false);
-        verificar("El cliente se desactiva (estado = false)", false, cliente.isEstado());
+        titulo("5. Eliminacion logica del Cliente");
+        cliente.setActivo(false);
+        verificar("El cliente se desactiva (activo = false)", false, cliente.isActivo());
     }
 
     // -----------------------------------------------------------------

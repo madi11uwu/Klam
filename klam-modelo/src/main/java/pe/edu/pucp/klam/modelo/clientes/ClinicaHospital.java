@@ -16,7 +16,7 @@ public class ClinicaHospital extends Cliente {
         this.direccion = direccion;
         this.emailContacto = emailContacto;
         this.telefono = telefono;
-        this.estado = true;
+        this.activo = true;
         this.ruc = ruc;
         this.tieneConsignacion = tieneConsignacion;
         this.periodoCredito = periodoCredito;

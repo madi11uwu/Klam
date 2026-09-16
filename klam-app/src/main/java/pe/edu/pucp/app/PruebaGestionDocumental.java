@@ -3,6 +3,7 @@ package pe.edu.pucp.app;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
+import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocumento;
 
 import java.time.LocalDateTime;
 
@@ -38,7 +39,7 @@ public class PruebaGestionDocumental {
         doc.setId_documento("DOC-1001");
         doc.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
         doc.setArchivoPath("/archivos/docs/DOC1001.pdf");
-        doc.setEstadoValidacion("VALIDADO");
+        doc.setEstadoValidacion(EstadoValidacionDocumento.VALIDADO);
         doc.setFechaCarga(LocalDateTime.now());
         doc.setOrdenCompra(orden);
 
@@ -59,7 +60,7 @@ public class PruebaGestionDocumental {
         doc.setId_documento("DOC-2002");
         doc.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
         doc.setArchivoPath("/path/doc.pdf");
-        doc.setEstadoValidacion("VALIDADO");
+        doc.setEstadoValidacion(EstadoValidacionDocumento.VALIDADO);
         doc.setFechaCarga(LocalDateTime.now());
         doc.setOrdenCompra(ordenOriginal);
 
