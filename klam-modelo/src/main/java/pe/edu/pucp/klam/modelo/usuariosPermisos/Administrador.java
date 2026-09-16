@@ -15,6 +15,7 @@ public class Administrador extends UsuarioPlataforma {
         super(id_usuario, username, passwordHash, email, nombres, apellidos, "ADMINISTRADOR", activo);
         this.id_admin = id_admin;
     }
+    //holiiii
 
     public Administrador(Administrador otro) {
         super(otro);
