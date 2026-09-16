@@ -1,6 +1,5 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
-import pe.edu.pucp.klam.modelo.documentacionyfinanzas.OrdenCompra;
 import pe.edu.pucp.klam.modelo.interfaces.Validable;
 
 import java.time.LocalDateTime;

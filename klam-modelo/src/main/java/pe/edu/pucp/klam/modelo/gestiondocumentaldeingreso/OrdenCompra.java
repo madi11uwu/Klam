@@ -1,4 +1,4 @@
-package pe.edu.pucp.klam.modelo.documentacionyfinanzas;
+package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
 import pe.edu.pucp.klam.modelo.interfaces.Verificable;
 
