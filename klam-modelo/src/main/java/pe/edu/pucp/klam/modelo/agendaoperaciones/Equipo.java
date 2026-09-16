@@ -21,7 +21,6 @@ public class Equipo implements Verificable {
         setCategoria(equipo.getCategoria());
         setEspecificaciones(equipo.getEspecificaciones());
         setDisponible(equipo.isDisponible());
-        setEspecificaciones(equipo.getEspecificaciones());
     }
     public int getId_equipo() {
         return id_equipo;
@@ -64,6 +63,10 @@ public class Equipo implements Verificable {
 
     public void setDisponible(boolean disponible) {
         this.disponible = disponible;
+    }
+
+    public Equipo() {
+        this.especificaciones = new HashMap<>();
     }
 
     @Override
