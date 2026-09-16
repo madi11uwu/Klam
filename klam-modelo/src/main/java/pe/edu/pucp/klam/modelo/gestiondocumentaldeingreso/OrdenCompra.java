@@ -3,6 +3,9 @@ package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 import pe.edu.pucp.klam.modelo.interfaces.Verificable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 public class OrdenCompra implements Verificable {
@@ -10,9 +13,10 @@ public class OrdenCompra implements Verificable {
     private String idOrdenCompra;
     private String archivoRespaldoPath;
     private LocalDateTime fechaRecepcion;
+    private List<LineaOrdenCompra> lineasOrdenCompra;
 
     public OrdenCompra(){
-
+        lineasOrdenCompra=new ArrayList<>();
     }
 
     public OrdenCompra(final OrdenCompra ordenCompra) {
@@ -22,6 +26,18 @@ public class OrdenCompra implements Verificable {
         setIdOrdenCompra(ordenCompra.getIdOrdenCompra());
         setArchivoRespaldoPath(ordenCompra.getArchivoRespaldoPath());
         setFechaRecepcion(ordenCompra.getFechaRecepcion());
+        setLineasOrdenCompra(ordenCompra.getLineasOrdenCompra());
+    }
+
+    public List<LineaOrdenCompra> getLineasOrdenCompra() {
+        return Collections.unmodifiableList(lineasOrdenCompra);
+    }
+
+    public void setLineasOrdenCompra(List<LineaOrdenCompra> lineasOrdenCompra) {
+        if(lineasOrdenCompra==null){
+            throw new IllegalArgumentException("Las lineas de orden de compra no pueden ser nulas");
+        }
+        this.lineasOrdenCompra = List.copyOf(lineasOrdenCompra);
     }
 
     public String getIdOrdenCompra() {
