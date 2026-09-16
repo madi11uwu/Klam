@@ -13,8 +13,22 @@ public class BandejaInstrumental implements Verificable {
     private Map<Consumible,Integer> consumiblesConsumidos;  // usados realmente
     private boolean activo;
 
+    public BandejaInstrumental() {
+        this.consumibles = new HashMap<>();
+        this.consumiblesConsumidos = new HashMap<>();
+        this.activo = true;
+    }
+
+    public BandejaInstrumental(int i, String s) {
+        this.id_bandeja = i;
+        this.tipo = s;
+        this.consumibles = new HashMap<>();
+        this.consumiblesConsumidos = new HashMap<>();
+        this.activo = true;
+    }
+
     public BandejaInstrumental(final BandejaInstrumental bandejaInstrumental) {
-        if (bandejaInstrumental == null){
+        if (bandejaInstrumental == null) {
             throw new IllegalArgumentException("bandejaInstrumental nula");
         }
         setId_bandeja(bandejaInstrumental.getId_bandeja());
@@ -23,14 +37,6 @@ public class BandejaInstrumental implements Verificable {
         setConsumibles(bandejaInstrumental.getConsumibles());
         setConsumiblesConsumidos(bandejaInstrumental.getConsumiblesConsumidos());
         setActivo(bandejaInstrumental.isActivo());
-    }
-
-    public BandejaInstrumental(int i, String s) {
-        this.id_bandeja=i;
-        this.tipo=s;
-        this.consumibles = new HashMap<>();
-        this.consumiblesConsumidos = new HashMap<>();
-        this.activo = true;
     }
 
     public Map<Consumible,Integer> getConsumibles() {
@@ -49,7 +55,7 @@ public class BandejaInstrumental implements Verificable {
         this.consumiblesConsumidos = new HashMap<>(consumiblesConsumidos);
     }
 
-    /** Eliminacion logica: la bandeja se conserva aunque se dé de baja. */
+    /** Eliminacion logica: la bandeja se conserva aunque se de de baja. */
     public boolean isActivo() {
         return activo;
     }
@@ -82,21 +88,13 @@ public class BandejaInstrumental implements Verificable {
         this.id_bandeja = id_bandeja;
     }
 
-    public BandejaInstrumental() {
-        this.consumibles = new HashMap<>();
-        this.consumiblesConsumidos = new HashMap<>();
-        this.activo = true;
-    }
-
     public void agregarConsumible(Consumible consumible, int cantidad) {
         if (consumible == null) {
             throw new IllegalArgumentException("Consumible no puede ser nulo");
         }
-
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
-
         consumibles.put(consumible, cantidad);
     }
 
@@ -113,11 +111,9 @@ public class BandejaInstrumental implements Verificable {
         if (consumible == null) {
             throw new IllegalArgumentException("Consumible no puede ser nulo");
         }
-
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
-
         consumiblesConsumidos.put(consumible, cantidad);
     }
 
@@ -132,7 +128,6 @@ public class BandejaInstrumental implements Verificable {
 
     @Override
     public boolean verificar() {
-        if (esterilizado) return true;
-        return false;
+        return esterilizado;
     }
 }
