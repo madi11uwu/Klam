@@ -83,12 +83,12 @@ public class PruebaClientes {
     }
 
     private static void resumen() {
-        titulo("RESUMEN");
+        titulo("RESUMEN ROL 3");
         System.out.println(" Verificaciones ejecutadas: " + verificaciones);
         System.out.println(" Fallos: " + fallos);
         System.out.println(fallos == 0
-                ? " RESULTADO: el dominio de clientes soporta el modelo de negocio."
-                : " RESULTADO: hay verificaciones fallidas, revisar arriba.");
+                ? " RESULTADO: El modulo de clientes (Rol 3) funciona correctamente."
+                : " RESULTADO: Hay fallos en el modulo de clientes (Rol 3).");
         System.out.println();
     }
 }
