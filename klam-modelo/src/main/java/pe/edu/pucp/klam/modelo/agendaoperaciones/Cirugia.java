@@ -1,20 +1,16 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
  
 import java.time.LocalDateTime;
-import pe.edu.pucp.klam.interfaces.Agendable;
-import pe.edu.pucp.klam.interfaces.Cancelable;
+import pe.edu.pucp.klam.modelo.interfaces.Agendable;
+import pe.edu.pucp.klam.modelo.interfaces.Cancelable;
  
 public class Cirugia implements Agendable, Cancelable {
     private int id_cirugia;
     private LocalDateTime fechaHoraInicio;
     private LocalDateTime fechaHoraFin;
     private String tipoProcedimiento;
-
-    //estos no se si estan bien?
     private String motivo_cancelacion;
     private String doctor_nombre;
-    //----
-
     private EstadoCirugia estado;
     private Equipo equipo;
     private BandejaInstrumental bandejaInstrumental;
@@ -50,18 +46,18 @@ public class Cirugia implements Agendable, Cancelable {
     }
 
     public String getMotivoCancelacion() {
-        return motivoCancelacion;
+        return motivo_cancelacion;
     }
     public void setMotivoCancelacion(String motivoCancelacion) {
-        this.motivoCancelacion = motivoCancelacion;
+        this.motivo_cancelacion = motivoCancelacion;
     }
 
     public String getDoctornombre() {
-        return doctornombre;
+        return doctor_nombre;
     }
 
     public void setDoctornombre(String doctornombre) {
-        this.doctornombre = doctornombre;
+        this.doctor_nombre = doctornombre;
     }
     public EstadoCirugia getEstado() {
         return estado;
@@ -91,13 +87,13 @@ public class Cirugia implements Agendable, Cancelable {
 
     //metodos de la interfaz Agendable, Cancelable
     @Override
-    public String getIdentificador() {
+    public String getIdentificador(){
         return String.valueOf(id_cirugia);
     }
  
     @Override
-    public void cancelar(String motivo) {
+    public void cancelar(String motivo_cancelacion) {
         this.estado = EstadoCirugia.CANCELADA;
-        this.motivoCancelacion = motivo;
+        this.motivo_cancelacion=motivo_cancelacion;
     }
  }
