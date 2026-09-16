@@ -22,6 +22,12 @@ public class Equipo implements Verificable {
         setEspecificaciones(equipo.getEspecificaciones());
         setDisponible(equipo.isDisponible());
     }
+
+    public Equipo(int i, String equipoQuirúrgicoA) {
+        this.id_equipo=i;
+        this.nombre=equipoQuirúrgicoA;
+    }
+
     public int getId_equipo() {
         return id_equipo;
     }

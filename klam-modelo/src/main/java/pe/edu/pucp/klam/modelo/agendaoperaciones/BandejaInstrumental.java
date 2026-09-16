@@ -21,6 +21,11 @@ public class BandejaInstrumental implements Verificable {
         setConsumibles(bandejaInstrumental.getConsumibles());
     }
 
+    public BandejaInstrumental(int i, String s) {
+        this.id_bandeja=i;
+        this.tipo=s;
+    }
+
     public Map<Consumible,Integer> getConsumibles() {
         return new HashMap<>(consumibles);
     }
