@@ -12,6 +12,9 @@ public class Equipo implements Verificable {
     private Map<String,Object> especificaciones;
     private boolean disponible;
 
+    // disponible = estado operativo; activo = eliminacion logica
+    private boolean activo;
+
     public Equipo(final Equipo equipo){
         if (equipo == null){
             throw new IllegalArgumentException("Equipo no puede ser nulo");
@@ -21,11 +24,13 @@ public class Equipo implements Verificable {
         setCategoria(equipo.getCategoria());
         setEspecificaciones(equipo.getEspecificaciones());
         setDisponible(equipo.isDisponible());
+        setActivo(equipo.isActivo());
     }
 
     public Equipo(int i, String equipoQuirúrgicoA) {
         this.id_equipo=i;
         this.nombre=equipoQuirúrgicoA;
+        this.activo = true;
     }
 
     public int getId_equipo() {
@@ -71,8 +76,18 @@ public class Equipo implements Verificable {
         this.disponible = disponible;
     }
 
+    /** Eliminacion logica: el equipo se conserva aunque se dé de baja. */
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
     public Equipo() {
         this.especificaciones = new HashMap<>();
+        this.activo = true;
     }
 
     @Override

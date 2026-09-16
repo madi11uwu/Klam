@@ -6,10 +6,10 @@ public abstract class Cliente {
     protected String direccion;
     protected String emailContacto;
     protected String telefono;
-    protected boolean estado; // true = Activo, false = Inactivo (Eliminación lógica)
+    protected boolean activo; // true = Activo, false = Inactivo (Eliminación lógica)
 
     public Cliente() {
-        this.estado = true;
+        this.activo = true;
     }
 
     // Getters y Setters
@@ -28,6 +28,7 @@ public abstract class Cliente {
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
 
-    public boolean isEstado() { return estado; }
-    public void setEstado(boolean estado) { this.estado = estado; }
+    /** Eliminacion logica: el cliente se conserva aunque se dé de baja. */
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
 }

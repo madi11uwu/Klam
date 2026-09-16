@@ -55,8 +55,8 @@ public class PruebaClientes {
 
     private static void probarEliminacionLogica(Cliente cliente) {
         titulo("4. Eliminacion logica del Cliente");
-        cliente.setEstado(false);
-        verificar("El cliente se desactiva (estado = false)", false, cliente.isEstado());
+        cliente.setActivo(false);
+        verificar("El cliente se desactiva (activo = false)", false, cliente.isActivo());
     }
 
     // -----------------------------------------------------------------

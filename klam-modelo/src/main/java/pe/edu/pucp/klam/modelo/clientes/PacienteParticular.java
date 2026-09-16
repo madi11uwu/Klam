@@ -15,7 +15,7 @@ public class PacienteParticular extends Cliente {
         this.direccion = direccion;
         this.emailContacto = emailContacto;
         this.telefono = telefono;
-        this.estado = true;
+        this.activo = true;
         this.dni = dni;
         this.pagoConfirmado = pagoConfirmado;
     }

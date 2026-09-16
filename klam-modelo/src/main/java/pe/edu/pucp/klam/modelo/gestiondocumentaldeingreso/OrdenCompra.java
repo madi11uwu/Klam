@@ -14,9 +14,11 @@ public class OrdenCompra implements Verificable {
     private String archivoRespaldoPath;
     private LocalDateTime fechaRecepcion;
     private List<LineaOrdenCompra> lineasOrdenCompra;
+    private boolean activo;
 
     public OrdenCompra(){
         lineasOrdenCompra=new ArrayList<>();
+        this.activo = true;
     }
 
     public OrdenCompra(final OrdenCompra ordenCompra) {
@@ -27,6 +29,16 @@ public class OrdenCompra implements Verificable {
         setArchivoRespaldoPath(ordenCompra.getArchivoRespaldoPath());
         setFechaRecepcion(ordenCompra.getFechaRecepcion());
         setLineasOrdenCompra(ordenCompra.getLineasOrdenCompra());
+        setActivo(ordenCompra.isActivo());
+    }
+
+    /** Eliminacion logica: la orden se conserva aunque se dé de baja. */
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public List<LineaOrdenCompra> getLineasOrdenCompra() {
