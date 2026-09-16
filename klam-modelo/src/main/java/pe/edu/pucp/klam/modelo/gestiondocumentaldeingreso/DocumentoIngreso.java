@@ -1,13 +1,28 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
+import pe.edu.pucp.klam.modelo.documentacionyfinanzas.OrdenCompra;
+import pe.edu.pucp.klam.modelo.interfaces.Validable;
+
 import java.time.LocalDateTime;
 
-public class DocumentoIngreso {
+public class DocumentoIngreso implements Validable {
     private String id_documento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
     private String estadoValidacion;
     private LocalDateTime fechaCarga;
+    private OrdenCompra ordenCompra;
+
+    public DocumentoIngreso(){
+        
+    }
+    public OrdenCompra getOrdenCompra() {
+        return ordenCompra!=null? new OrdenCompra(ordenCompra):null;
+    }
+
+    public void setOrdenCompra(OrdenCompra ordenCompra) {
+        this.ordenCompra = (ordenCompra!=null)?new OrdenCompra(ordenCompra):null;
+    }
 
     public DocumentoIngreso(final DocumentoIngreso documentoIngreso){
         if(documentoIngreso==null){
@@ -18,6 +33,7 @@ public class DocumentoIngreso {
         setArchivoPath(documentoIngreso.getArchivoPath());
         setEstadoValidacion(documentoIngreso.getEstadoValidacion());
         setFechaCarga(documentoIngreso.getFechaCarga());
+        setOrdenCompra(documentoIngreso.getOrdenCompra());
     }
     public TipoDocumentoIngreso getTipoDocumento() {
         return tipoDocumento;
@@ -73,5 +89,10 @@ public class DocumentoIngreso {
             throw new IllegalArgumentException("fechaCarga no puede ser nulo");
         }
         this.fechaCarga = fechaCarga;
+    }
+
+    @Override
+    public boolean validar() {
+        return "VALIDADO".equals(this.estadoValidacion);
     }
 }
