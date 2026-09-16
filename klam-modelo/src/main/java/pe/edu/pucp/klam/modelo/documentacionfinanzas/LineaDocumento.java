@@ -23,6 +23,17 @@ public abstract class LineaDocumento {
         this.consumible = consumible;
     }
 
+    public LineaDocumento(final LineaDocumento lineaDocumento){
+        if(lineaDocumento==null){
+            throw new IllegalArgumentException("La linea de documento no puede ser nula");
+        }
+        setIdLinea(lineaDocumento.getIdLinea());
+        setCantidad(lineaDocumento.getCantidad());
+        setPrecioUnitario(lineaDocumento.getPrecioUnitario());
+        setDescripcion(lineaDocumento.getDescripcion());
+        setConsumible(lineaDocumento.getConsumible());
+    }
+
     public double calcularSubtotal() {
         return this.cantidad * this.precioUnitario;
     }
