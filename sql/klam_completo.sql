@@ -18,7 +18,6 @@
 --   - Los Map<K,V> de Java se modelan como tablas de relacion.
 --   - La herencia de Java se modela con una tabla por clase, unidas por
 --     la clave primaria del padre.
---   - Todo InnoDB, para que Workbench dibuje las claves foraneas.
 -- =====================================================================
 
 DROP SCHEMA IF EXISTS klam;
@@ -41,7 +40,7 @@ CREATE TABLE usuario_plataforma (
     -- como ENUM. Si el equipo decide crear el enum RolUsuario, coincide.
     rol            ENUM('ADMINISTRADOR', 'VENDEDOR', 'TECNICO_INSTRUMENTISTA') NOT NULL,
     activo         BOOLEAN NOT NULL DEFAULT TRUE
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE administrador (
     id_usuario  INT PRIMARY KEY,
@@ -50,7 +49,7 @@ CREATE TABLE administrador (
     CONSTRAINT fk_administrador_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario_plataforma (id_usuario)
         ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE vendedor (
     id_usuario          INT PRIMARY KEY,
@@ -61,7 +60,7 @@ CREATE TABLE vendedor (
         FOREIGN KEY (id_usuario) REFERENCES usuario_plataforma (id_usuario)
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT ck_vendedor_comision CHECK (comision_acumulada >= 0)
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE tecnico_instrumentista (
     id_usuario    INT PRIMARY KEY,
@@ -71,7 +70,7 @@ CREATE TABLE tecnico_instrumentista (
     CONSTRAINT fk_tecnico_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario_plataforma (id_usuario)
         ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 
 -- =====================================================================
@@ -85,7 +84,7 @@ CREATE TABLE cliente (
     email_contacto  VARCHAR(120) NULL,
     telefono        VARCHAR(20)  NULL,
     activo          BOOLEAN NOT NULL DEFAULT TRUE
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE clinica_hospital (
     id_cliente          VARCHAR(50) PRIMARY KEY,
@@ -96,7 +95,7 @@ CREATE TABLE clinica_hospital (
     CONSTRAINT fk_clinica_cliente
         FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
         ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE paciente_particular (
     id_cliente       VARCHAR(50) PRIMARY KEY,
@@ -106,7 +105,7 @@ CREATE TABLE paciente_particular (
     CONSTRAINT fk_paciente_cliente
         FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
         ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 
 -- =====================================================================
@@ -119,7 +118,7 @@ CREATE TABLE equipo (
     categoria   ENUM('CRANEOTOMO', 'NAVEGADOR') NOT NULL,
     disponible  BOOLEAN NOT NULL DEFAULT TRUE,
     activo      BOOLEAN NOT NULL DEFAULT TRUE
-) ENGINE = InnoDB;
+);
 
 -- Map<String,Object> especificaciones de Equipo: una fila por entrada.
 CREATE TABLE equipo_especificacion (
@@ -131,7 +130,7 @@ CREATE TABLE equipo_especificacion (
     CONSTRAINT fk_especificacion_equipo
         FOREIGN KEY (id_equipo) REFERENCES equipo (id_equipo)
         ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE consumible (
     id_consumible     INT AUTO_INCREMENT PRIMARY KEY,
@@ -139,14 +138,14 @@ CREATE TABLE consumible (
     marca             VARCHAR(100) NULL,
     medida            VARCHAR(50)  NULL,
     activo            BOOLEAN NOT NULL DEFAULT TRUE
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE bandeja_instrumental (
     id_bandeja    INT AUTO_INCREMENT PRIMARY KEY,
     tipo          VARCHAR(100) NOT NULL,
     esterilizado  BOOLEAN NOT NULL DEFAULT FALSE,
     activo        BOOLEAN NOT NULL DEFAULT TRUE
-) ENGINE = InnoDB;
+);
 
 -- Los dos Map<Consumible,Integer> de BandejaInstrumental en una sola
 -- tabla: lo despachado y lo consumido son dos cantidades del mismo par.
@@ -165,7 +164,7 @@ CREATE TABLE bandeja_consumible (
         ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT ck_bandeja_consumible_cantidades
         CHECK (cantidad_despachada >= 0 AND cantidad_consumida >= 0)
-) ENGINE = InnoDB;
+);
 
 
 -- =====================================================================
@@ -193,7 +192,7 @@ CREATE TABLE cirugia (
     CONSTRAINT fk_cirugia_bandeja
         FOREIGN KEY (id_bandeja) REFERENCES bandeja_instrumental (id_bandeja)
         ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 
 -- =====================================================================
@@ -205,7 +204,7 @@ CREATE TABLE notificacion (
     fecha_hora       DATETIME NOT NULL,
     titulo           VARCHAR(150) NOT NULL,
     estado_leida     BOOLEAN NOT NULL DEFAULT FALSE
-) ENGINE = InnoDB;
+);
 
 
 -- =====================================================================
@@ -218,7 +217,7 @@ CREATE TABLE orden_compra (
     archivo_respaldo_path  VARCHAR(255) NOT NULL,
     fecha_recepcion        DATETIME NOT NULL,
     activo                 BOOLEAN NOT NULL DEFAULT TRUE
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE documento_ingreso (
     id_documento       VARCHAR(50) PRIMARY KEY,
@@ -233,7 +232,7 @@ CREATE TABLE documento_ingreso (
     CONSTRAINT fk_documento_ingreso_orden
         FOREIGN KEY (id_orden_compra) REFERENCES orden_compra (id_orden_compra)
         ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 -- LineaOrdenCompra hereda de LineaDocumento: lleva sus mismos campos.
 CREATE TABLE linea_orden_compra (
@@ -253,7 +252,7 @@ CREATE TABLE linea_orden_compra (
         ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT ck_linea_orden_compra_cantidad CHECK (cantidad > 0),
     CONSTRAINT ck_linea_orden_compra_precio   CHECK (precio_unitario >= 0)
-) ENGINE = InnoDB;
+);
 
 
 -- =====================================================================
@@ -274,7 +273,7 @@ CREATE TABLE cotizacion (
         FOREIGN KEY (id_cirugia) REFERENCES cirugia (id_cirugia)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT ck_cotizacion_precio CHECK (precio_pactado >= 0)
-) ENGINE = InnoDB;
+);
 
 -- Tabla padre de factura y boleta. tipo_documento actua como
 -- discriminador. El receptor (RUC o DNI) se guarda congelado en la tabla
@@ -297,7 +296,7 @@ CREATE TABLE documento_facturacion (
         FOREIGN KEY (id_cirugia) REFERENCES cirugia (id_cirugia)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT ck_documento_montos CHECK (monto_base >= 0 AND monto_total >= 0)
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE factura (
     id_documento  INT PRIMARY KEY,
@@ -306,7 +305,7 @@ CREATE TABLE factura (
     CONSTRAINT fk_factura_documento
         FOREIGN KEY (id_documento) REFERENCES documento_facturacion (id_documento)
         ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE boleta (
     id_documento  INT PRIMARY KEY,
@@ -315,7 +314,7 @@ CREATE TABLE boleta (
     CONSTRAINT fk_boleta_documento
         FOREIGN KEY (id_documento) REFERENCES documento_facturacion (id_documento)
         ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB;
+);
 
 -- NotaCredito no hereda de DocumentoFacturacion: solo implementa
 -- Facturable. Referencia al documento que corrige.
@@ -332,7 +331,7 @@ CREATE TABLE nota_credito (
         REFERENCES documento_facturacion (id_documento)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT ck_nota_credito_monto CHECK (monto_total >= 0)
-) ENGINE = InnoDB;
+);
 
 -- Lineas de detalle. Una tabla por tipo de documento, como en las
 -- clases. El precio unitario se guarda en la linea y no se lee del
@@ -355,7 +354,7 @@ CREATE TABLE linea_factura (
         ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT ck_linea_factura_cantidad CHECK (cantidad > 0),
     CONSTRAINT ck_linea_factura_precio   CHECK (precio_unitario >= 0)
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE linea_boleta (
     id_linea         INT AUTO_INCREMENT PRIMARY KEY,
@@ -374,7 +373,7 @@ CREATE TABLE linea_boleta (
         ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT ck_linea_boleta_cantidad CHECK (cantidad > 0),
     CONSTRAINT ck_linea_boleta_precio   CHECK (precio_unitario >= 0)
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE linea_nota_credito (
     id_linea           INT AUTO_INCREMENT PRIMARY KEY,
@@ -394,7 +393,7 @@ CREATE TABLE linea_nota_credito (
         ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT ck_linea_nota_credito_cantidad CHECK (cantidad > 0),
     CONSTRAINT ck_linea_nota_credito_precio   CHECK (precio_unitario >= 0)
-) ENGINE = InnoDB;
+);
 
 
 -- =====================================================================
