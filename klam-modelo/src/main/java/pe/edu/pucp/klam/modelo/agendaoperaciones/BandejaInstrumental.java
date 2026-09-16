@@ -1,23 +1,32 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
-import java.util.ArrayList;
-import java.util.List;
+import pe.edu.pucp.klam.modelo.interfaces.Verificable;
 
-public class BandejaInstrumental {
-    public int getId_banceja() {
-        return id_bandeja;
+import java.util.HashMap;
+import java.util.Map;
+
+public class BandejaInstrumental implements Verificable {
+    private int id_bandeja;
+    private String tipo;
+    private boolean esterilizado;
+    private Map<Consumible,Integer> consumibles;
+
+    public BandejaInstrumental(final BandejaInstrumental bandejaInstrumental) {
+        if (bandejaInstrumental == null){
+            throw new IllegalArgumentException("bandejaInstrumental nula");
+        }
+        setId_bandeja(bandejaInstrumental.getId_bandeja());
+        setTipo(bandejaInstrumental.getTipo());
+        setEsterilizado(bandejaInstrumental.isEsterilizado());
+        setConsumibles(bandejaInstrumental.getConsumibles());
     }
 
-    public void setId_banceja(int id_banceja) {
-        this.id_bandeja = id_banceja;
+    public Map<Consumible,Integer> getConsumibles() {
+        return new HashMap<>(consumibles);
     }
 
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
+    public void setConsumibles(Map<Consumible,Integer> consumibles) {
+        this.consumibles = new HashMap<>(consumibles);
     }
 
     public boolean isEsterilizado() {
@@ -28,20 +37,25 @@ public class BandejaInstrumental {
         this.esterilizado = esterilizado;
     }
 
-    public List<Consumible> getConsumbiles() {
-        return new ArrayList<>(consumbiles);
+    public String getTipo() {
+        return tipo;
     }
 
-    public void setConsumbiles(List<Consumible> consumbiles) {
-        this.consumbiles = consumbiles;
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
-    private int id_bandeja;
-    private String tipo;
-    private boolean esterilizado;
-    private List<Consumible> consumbiles;
-    public BandejaInstrumental() {
-        consumbiles=new ArrayList<>();
+    public int getId_bandeja() {
+        return id_bandeja;
     }
 
+    public void setId_bandeja(int id_bandeja) {
+        this.id_bandeja = id_bandeja;
+    }
+
+    @Override
+    public boolean verificar() {
+        if (esterilizado) return true;
+        return false;
+    }
 }
