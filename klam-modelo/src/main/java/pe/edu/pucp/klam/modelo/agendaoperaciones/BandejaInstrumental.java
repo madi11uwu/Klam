@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BandejaInstrumental implements Verificable {
-
     private int id_bandeja;
     private String tipo;
     private boolean esterilizado;
