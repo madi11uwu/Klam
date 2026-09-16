@@ -1,5 +1,10 @@
 package pe.edu.pucp.klam.modelo.comunicaciones;
 
+public class Notificacion{
+
+}
+package pe.edu.pucp.klam.modelo.comunicaciones;
+
 import java.time.LocalDateTime;
 
 

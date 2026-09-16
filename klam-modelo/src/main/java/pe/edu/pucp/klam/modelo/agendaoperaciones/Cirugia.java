@@ -9,8 +9,12 @@ public class Cirugia implements Agendable, Cancelable {
     private LocalDateTime fechaHoraInicio;
     private LocalDateTime fechaHoraFin;
     private String tipoProcedimiento;
+
+    //estos no se si estan bien?
     private String motivo_cancelacion;
     private String doctor_nombre;
+    //----
+
     private EstadoCirugia estado;
     private Equipo equipo;
     private BandejaInstrumental bandejaInstrumental;
@@ -87,13 +91,13 @@ public class Cirugia implements Agendable, Cancelable {
 
     //metodos de la interfaz Agendable, Cancelable
     @Override
-    public String getIdentificador(){
+    public String getIdentificador() {
         return String.valueOf(id_cirugia);
     }
  
     @Override
-    public void cancelar(String motivo_cancelacion) {
+    public void cancelar(String motivo) {
         this.estado = EstadoCirugia.CANCELADA;
-        this.motivo_cancelacion=motivo_cancelacion;
+        this.motivo_cancelacion = motivo;
     }
  }
