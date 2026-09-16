@@ -1,58 +1,121 @@
 package pe.edu.pucp.app;
 
-import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
+import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
 
 import java.time.LocalDateTime;
 
 public class PruebaGestionDocumental {
-    public static void main(String[] args) {
-        System.out.println("=== PRUEBA DE CLASES DE DOMINIO - ROL 5 ===\n");
 
-        // 1. Instanciación de OrdenCompra
+    private static int verificaciones = 0;
+    private static int fallos = 0;
+
+    public static void ejecutar() {
+        verificaciones = 0;
+        fallos = 0;
+
+        titulo("MODULO DE GESTION DOCUMENTAL DE INGRESO - ROL 5");
+
+        probarInstanciacionYValidacion();
+        probarCopiaDefensiva();
+        probarExcepciones();
+
+        resumen();
+    }
+
+    private static void probarInstanciacionYValidacion() {
+        titulo("1. Instanciacion de OrdenCompra y DocumentoIngreso");
+
         OrdenCompra orden = new OrdenCompra();
         orden.setIdOrdenCompra("OC-2026-001");
         orden.setArchivoRespaldoPath("/archivos/ordenes/OC001.pdf");
         orden.setFechaRecepcion(LocalDateTime.now());
 
-        System.out.println("Orden de Compra creada: " + orden.getIdOrdenCompra());
-        System.out.println("¿Es verificable?: " + orden.verificar());
+        verificar("Orden de Compra es verificable si tiene path", true, orden.verificar());
 
-        // 2. Instanciación de DocumentoIngreso asociando la OrdenCompra
         DocumentoIngreso doc = new DocumentoIngreso();
         doc.setId_documento("DOC-1001");
         doc.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
         doc.setArchivoPath("/archivos/docs/DOC1001.pdf");
         doc.setEstadoValidacion("VALIDADO");
         doc.setFechaCarga(LocalDateTime.now());
-        doc.setOrdenCompra(orden); // Asignación con copia defensiva
+        doc.setOrdenCompra(orden);
 
-        System.out.println("\nDocumento de Ingreso creado: " + doc.getId_documento());
-        System.out.println("Tipo: " + doc.getTipoDocumento());
-        System.out.println("¿Es válido?: " + doc.validar());
-        System.out.println("Orden asociada: " + doc.getOrdenCompra().getIdOrdenCompra());
+        verificar("El documento ingresado es valido", true, doc.validar());
+        verificar("El documento asigna correctamente el tipo", TipoDocumentoIngreso.ORDEN_COMPRA, doc.getTipoDocumento());
+        verificar("Asocia correctamente el ID de la Orden de Compra", "OC-2026-001", doc.getOrdenCompra().getIdOrdenCompra());
+    }
 
-        // 3. Prueba de Copia Defensiva (Modificar la orden original no debe alterar la copia interna)
-        orden.setIdOrdenCompra("OC-MODIFICADA-999");
-        System.out.println("\n--- Prueba de Copia Defensiva ---");
-        System.out.println("ID Orden original modificada: " + orden.getIdOrdenCompra());
-        System.out.println("ID Orden dentro del Documento (debe ser OC-2026-001): "
-                + doc.getOrdenCompra().getIdOrdenCompra());
+    private static void probarCopiaDefensiva() {
+        titulo("2. Prueba de Copia Defensiva");
 
-        // 4. Prueba del Constructor de Copia
-        DocumentoIngreso docCopia = new DocumentoIngreso(doc);
-        System.out.println("\nCopia de Documento creada exitosamente: " + docCopia.getId_documento());
+        OrdenCompra ordenOriginal = new OrdenCompra();
+        ordenOriginal.setIdOrdenCompra("OC-ORIGINAL");
+        ordenOriginal.setArchivoRespaldoPath("/path/original.pdf");
+        ordenOriginal.setFechaRecepcion(LocalDateTime.now());
 
-        // 5. Prueba de Manejo de Excepciones (Validación de Nulos)
-        System.out.println("\n--- Prueba de Validaciones (Excepciones esperadas) ---");
+        DocumentoIngreso doc = new DocumentoIngreso();
+        doc.setId_documento("DOC-2002");
+        doc.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
+        doc.setArchivoPath("/path/doc.pdf");
+        doc.setEstadoValidacion("VALIDADO");
+        doc.setFechaCarga(LocalDateTime.now());
+        doc.setOrdenCompra(ordenOriginal);
+
+        // Modificamos el objeto original externamente
+        ordenOriginal.setIdOrdenCompra("OC-MODIFICADA");
+
+        verificar("La copia interna mantiene el ID intacto (Copia Defensiva)",
+                "OC-ORIGINAL", doc.getOrdenCompra().getIdOrdenCompra());
+    }
+
+    private static void probarExcepciones() {
+        titulo("3. Validaciones de limites y valores nulos");
+
         try {
             DocumentoIngreso docInvalido = new DocumentoIngreso();
-            docInvalido.setId_documento(""); // Debe lanzar excepción
+            docInvalido.setId_documento("");
+            registrarFallo("No debe permitir ID vacio", "acepto ID vacio");
         } catch (IllegalArgumentException e) {
-            System.out.println("Excepción capturada correctamente: " + e.getMessage());
+            verificar("Rechaza identificador vacio correctamente", true, true);
         }
+    }
 
-        System.out.println("\n¡Todas las pruebas finalizaron con éxito!");
+    // -----------------------------------------------------------------
+    // Utilidades
+    // -----------------------------------------------------------------
+    private static void verificar(String descripcion, Object esperado, Object obtenido) {
+        verificaciones++;
+        boolean ok = esperado.equals(obtenido);
+        if (ok) {
+            System.out.println("   [OK]     " + descripcion);
+        } else {
+            fallos++;
+            System.out.println("   [FALLO]  " + descripcion + " (esperado: " + esperado + ", obtenido: " + obtenido + ")");
+        }
+    }
+
+    private static void registrarFallo(String descripcion, String detalle) {
+        verificaciones++;
+        fallos++;
+        System.out.println("   [FALLO]  " + descripcion + "  (" + detalle + ")");
+    }
+
+    private static void titulo(String texto) {
+        System.out.println();
+        System.out.println("=".repeat(70));
+        System.out.println(" " + texto);
+        System.out.println("=".repeat(70));
+    }
+
+    private static void resumen() {
+        titulo("RESUMEN ROL 5");
+        System.out.println(" Verificaciones ejecutadas: " + verificaciones);
+        System.out.println(" Fallos: " + fallos);
+        System.out.println(fallos == 0
+                ? " RESULTADO: El dominio de gestion documental funciona correctamente."
+                : " RESULTADO: Hay fallos en el modulo de gestion documental.");
+        System.out.println();
     }
 }
