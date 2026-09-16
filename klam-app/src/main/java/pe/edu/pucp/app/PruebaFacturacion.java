@@ -2,6 +2,7 @@ package pe.edu.pucp.app;
 
 import java.time.LocalDateTime;
 
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.Boleta;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.Cotizacion;
@@ -39,8 +40,11 @@ public class PruebaFacturacion {
         Consumible esfera = crearConsumible(2, "Esfera de navegacion", "Brainlab", "Estandar");
         Consumible duramadre = crearConsumible(3, "Duramadre artificial 5x5", "Integra", "5x5 cm");
 
-        Factura factura = probarCotizacionYFactura(fresa, esfera);
-        probarBoleta(fresa, duramadre);
+        Cirugia craneotomia = crearCirugia(1, "Craneotomia con navegacion");
+        Cirugia biopsia = crearCirugia(2, "Biopsia estereotaxica");
+
+        Factura factura = probarCotizacionYFactura(craneotomia, fresa, esfera);
+        probarBoleta(biopsia, fresa, duramadre);
         probarGuardaDeLineas(factura, fresa);
         probarNotaCredito(factura, fresa);
         probarAnulacion(factura);
@@ -51,10 +55,10 @@ public class PruebaFacturacion {
     // -----------------------------------------------------------------
     // 1. Cotizacion aceptada y factura a cliente institucional
     // -----------------------------------------------------------------
-    private static Factura probarCotizacionYFactura(Consumible fresa, Consumible esfera) {
+    private static Factura probarCotizacionYFactura(Cirugia cirugia, Consumible fresa, Consumible esfera) {
         titulo("1. Cotizacion y factura a clinica (RUC)");
 
-        Cotizacion cotizacion = new Cotizacion(1, 4500.00, LocalDateTime.now());
+        Cotizacion cotizacion = new Cotizacion(cirugia, 4500.00, LocalDateTime.now());
         cotizacion.setIdCotizacion(1);
         System.out.println("   " + cotizacion);
         cotizacion.aceptar();
@@ -67,7 +71,7 @@ public class PruebaFacturacion {
             verificar("Una cotizacion ya resuelta no cambia de estado", true, true);
         }
 
-        Factura factura = new Factura(1, LocalDateTime.now(), "20481234567");
+        Factura factura = new Factura(cirugia, LocalDateTime.now(), "20481234567");
         factura.setIdDocumento(1);
         factura.agregarLinea(new LineaFactura(2, 1200.00, "Fresa de corte 4mm", fresa, "CONS-001"));
         factura.agregarLinea(new LineaFactura(1, 2100.00, "Esfera de navegacion", esfera, "CONS-002"));
@@ -86,16 +90,24 @@ public class PruebaFacturacion {
         verificar("La linea conserva la referencia al consumible",
                 "Fresa de corte 4mm", factura.getLineas().get(0).getConsumible().getNombreComercial());
 
+        // la relacion se modela con el objeto: desde el documento se llega a la cirugia
+        verificar("La cotizacion apunta a la cirugia que se va a operar",
+                "Craneotomia con navegacion", cotizacion.getCirugia().getTipoProcedimiento());
+        verificar("Desde la factura se llega al tipo de procedimiento de su cirugia",
+                "Craneotomia con navegacion", factura.getCirugia().getTipoProcedimiento());
+        verificar("La factura y la cotizacion apuntan a la misma cirugia",
+                true, factura.getCirugia() == cotizacion.getCirugia());
+
         return factura;
     }
 
     // -----------------------------------------------------------------
     // 2. Boleta a paciente particular
     // -----------------------------------------------------------------
-    private static void probarBoleta(Consumible fresa, Consumible duramadre) {
+    private static void probarBoleta(Cirugia cirugia, Consumible fresa, Consumible duramadre) {
         titulo("2. Boleta a paciente particular (DNI)");
 
-        Boleta boleta = new Boleta(2, LocalDateTime.now(), "70123456");
+        Boleta boleta = new Boleta(cirugia, LocalDateTime.now(), "70123456");
         boleta.setIdDocumento(2);
         boleta.agregarLinea(new LineaBoleta(1, 1200.00, "Fresa de corte 4mm", fresa, "CONS-001"));
         boleta.agregarLinea(new LineaBoleta(2, 1000.00, "Duramadre artificial 5x5", duramadre, "CONS-003"));
@@ -110,6 +122,8 @@ public class PruebaFacturacion {
                 3776.00, boleta.getMontoTotal());
         verificar("Queda registrada como PAGADO",
                 "PAGADO", boleta.getEstadoPago().name());
+        verificar("La boleta corresponde a otra cirugia",
+                2, boleta.getCirugia().getId_cirugia());
 
         try {
             boleta.setEstadoPago(EstadoPago.PENDIENTE);
@@ -207,6 +221,14 @@ public class PruebaFacturacion {
     // -----------------------------------------------------------------
     // Utilidades
     // -----------------------------------------------------------------
+    private static Cirugia crearCirugia(int id, String tipoProcedimiento) {
+        Cirugia c = new Cirugia();
+        c.setId_cirugia(id);
+        c.setTipoProcedimiento(tipoProcedimiento);
+        c.setFechaHoraInicio(LocalDateTime.now());
+        return c;
+    }
+
     private static Consumible crearConsumible(int id, String nombre, String marca, String medida) {
         Consumible c = new Consumible();
         c.setId_consumible(id);

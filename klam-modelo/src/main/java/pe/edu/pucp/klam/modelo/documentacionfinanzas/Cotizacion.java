@@ -2,13 +2,15 @@ package pe.edu.pucp.klam.modelo.documentacionfinanzas;
 
 import java.time.LocalDateTime;
 
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+
 public class Cotizacion {
 
     private int idCotizacion;
     private double precioPactado;
     private EstadoCotizacion estado;
     private LocalDateTime fechaEmision;
-    private int idCirugia;
+    private Cirugia cirugia;
     private boolean activo;
 
     public Cotizacion() {
@@ -16,10 +18,10 @@ public class Cotizacion {
         this.activo = true;
     }
 
-    public Cotizacion(int idCirugia, double precioPactado, LocalDateTime fechaEmision) {
+    public Cotizacion(Cirugia cirugia, double precioPactado, LocalDateTime fechaEmision) {
         this();
         validarPrecioPactado(precioPactado);
-        this.idCirugia = idCirugia;
+        this.cirugia = cirugia;
         this.precioPactado = precioPactado;
         this.fechaEmision = fechaEmision;
     }
@@ -75,8 +77,9 @@ public class Cotizacion {
     public LocalDateTime getFechaEmision() { return fechaEmision; }
     public void setFechaEmision(LocalDateTime fechaEmision) { this.fechaEmision = fechaEmision; }
 
-    public int getIdCirugia() { return idCirugia; }
-    public void setIdCirugia(int idCirugia) { this.idCirugia = idCirugia; }
+    /** La relacion con la cirugia se modela con la referencia, no con su id. */
+    public Cirugia getCirugia() { return cirugia; }
+    public void setCirugia(Cirugia cirugia) { this.cirugia = cirugia; }
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
@@ -84,6 +87,7 @@ public class Cotizacion {
     @Override
     public String toString() {
         return "Cotizacion{id=" + idCotizacion + ", precio=" + precioPactado
-                + ", estado=" + estado + ", cirugia=" + idCirugia + "}";
+                + ", estado=" + estado
+                + ", cirugia=" + (cirugia == null ? "sin cirugia" : cirugia.getId_cirugia()) + "}";
     }
 }
