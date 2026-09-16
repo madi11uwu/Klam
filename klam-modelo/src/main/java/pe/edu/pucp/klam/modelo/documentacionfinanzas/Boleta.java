@@ -2,6 +2,8 @@ package pe.edu.pucp.klam.modelo.documentacionfinanzas;
 
 import java.time.LocalDateTime;
 
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+
 public class Boleta extends DocumentoFacturacion {
 
     private String dniReceptor;
@@ -10,8 +12,8 @@ public class Boleta extends DocumentoFacturacion {
         super();
     }
 
-    public Boleta(int idCirugia, LocalDateTime fechaEmision, String dniReceptor) {
-        super(idCirugia, fechaEmision);
+    public Boleta(Cirugia cirugia, LocalDateTime fechaEmision, String dniReceptor) {
+        super(cirugia, fechaEmision);
         validarDni(dniReceptor);
         this.dniReceptor = dniReceptor;
     }
