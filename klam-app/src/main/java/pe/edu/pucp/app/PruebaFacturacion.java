@@ -269,7 +269,7 @@ public class PruebaFacturacion {
     }
 
     private static void resumen() {
-        titulo("RESUMEN");
+        titulo("RESUMEN ROL 6");
         System.out.println(" Verificaciones ejecutadas: " + verificaciones);
         System.out.println(" Fallos: " + fallos);
         System.out.println(fallos == 0
