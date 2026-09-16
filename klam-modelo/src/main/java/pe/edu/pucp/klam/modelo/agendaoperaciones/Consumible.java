@@ -6,6 +6,9 @@ public class Consumible {
     private String marca;
     private String medida;
 
+    public Consumible(){
+    }
+
     public Consumible(int id,String nombreComercial,
                       String marca,
                       String medida) {
