@@ -10,6 +10,7 @@ public class BandejaInstrumental implements Verificable {
     private String tipo;
     private boolean esterilizado;
     private Map<Consumible,Integer> consumibles;
+    private Map<Consumible,Integer> consumiblesConsumidos;
 
     public BandejaInstrumental(final BandejaInstrumental bandejaInstrumental) {
         if (bandejaInstrumental == null){
@@ -19,15 +20,27 @@ public class BandejaInstrumental implements Verificable {
         setTipo(bandejaInstrumental.getTipo());
         setEsterilizado(bandejaInstrumental.isEsterilizado());
         setConsumibles(bandejaInstrumental.getConsumibles());
+        setConsumiblesConsumidos(bandejaInstrumental.getConsumiblesConsumidos());
+
     }
 
     public BandejaInstrumental(int i, String s) {
         this.id_bandeja=i;
         this.tipo=s;
+        this.consumiblesConsumidos = new HashMap<>();
+
     }
 
     public Map<Consumible,Integer> getConsumibles() {
         return new HashMap<>(consumibles);
+    }
+
+    public Map<Consumible,Integer> getConsumiblesConsumidos() {
+        return new HashMap<>(consumiblesConsumidos);
+    }
+
+    public void setConsumiblesConsumidos(Map<Consumible,Integer> consumiblesConsumidos) {
+        this.consumiblesConsumidos = new HashMap<>(consumiblesConsumidos);
     }
 
     public void setConsumibles(Map<Consumible,Integer> consumibles) {
@@ -86,5 +99,23 @@ public class BandejaInstrumental implements Verificable {
     public boolean verificar() {
         if (esterilizado) return true;
         return false;
+    }
+    public void registrarConsumo(Consumible consumible, int cantidad) {
+        if (consumible == null) {
+            throw new IllegalArgumentException("Consumible no puede ser nulo");
+        }
+
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
+        }
+
+        consumiblesConsumidos.put(consumible, cantidad);
+    }
+    public int obtenerCantidadConsumida(Consumible consumible) {
+        return consumiblesConsumidos.getOrDefault(consumible, 0);
+    }
+
+    public int obtenerDiferencia(Consumible consumible) {
+        return obtenerCantidadConsumible(consumible) - obtenerCantidadConsumida(consumible);
     }
 }
