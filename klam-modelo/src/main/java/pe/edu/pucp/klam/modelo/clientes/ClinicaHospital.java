@@ -5,21 +5,21 @@ public class ClinicaHospital extends Cliente {
     private boolean tieneConsignacion;
     private String periodoCredito;
 
-    public ClinicaHospital() {
-        super();
+    public ClinicaHospital(final ClinicaHospital clinicaHospital) {
+        if (clinicaHospital==null) {
+            throw new IllegalArgumentException("ClinicaHospital no puede ser nulo.");
+        }
+        super(clinicaHospital);
+        setRuc(clinicaHospital.getRuc());
+        setTieneConsignacion(clinicaHospital.isTieneConsignacion());
+        setPeriodoCredito(clinicaHospital.getPeriodoCredito());
     }
 
-    public ClinicaHospital(String id_cliente, String nombre, String direccion, String emailContacto,
-                           String telefono, String ruc, boolean tieneConsignacion, String periodoCredito) {
-        this.id_cliente = id_cliente;
-        this.nombre = nombre;
-        this.direccion = direccion;
-        this.emailContacto = emailContacto;
-        this.telefono = telefono;
-        this.activo = true;
-        this.ruc = ruc;
-        this.tieneConsignacion = tieneConsignacion;
-        this.periodoCredito = periodoCredito;
+    public ClinicaHospital(int id, String clinicaDelgado, String s1, String mail, String number, String number1, boolean b, String s2) {
+        super(id,clinicaDelgado,s1,mail,number);
+        this.ruc=number1;
+        this.periodoCredito=s2;
+        this.tieneConsignacion=b;
     }
 
     // Getters y Setters

@@ -31,7 +31,7 @@ public class PruebaClientes {
 
     private static ClinicaHospital probarCreacionClinica() {
         titulo("1. Creacion de Clinica / Hospital (RUC)");
-        ClinicaHospital clinica = new ClinicaHospital("CLI-001", "Clinica Delgado",
+        ClinicaHospital clinica = new ClinicaHospital(1, "Clinica Delgado",
                 "Av. Angamos 400", "contacto@delgado.pe", "999888777",
                 "20123456789", true, "30 dias");
         System.out.println("   Registrando: " + clinica.getNombre());
@@ -41,7 +41,7 @@ public class PruebaClientes {
 
     private static PacienteParticular probarCreacionPaciente() {
         titulo("2. Creacion de Paciente Particular (DNI)");
-        PacienteParticular paciente = new PacienteParticular("PAC-001", "Juan Perez",
+        PacienteParticular paciente = new PacienteParticular(2, "Juan Perez",
                 "Av. Javier Prado 123", "juan.perez@email.com", "987654321",
                 "70123456", false);
         System.out.println("   Registrando: " + paciente.getNombre());

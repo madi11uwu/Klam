@@ -105,7 +105,7 @@ CREATE TABLE `equipo_especificacion` (
 );
 
 CREATE TABLE `clinica_hospital` (
-                `id_cliente` VARCHAR(50) NOT NULL,
+                `id_cliente` INT NOT NULL,
                 `nombre` VARCHAR(150) NOT NULL,
                 `direccion` VARCHAR(200) NULL,
                 `email_contacto` VARCHAR(120) NULL,
@@ -119,7 +119,7 @@ CREATE TABLE `clinica_hospital` (
 );
 
 CREATE TABLE `paciente_particular` (
-                   `id_cliente` VARCHAR(50) NOT NULL,
+                   `id_cliente` INT NOT NULL,
                    `nombre` VARCHAR(150) NOT NULL,
                    `direccion` VARCHAR(200) NULL,
                    `email_contacto` VARCHAR(120) NULL,
@@ -181,7 +181,7 @@ NOT NULL DEFAULT 'EMITIDA',
 );
 
 CREATE TABLE `orden_compra` (
-            `id_orden_compra` VARCHAR(50) NOT NULL,
+            `id_orden_compra` INT NOT NULL,
             `archivo_respaldo_path` VARCHAR(255) NOT NULL,
             `fecha_recepcion` DATETIME NOT NULL,
             `activo` TINYINT(1) NOT NULL DEFAULT 1,
@@ -189,7 +189,7 @@ CREATE TABLE `orden_compra` (
 );
 
 CREATE TABLE `documento_ingreso` (
-                 `id_documento` VARCHAR(50) NOT NULL,
+                 `id_documento` INT NOT NULL,
                  `tipo_documento` ENUM('DNI','RECETA_MEDICA','ORDEN_COMPRA') NOT NULL,
                  `archivo_path` VARCHAR(255) NOT NULL,
                  `estado_validacion` ENUM('PENDIENTE','VALIDADO','RECHAZADO')
@@ -365,7 +365,7 @@ CREATE TABLE `linea_orden_compra` (
 );
 
 CREATE TABLE `notificacion` (
-            `id_notificacion` VARCHAR(50) NOT NULL,
+            `id_notificacion` INT NOT NULL,
             `fecha_hora` DATETIME NOT NULL,
             `titulo` VARCHAR(150) NOT NULL,
             `mensaje` VARCHAR(500) NULL,
