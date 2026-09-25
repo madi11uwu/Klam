@@ -4,20 +4,16 @@ public class PacienteParticular extends Cliente {
     private String dni;
     private boolean pagoConfirmado;
 
-    public PacienteParticular() {
-        super();
+    public PacienteParticular(final PacienteParticular paciente) {
+        super(paciente);
+        setDni(paciente.getDni());
+        setPagoConfirmado(paciente.isPagoConfirmado());
     }
 
-    public PacienteParticular(String id_cliente, String nombre, String direccion, String emailContacto,
-                              String telefono, String dni, boolean pagoConfirmado) {
-        this.id_cliente = id_cliente;
-        this.nombre = nombre;
-        this.direccion = direccion;
-        this.emailContacto = emailContacto;
-        this.telefono = telefono;
-        this.activo = true;
-        this.dni = dni;
-        this.pagoConfirmado = pagoConfirmado;
+    public PacienteParticular(int i, String juanPerez, String s, String mail, String number, String number1, boolean b) {
+        super(i,juanPerez,s,mail,number);
+        this.dni=number1;
+        this.pagoConfirmado=b;
     }
 
     // Getters y Setters
