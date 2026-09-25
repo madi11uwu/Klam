@@ -14,7 +14,9 @@ public class ClinicaHospital extends Cliente {
         setTieneConsignacion(clinicaHospital.isTieneConsignacion());
         setPeriodoCredito(clinicaHospital.getPeriodoCredito());
     }
-
+    public ClinicaHospital () {
+        super();
+    }
     public ClinicaHospital(int id, String clinicaDelgado, String s1, String mail, String number, String number1, boolean b, String s2) {
         super(id,clinicaDelgado,s1,mail,number);
         this.ruc=number1;
