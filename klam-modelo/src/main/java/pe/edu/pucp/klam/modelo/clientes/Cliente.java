@@ -26,7 +26,7 @@ public abstract class Cliente {
         setActivo(cliente.isActivo());
         setCirugias(cliente.getCirugias());
     }
-
+    public Cliente (){activo=true;}
     public Cliente(int id, String nombre, String direccion, String emailContacto, String telefono) {
         this.id_cliente = id;
         this.nombre = nombre;
