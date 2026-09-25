@@ -17,7 +17,7 @@ VALUES
      'Rojas Medina',
      'ADMINISTRADOR',
      1,
-     'ADM-001');
+     1);
 
 
 -- ------------------------------------------------------------
@@ -34,7 +34,7 @@ VALUES
      'Torres Vega',
      'VENDEDOR',
      1,
-     'VEN-001',
+     1,
      1250.50),
 
     (3, 'vend.quispe',
@@ -44,7 +44,7 @@ VALUES
      'Quispe Huamán',
      'VENDEDOR',
      1,
-     'VEN-002',
+     2,
      780.00);
 
 
@@ -62,7 +62,7 @@ VALUES
      'Fernández Castro',
      'TECNICO_INSTRUMENTISTA',
      1,
-     'TEC-001',
+     1,
      'Neurocirugía'),
 
     (5, 'tec.salazar',
@@ -72,7 +72,7 @@ VALUES
      'Salazar Díaz',
      'TECNICO_INSTRUMENTISTA',
      1,
-     'TEC-002',
+     2,
      'Cirugía general');
 
 
@@ -148,7 +148,7 @@ INSERT INTO `paciente_particular`
 (`id_cliente`, `nombre`, `direccion`, `email_contacto`, `telefono`, `activo`,
  `dni`, `pago_confirmado`)
 VALUES
-    ('CLI-001',
+    (1,
      'Juan Pérez Alarcón',
      'Av. Javier Prado 1234, San Isidro',
      'juan.perez@gmail.com',
@@ -165,7 +165,7 @@ INSERT INTO `clinica_hospital`
 (`id_cliente`, `nombre`, `direccion`, `email_contacto`, `telefono`, `activo`,
  `ruc`, `tiene_consignacion`, `periodo_credito`)
 VALUES
-    ('CLI-002',
+    (2,
      'Clínica San Felipe',
      'Av. Gregorio Escobedo 650, Jesús María',
      'contacto@sanfelipe.com.pe',
@@ -175,7 +175,7 @@ VALUES
      1,
      '30 días'),
 
-    ('CLI-003',
+    (3,
      'Hospital Nacional Dos de Mayo',
      'Av. Grau 13, Cercado de Lima',
      'logistica@hdosdemayo.gob.pe',
@@ -192,7 +192,7 @@ VALUES
 INSERT INTO `orden_compra`
 (`id_orden_compra`, `archivo_respaldo_path`, `fecha_recepcion`, `activo`)
 VALUES
-    ('OC-2026-001',
+    (1,
      '/docs/oc/OC-2026-001.pdf',
      '2026-08-10 09:15:00',
      1);
@@ -209,7 +209,7 @@ INSERT INTO `documento_ingreso`
  `fecha_carga`, `id_orden_compra`, `activo`,
  `id_administrador`, `id_vendedor`, `id_tecnico`)
 VALUES
-    ('DOC-ING-001',
+    (1,
      'DNI',
      '/docs/ingreso/dni_juanperez.pdf',
      'VALIDADO',
@@ -218,16 +218,16 @@ VALUES
      1,
      1, NULL, NULL),
 
-    ('DOC-ING-002',
+    (2,
      'ORDEN_COMPRA',
      '/docs/ingreso/oc_sanfelipe.pdf',
      'VALIDADO',
      '2026-08-09 16:30:00',
-     'OC-2026-001',
+     1,
      1,
      1, NULL, NULL),
 
-    ('DOC-ING-003',
+    (3,
      'RECETA_MEDICA',
      '/docs/ingreso/receta_2demayo.pdf',
      'PENDIENTE',
@@ -259,7 +259,7 @@ VALUES
      1,
      1,
      NULL,
-     'CLI-001',
+     1,
      1),
 
     (2,
@@ -271,7 +271,7 @@ VALUES
      'PROGRAMADA',
      2,
      3,
-     'CLI-002',
+     2,
      NULL,
      1),
 
@@ -284,7 +284,7 @@ VALUES
      'CANCELADA',
      NULL,
      NULL,
-     'CLI-003',
+     3,
      NULL,
      1);
 
@@ -431,21 +431,21 @@ INSERT INTO `notificacion`
 (`id_notificacion`, `fecha_hora`, `titulo`, `mensaje`,
  `estado_leida`, `id_administrador`, `id_vendedor`, `id_tecnico`)
 VALUES
-    ('NOTIF-001',
+    (1,
      '2026-08-16 10:01:00',
      'Nueva solicitud de cotización',
      NULL,
      0,
      1, NULL, NULL),
 
-    ('NOTIF-002',
+    (2,
      '2026-08-12 08:46:00',
      'Nuevo ingreso de documento pendiente de validar',
      NULL,
      0,
      1, NULL, NULL),
 
-    ('NOTIF-003',
+    (3,
      '2026-08-15 12:05:00',
      'Nueva cirugía finalizada',
      NULL,
