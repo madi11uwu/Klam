@@ -142,8 +142,8 @@ CREATE TABLE `cirugia` (
 NOT NULL DEFAULT 'PROGRAMADA',
        `id_equipo` INT NULL,
        `id_bandeja` INT NULL,
-       `id_clinica_hospital` VARCHAR(50) NULL,
-       `id_paciente_particular` VARCHAR(50) NULL,
+       `id_clinica_hospital` INT NULL,
+       `id_paciente_particular` INT NULL,
        `activo` TINYINT(1) NOT NULL DEFAULT 1,
        PRIMARY KEY (`id_cirugia`),
        CONSTRAINT `fk_cirugia_equipo`
@@ -195,7 +195,7 @@ CREATE TABLE `documento_ingreso` (
                  `estado_validacion` ENUM('PENDIENTE','VALIDADO','RECHAZADO')
 NOT NULL DEFAULT 'PENDIENTE',
                  `fecha_carga` DATETIME NOT NULL,
-                 `id_orden_compra` VARCHAR(50) NULL,
+                 `id_orden_compra` INT NULL,
                  `activo` TINYINT(1) NOT NULL DEFAULT 1,
                  `id_administrador` INT NULL,
                  `id_vendedor` INT NULL,
@@ -347,7 +347,7 @@ CREATE TABLE `linea_nota_credito` (
 
 CREATE TABLE `linea_orden_compra` (
                   `id_linea` INT NOT NULL AUTO_INCREMENT,
-                  `id_orden_compra` VARCHAR(50) NOT NULL,
+                  `id_orden_compra` INT NOT NULL,
                   `id_consumible` INT NULL,
                   `item_referencia` VARCHAR(50) NULL,
                   `descripcion` VARCHAR(150) NOT NULL,
