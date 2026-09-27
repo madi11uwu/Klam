@@ -111,7 +111,7 @@ public class BandejaInstrumental implements Verificable {
         if (consumible == null) {
             throw new IllegalArgumentException("Consumible no puede ser nulo");
         }
-        if (cantidad <= 0) {
+        if (cantidad < 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
         consumiblesConsumidos.put(consumible, cantidad);
