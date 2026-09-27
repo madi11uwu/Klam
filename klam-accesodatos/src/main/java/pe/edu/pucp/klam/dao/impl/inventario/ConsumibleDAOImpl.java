@@ -1,4 +1,4 @@
-package pe.edu.pucp.klam.dao.impl;
+package pe.edu.pucp.klam.dao.impl.inventario;
 
 import pe.edu.pucp.klam.dao.ConsumibleDAO;
 import pe.edu.pucp.klam.db.DBManager;

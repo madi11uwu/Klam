@@ -3,7 +3,7 @@ package pe.edu.pucp.klam.bl.impl;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.EquipoBL;
 import pe.edu.pucp.klam.dao.EquipoDAO;
-import pe.edu.pucp.klam.dao.impl.EquipoDAOImpl;
+import pe.edu.pucp.klam.dao.impl.inventario.EquipoDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 
