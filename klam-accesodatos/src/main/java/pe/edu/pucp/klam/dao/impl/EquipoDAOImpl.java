@@ -58,6 +58,7 @@ public class EquipoDAOImpl implements EquipoDAO {
             if(cmd.executeUpdate()==0){
                 throw new SQLException("No se pudo insetar el equipo");
             }
+            equipo.setId_equipo(cmd.getInt("p_id"));
         }
     }
 
