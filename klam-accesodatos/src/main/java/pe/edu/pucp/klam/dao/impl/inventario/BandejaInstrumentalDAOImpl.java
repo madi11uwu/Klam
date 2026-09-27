@@ -37,11 +37,8 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
 
             BandejaInstrumental bandejaInstrumental;
             try(ResultSet rs= cmd.executeQuery()){
-                if(!rs.next()) return null;
-                bandejaInstrumental=mapear(rs);
+                return rs.next() ? mapear(rs):null;
             }
-            cargarConsumibles(conn,bandejaInstrumental);
-            return bandejaInstrumental;
         }
     }
 
@@ -63,7 +60,9 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
             }
             bandejaInstrumental.setId_bandeja(cmd.getInt("p_id"));
 
-            insertarConsumibles(conn, bandejaInstrumental);
+            BandejaConsumibleDAO bandejaConsumibleDAO=new BandejaConsumibleDAOImpl();
+            bandejaConsumibleDAO.insertConsumibles(bandejaInstrumental.getId_bandeja(),
+                    bandejaInstrumental.getConsumibles(), bandejaInstrumental.getConsumiblesConsumidos());
 
         }
     }
@@ -86,9 +85,10 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo actualizar la bandeja instrumental");
             }
-
-            eliminarConsumibles(conn, bandejaInstrumental.getId_bandeja());
-            insertarConsumibles(conn, bandejaInstrumental);
+            BandejaConsumibleDAO bandejaConsumibleDAO = new BandejaConsumibleDAOImpl();
+            bandejaConsumibleDAO.deleteConsumibles(bandejaInstrumental.getId_bandeja());
+            bandejaConsumibleDAO.insertConsumibles(bandejaInstrumental.getId_bandeja(),
+                    bandejaInstrumental.getConsumibles(), bandejaInstrumental.getConsumiblesConsumidos());
         }
     }
 
@@ -114,67 +114,13 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
         b.setTipo(rs.getString("tipo"));
         b.setEsterilizado(rs.getBoolean("esterilizado"));
         b.setActivo(rs.getBoolean("activo"));
+
+        mapearConsumibles(b);
         return b;
     }
-
-    private void insertarConsumibles(Connection conn, BandejaInstrumental bandeja) throws SQLException {
-        String sql = "{call insertar_consumible_bandeja(?, ?, ?, ?)}";
-
-        Map<Consumible, Integer> despachados = bandeja.getConsumibles();
-        Map<Consumible, Integer> consumidos = bandeja.getConsumiblesConsumidos();
-
-        // todos los consumibles que aparecen en cualquiera de los 2 maps
-        Set<Consumible> todos = new HashSet<>(despachados.keySet());
-        todos.addAll(consumidos.keySet());
-
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            for (Consumible c : todos) {
-                cmd.setInt("p_id_bandeja", bandeja.getId_bandeja());
-                cmd.setInt("p_id_consumible", c.getId_consumible());
-                cmd.setInt("p_cantidad_despachada", despachados.getOrDefault(c, 0));
-                cmd.setInt("p_cantidad_consumida", consumidos.getOrDefault(c, 0));
-
-                if (cmd.executeUpdate() == 0) {
-                    throw new SQLException("No se pudo insertar el consumible " + c.getId_consumible());
-                }
-            }
-        }
-    }
-
-    private void eliminarConsumibles(Connection conn, int idBandeja) throws SQLException {
-        String sql = "{call eliminar_consumibles_bandeja(?)}";
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_bandeja", idBandeja);
-            cmd.executeUpdate();   // sin validar 0: puede no tener consumibles
-        }
-    }
-
-    private void cargarConsumibles(Connection conn, BandejaInstrumental bandeja) throws SQLException {
-        String sql = "{call listar_consumibles_bandeja(?)}";
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_bandeja", bandeja.getId_bandeja());
-
-            try (ResultSet rs = cmd.executeQuery()) {
-                Map<Consumible, Integer> despachados = new HashMap<>();
-                Map<Consumible, Integer> consumidos = new HashMap<>();
-
-                while (rs.next()) {
-                    Consumible c = new Consumible();
-                    c.setId_consumible(rs.getInt("id_consumible"));
-                    c.setNombreComercial(rs.getString("nombre_comercial"));
-                    c.setMarca(rs.getString("marca"));
-                    c.setMedida(rs.getString("medida"));
-                    c.setActivo(rs.getBoolean("activo"));
-
-                    despachados.put(c, rs.getInt("cantidad_despachada"));
-                    int consumida = rs.getInt("cantidad_consumida");
-                    if (consumida > 0) {
-                        consumidos.put(c, consumida);
-                    }
-                }
-                bandeja.setConsumibles(despachados);
-                bandeja.setConsumiblesConsumidos(consumidos);
-            }
-        }
+    private void mapearConsumibles(BandejaInstrumental bandeja) throws SQLException {
+        BandejaConsumibleDAO consumibleDAO = new BandejaConsumibleDAOImpl();
+        bandeja.setConsumibles(consumibleDAO.findDespachadosByBandejaId(bandeja.getId_bandeja()));
+        bandeja.setConsumiblesConsumidos(consumibleDAO.findConsumidosByBandejaId(bandeja.getId_bandeja()));
     }
 }
