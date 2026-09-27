@@ -89,7 +89,7 @@ public class EquipoBLImpl implements EquipoBL {
     private void validarExiste(Integer id) throws BLException {
         try{
             if(equipoDAO.findById(id)==null){
-                throw new BLException("No existe un equipo con id" + id);
+                throw new BLException("No existe un equipo con id " + id);
             }
         }catch (SQLException e){
             throw new BLException("No se pudo verificar la existencia del equipo",e);
