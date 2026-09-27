@@ -417,8 +417,8 @@ INSERT INTO `linea_orden_compra`
 (`id_linea`, `id_orden_compra`, `id_consumible`,
  `item_referencia`, `descripcion`, `cantidad`, `precio_unitario`)
 VALUES
-    (1, 'OC-2026-001', 2, NULL, 'Gasa estéril 10x10cm', 50, 5.50),
-    (2, 'OC-2026-001', 4, NULL, 'Cera para hueso 2.5g', 10, 35.00);
+    (1, 1, 2, NULL, 'Gasa estéril 10x10cm', 50, 5.50),
+    (2, 1, 4, NULL, 'Cera para hueso 2.5g', 10, 35.00);
 
 
 -- ============================================================
