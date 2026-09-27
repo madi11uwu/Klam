@@ -1,16 +1,12 @@
 package pe.edu.pucp.klam.dao.impl;
 
 import pe.edu.pucp.klam.dao.ConsumibleDAO;
-import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
-import pe.edu.pucp.klam.modelo.agendaoperaciones.CategoriaEquipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
-import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ConsumibleDAOImpl implements ConsumibleDAO {
 
