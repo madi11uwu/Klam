@@ -30,6 +30,7 @@ public class Equipo implements Verificable {
     public Equipo(int i, String equipoQuirúrgicoA) {
         this.id_equipo=i;
         this.nombre=equipoQuirúrgicoA;
+        this.especificaciones= new HashMap<>();
         this.activo = true;
     }
 
@@ -46,7 +47,7 @@ public class Equipo implements Verificable {
     }
 
     public void setEspecificaciones(Map<String, Object> especificaciones) {
-        this.especificaciones = new HashMap<>(especificaciones);
+        this.especificaciones = (especificaciones==null) ? new HashMap<>() : new HashMap<>(especificaciones);
     }
 
     public String getNombre() {

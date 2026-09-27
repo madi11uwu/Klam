@@ -88,7 +88,7 @@ CREATE TABLE `bandeja_consumible` (
 CREATE TABLE `equipo` (
       `id_equipo` INT NOT NULL AUTO_INCREMENT,
       `nombre` VARCHAR(150) NOT NULL,
-      `categoria` ENUM('CRANEOTOMO','NAVEGADOR','OTRO') NOT NULL,
+      `categoria` ENUM('CRANEOTOMO','NAVEGADOR','MICROSCOPIO','OTRO') NOT NULL,
       `disponible` TINYINT(1) NOT NULL DEFAULT 1,
       `activo` TINYINT(1) NOT NULL DEFAULT 1,
       PRIMARY KEY (`id_equipo`)
