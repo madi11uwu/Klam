@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>klam-accesodatos</artifactId>
+    <artifactId>klam-negocio</artifactId>
 
     <properties>
         <maven.compiler.source>26</maven.compiler.source>
@@ -19,16 +19,8 @@
     <dependencies>
         <dependency>
             <groupId>pe.edu.pucp.softprog</groupId>
-            <artifactId>klam-modelo</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>pe.edu.pucp.softprog</groupId>
-            <artifactId>klam-dbmanager</artifactId>
+            <artifactId>klam-accesodatos</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-
     </dependencies>
-
 </project>

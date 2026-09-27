@@ -13,6 +13,7 @@
         <module>klam-modelo</module>
         <module>klam-accesodatos</module>
         <module>klam-app</module>
+        <module>klam-negocio</module>
     </modules>
 
     <properties>

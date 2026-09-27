@@ -19,6 +19,13 @@ public class Cirugia implements Agendable, Cancelable {
     private Equipo equipo;
     private BandejaInstrumental bandejaInstrumental;
 
+    // estado = ciclo de vida de la cirugia; activo = eliminacion logica
+    private boolean activo;
+
+    public Cirugia() {
+        this.activo = true;
+    }
+
      public int getId_cirugia() {
         return id_cirugia;
     }
@@ -87,6 +94,15 @@ public class Cirugia implements Agendable, Cancelable {
 
     public void setBandejaInstrumental(BandejaInstrumental bandejaInstrumental) {
         this.bandejaInstrumental = bandejaInstrumental;
+    }
+
+    /** Eliminacion logica: la cirugia se conserva aunque se dé de baja. */
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     //metodos de la interfaz Agendable, Cancelable

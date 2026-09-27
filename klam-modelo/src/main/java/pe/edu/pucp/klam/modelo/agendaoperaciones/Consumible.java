@@ -5,8 +5,10 @@ public class Consumible {
     private String nombreComercial;
     private String marca;
     private String medida;
+    private boolean activo;
 
     public Consumible(){
+        this.activo = true;
     }
 
     public Consumible(int id,String nombreComercial,
@@ -16,6 +18,7 @@ public class Consumible {
         this.nombreComercial = nombreComercial;
         this.marca = marca;
         this.medida = medida;
+        this.activo = true;
     }
 
     public Consumible(final Consumible consumible){
@@ -26,6 +29,16 @@ public class Consumible {
         setNombreComercial(consumible.getNombreComercial());
         setMarca(consumible.getMarca());
         setMedida(consumible.getMedida());
+        setActivo(consumible.isActivo());
+    }
+
+    /** Eliminacion logica: el consumible se conserva aunque se dé de baja. */
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public int getId_consumible() {

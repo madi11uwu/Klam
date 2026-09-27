@@ -8,12 +8,14 @@ public class DocumentoIngreso implements Validable {
     private String id_documento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
-    private String estadoValidacion;
+    private EstadoValidacionDocumento estadoValidacion;
     private LocalDateTime fechaCarga;
     private OrdenCompra ordenCompra;
+    private boolean activo;
 
     public DocumentoIngreso(){
-        
+        this.estadoValidacion = EstadoValidacionDocumento.PENDIENTE;
+        this.activo = true;
     }
     public OrdenCompra getOrdenCompra() {
         return ordenCompra!=null? new OrdenCompra(ordenCompra):null;
@@ -33,6 +35,7 @@ public class DocumentoIngreso implements Validable {
         setEstadoValidacion(documentoIngreso.getEstadoValidacion());
         setFechaCarga(documentoIngreso.getFechaCarga());
         setOrdenCompra(documentoIngreso.getOrdenCompra());
+        setActivo(documentoIngreso.isActivo());
     }
     public TipoDocumentoIngreso getTipoDocumento() {
         return tipoDocumento;
@@ -67,15 +70,24 @@ public class DocumentoIngreso implements Validable {
         this.archivoPath = archivoPath;
     }
 
-    public String getEstadoValidacion() {
+    public EstadoValidacionDocumento getEstadoValidacion() {
         return estadoValidacion;
     }
 
-    public void setEstadoValidacion(String estadoValidacion) {
-        if(estadoValidacion==null || estadoValidacion.isEmpty()){
-            throw new IllegalArgumentException("estadoValidacion no puede ser nulo o vacío");
+    public void setEstadoValidacion(EstadoValidacionDocumento estadoValidacion) {
+        if(estadoValidacion==null){
+            throw new IllegalArgumentException("estadoValidacion no puede ser nulo");
         }
         this.estadoValidacion = estadoValidacion;
+    }
+
+    /** Eliminacion logica: el documento se conserva aunque se dé de baja. */
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public LocalDateTime getFechaCarga() {
@@ -92,6 +104,6 @@ public class DocumentoIngreso implements Validable {
 
     @Override
     public boolean validar() {
-        return "VALIDADO".equals(this.estadoValidacion);
+        return this.estadoValidacion == EstadoValidacionDocumento.VALIDADO;
     }
 }
