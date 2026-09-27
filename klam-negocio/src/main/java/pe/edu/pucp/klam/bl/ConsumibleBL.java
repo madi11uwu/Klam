@@ -4,11 +4,6 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 
 import java.util.List;
 
-public interface ConsumibleBL {
-    List<Consumible> findAll() throws BLException;
-    List<Consumible> findByNombre(String nombre) throws BLException;
-    Consumible findById(Integer id) throws BLException;
-    void insert(Consumible consumible) throws BLException;
-    void update(Consumible consumible) throws BLException;
-    void delete(Integer id) throws BLException;
+public interface ConsumibleBL extends RegistroBL<Consumible, Integer> {
+    List<Consumible> findByNombre(String nombre) throws BLException;   // solo lo extra
 }
