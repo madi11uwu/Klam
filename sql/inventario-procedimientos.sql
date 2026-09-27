@@ -108,16 +108,82 @@ END$$
 
 DELIMITER ;
 
--- =========================================================
--- PRUEBAS (ejecutar a mano en Workbench)
--- =========================================================
--- CALL insertar_equipo(@id, 'Craneotomo prueba', 'CRANEOTOMO', 1);
--- SELECT @id;
--- CALL insertar_especificacion_equipo(@id, 'marca', 'Medtronic');
--- CALL insertar_especificacion_equipo(@id, 'voltaje', '220V');
--- CALL buscar_equipo_por_id(@id);
--- CALL listar_especificaciones_equipo(@id);
--- CALL modificar_equipo(@id, 'Craneotomo editado', 'OTRO', 0, 1);
--- CALL eliminar_especificaciones_equipo(@id);
--- CALL eliminar_equipo(@id);
--- CALL listar_equipos();
+-- ---------------------------------------------------------
+-- CONSUMIBLE
+-- ---------------------------------------------------------
+DROP PROCEDURE IF EXISTS insertar_consumible;
+DROP PROCEDURE IF EXISTS modificar_consumible;
+DROP PROCEDURE IF EXISTS eliminar_consumible;
+DROP PROCEDURE IF EXISTS listar_consumibles;
+DROP PROCEDURE IF EXISTS buscar_consumible_por_id;
+DROP PROCEDURE IF EXISTS buscar_consumibles_por_nombre;
+
+DELIMITER $$
+
+CREATE PROCEDURE insertar_consumible(
+    OUT p_id               INT,
+    IN  p_nombre_comercial VARCHAR(150),
+    IN  p_marca            VARCHAR(100),
+    IN  p_medida           VARCHAR(50)
+)
+BEGIN
+INSERT INTO consumible (nombre_comercial, marca, medida)
+VALUES (p_nombre_comercial, p_marca, p_medida);
+
+SET p_id = LAST_INSERT_ID();
+END$$
+
+CREATE PROCEDURE modificar_consumible(
+    IN p_id               INT,
+    IN p_nombre_comercial VARCHAR(150),
+    IN p_marca            VARCHAR(100),
+    IN p_medida           VARCHAR(50),
+    IN p_activo           TINYINT
+)
+BEGIN
+UPDATE consumible
+SET nombre_comercial = p_nombre_comercial,
+    marca            = p_marca,
+    medida           = p_medida,
+    activo           = p_activo
+WHERE id_consumible = p_id;
+END$$
+
+-- Baja logica: bandejas y lineas de documentos lo referencian
+CREATE PROCEDURE eliminar_consumible(
+    IN p_id INT
+)
+BEGIN
+UPDATE consumible
+SET activo = 0
+WHERE id_consumible = p_id;
+END$$
+
+CREATE PROCEDURE listar_consumibles()
+BEGIN
+SELECT id_consumible, nombre_comercial, marca, medida, activo
+FROM consumible
+WHERE activo = 1;
+END$$
+
+CREATE PROCEDURE buscar_consumible_por_id(
+    IN p_id INT
+)
+BEGIN
+SELECT id_consumible, nombre_comercial, marca, medida, activo
+FROM consumible
+WHERE id_consumible = p_id;
+END$$
+
+-- Busqueda parcial: 'gasa' encuentra 'Gasa esteril 10x10'
+CREATE PROCEDURE buscar_consumibles_por_nombre(
+    IN p_nombre VARCHAR(150)
+)
+BEGIN
+SELECT id_consumible, nombre_comercial, marca, medida, activo
+FROM consumible
+WHERE activo = 1
+  AND nombre_comercial LIKE CONCAT('%', p_nombre, '%');
+END$$
+
+DELIMITER ;
