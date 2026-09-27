@@ -4,10 +4,10 @@ import pe.edu.pucp.klam.dao.BandejaInstrumentalDAO;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
-import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
     @Override
@@ -35,7 +35,7 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
                 CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.setInt("p_id", id);
 
-            BandejaInstrumental bandejaInstrumental;
+
             try(ResultSet rs= cmd.executeQuery()){
                 return rs.next() ? mapear(rs):null;
             }
