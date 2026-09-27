@@ -1,6 +1,7 @@
 package pe.edu.pucp.klam.dao.impl;
 
 import pe.edu.pucp.klam.dao.EquipoDAO;
+import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.CategoriaEquipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
@@ -37,9 +38,14 @@ public class EquipoDAOImpl implements EquipoDAO {
                 Connection conn = DBManager.getInstance().getConnection();
                 CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.setInt("p_id", id);
+
+            Equipo equipo;
             try(ResultSet rs= cmd.executeQuery()){
-                return rs.next()? mapear(rs): null;
+                if(!rs.next()) return null;
+                equipo=mapear(rs);
             }
+            cargarEspecificaciones(conn,equipo);
+            return equipo;
         }
     }
 
@@ -48,41 +54,47 @@ public class EquipoDAOImpl implements EquipoDAO {
         if(equipo==null){
             throw new IllegalArgumentException("El equipo no puede ser nulo");
         }
+        Connection conn= TransactionsManager.getConnection();
         String sql = "{call insertar_equipo(?,?,?,?)}";
 
-        try(Connection conn=DBManager.getInstance().getConnection();
-            CallableStatement cmd=conn.prepareCall(sql)){
-            cmd.registerOutParameter("p_id",Types.INTEGER);
-            cmd.setString("p_nombre", equipo.getNombre());
-            cmd.setString("p_categoria",equipo.getCategoria().name());
-            cmd.setBoolean("p_disponible",equipo.isDisponible());
+        try(CallableStatement cmd=conn.prepareCall(sql)){
 
-            if(cmd.executeUpdate()==0){
-                throw new SQLException("No se pudo insetar el equipo");
+            cmd.registerOutParameter("p_id", Types.INTEGER);
+            cmd.setString("p_nombre", equipo.getNombre());
+            cmd.setString("p_categoria", equipo.getCategoria().name());
+            cmd.setBoolean("p_disponible", equipo.isDisponible());
+
+            if (cmd.executeUpdate() == 0) {
+                throw new SQLException("No se pudo insertar el equipo");
             }
             equipo.setId_equipo(cmd.getInt("p_id"));
+
+            insertarEspecificaciones(conn, equipo);
+
         }
     }
 
     @Override
     public void update(Equipo equipo) throws SQLException {
-        if(equipo==null){
+        if (equipo == null) {
             throw new IllegalArgumentException("El equipo no puede ser nulo");
         }
-        String sql= "{call modificar_equipo(?,?,?,?,?)}";
-        try(Connection conn=DBManager.getInstance().getConnection();
-            CallableStatement cmd=conn.prepareCall(sql)){
-            cmd.setInt("p_id",equipo.getId_equipo());
-            cmd.setString("p_nombre",equipo.getNombre());
-            cmd.setString("p_categoria",equipo.getCategoria().name());
-            cmd.setBoolean("p_disponible",equipo.isDisponible());
-            cmd.setBoolean("p_activo",equipo.isActivo());
+        Connection conn = TransactionsManager.getConnection();
+        String sql = "{call modificar_equipo(?,?,?,?,?)}";
+        try (CallableStatement cmd = conn.prepareCall(sql)) {
+            cmd.setInt("p_id", equipo.getId_equipo());
+            cmd.setString("p_nombre", equipo.getNombre());
+            cmd.setString("p_categoria", equipo.getCategoria().name());
+            cmd.setBoolean("p_disponible", equipo.isDisponible());
+            cmd.setBoolean("p_activo", equipo.isActivo());
 
-            if(cmd.executeUpdate()==0){
+            if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo actualizar el equipo");
             }
-        }
 
+            eliminarEspecificaciones(conn, equipo.getId_equipo());
+            insertarEspecificaciones(conn, equipo);
+        }
     }
 
     @Override
@@ -90,9 +102,9 @@ public class EquipoDAOImpl implements EquipoDAO {
         if(id==null){
             throw new IllegalArgumentException("El id no puede ser nulo");
         }
+        Connection conn=TransactionsManager.getConnection();
         String sql="{call eliminar_equipo(?)}";
-        try(Connection conn=DBManager.getInstance().getConnection();
-            CallableStatement cmd= conn.prepareCall(sql)){
+        try(CallableStatement cmd= conn.prepareCall(sql)){
             cmd.setInt("p_id",id);
 
             if(cmd.executeUpdate()==0){
