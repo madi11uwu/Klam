@@ -17,7 +17,7 @@ public class ConsumibleBLImpl implements ConsumibleBL {
     private final ConsumibleDAO consumibleDAO = new ConsumibleDAOImpl();
 
     @Override
-    public List<Consumible> finByNombre(String nombre) throws BLException {
+    public List<Consumible> findByNombre(String nombre) throws BLException {
         try {
             return consumibleDAO.findByNombre(nombre);
         } catch (SQLException e) {
@@ -96,10 +96,10 @@ public class ConsumibleBLImpl implements ConsumibleBL {
     private void validarExiste(Integer id) throws BLException {
         try{
             if(consumibleDAO.findById(id)==null){
-                throw new BLException("No existe un equipo con id " + id);
+                throw new BLException("No existe un consumible con id " + id);
             }
         }catch (SQLException e){
-            throw new BLException("No se pudo verificar la existencia del equipo",e);
+            throw new BLException("No se pudo verificar la existencia del consumible",e);
         }
     }
 }

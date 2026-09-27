@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ConsumibleBL {
     List<Consumible> findAll() throws BLException;
-    List<Consumible> finByNombre(String nombre) throws BLException;
+    List<Consumible> findByNombre(String nombre) throws BLException;
     Consumible findById(Integer id) throws BLException;
     void insert(Consumible consumible) throws BLException;
     void update(Consumible consumible) throws BLException;
