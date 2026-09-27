@@ -1,4 +1,4 @@
-package pe.edu.pucp.app;
+package pe.edu.pucp.app.prueba1;
 
 public class Programa {
 

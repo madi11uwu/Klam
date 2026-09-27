@@ -1,4 +1,4 @@
-package pe.edu.pucp.app;
+package pe.edu.pucp.app.prueba1;
 
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
