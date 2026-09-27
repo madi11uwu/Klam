@@ -4,14 +4,11 @@ import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.BandejaInstrumentalBL;
 import pe.edu.pucp.klam.dao.BandejaInstrumentalDAO;
 import pe.edu.pucp.klam.dao.ConsumibleDAO;
-import pe.edu.pucp.klam.dao.EquipoDAO;
 import pe.edu.pucp.klam.dao.impl.BandejaInstrumentalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.ConsumibleDAOImpl;
-import pe.edu.pucp.klam.dao.impl.EquipoDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
-import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 
 import java.sql.SQLException;
 import java.util.List;
