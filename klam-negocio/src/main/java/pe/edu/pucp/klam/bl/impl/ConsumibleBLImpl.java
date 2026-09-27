@@ -3,7 +3,7 @@ package pe.edu.pucp.klam.bl.impl;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.ConsumibleBL;
 import pe.edu.pucp.klam.dao.ConsumibleDAO;
-import pe.edu.pucp.klam.dao.impl.ConsumibleDAOImpl;
+import pe.edu.pucp.klam.dao.impl.inventario.ConsumibleDAOImpl;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 
 import java.sql.SQLException;

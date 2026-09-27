@@ -1,4 +1,4 @@
-package pe.edu.pucp.klam.dao.impl;
+package pe.edu.pucp.klam.dao.impl.inventario;
 
 import pe.edu.pucp.klam.dao.BandejaInstrumentalDAO;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;

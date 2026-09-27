@@ -1,4 +1,4 @@
-package pe.edu.pucp.klam.dao.impl;
+package pe.edu.pucp.klam.dao.impl.inventario;
 
 import pe.edu.pucp.klam.dao.EquipoDAO;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
@@ -39,25 +39,22 @@ public class EquipoDAOImpl implements EquipoDAO {
                 CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.setInt("p_id", id);
 
-            Equipo equipo;
-            try(ResultSet rs= cmd.executeQuery()){
-                if(!rs.next()) return null;
-                equipo=mapear(rs);
+            try (ResultSet rs = cmd.executeQuery()) {
+                return rs.next() ? mapear(rs):null;
             }
-            cargarEspecificaciones(conn,equipo);
-            return equipo;
+
         }
     }
 
     @Override
     public void insert(Equipo equipo) throws SQLException {
-        if(equipo==null){
+        if (equipo == null) {
             throw new IllegalArgumentException("El equipo no puede ser nulo");
         }
-        Connection conn= TransactionsManager.getConnection();
+        Connection conn = TransactionsManager.getConnection();
         String sql = "{call insertar_equipo(?,?,?,?)}";
 
-        try(CallableStatement cmd=conn.prepareCall(sql)){
+        try (CallableStatement cmd = conn.prepareCall(sql)) {
 
             cmd.registerOutParameter("p_id", Types.INTEGER);
             cmd.setString("p_nombre", equipo.getNombre());
@@ -69,7 +66,8 @@ public class EquipoDAOImpl implements EquipoDAO {
             }
             equipo.setId_equipo(cmd.getInt("p_id"));
 
-            insertarEspecificaciones(conn, equipo);
+            EquipoEspecificacionDAO equipoEspecificacionDAO = new EquipoEspecificacionDAOImpl();
+            equipoEspecificacionDAO.insertEspecificaciones(equipo.getId_equipo(), equipo.getEspecificaciones());
 
         }
     }
@@ -91,23 +89,23 @@ public class EquipoDAOImpl implements EquipoDAO {
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo actualizar el equipo");
             }
-
-            eliminarEspecificaciones(conn, equipo.getId_equipo());
-            insertarEspecificaciones(conn, equipo);
+            EquipoEspecificacionDAO equipoEspecificacionDAO = new EquipoEspecificacionDAOImpl();
+            equipoEspecificacionDAO.deleteEspecificaciones(equipo.getId_equipo());
+            equipoEspecificacionDAO.insertEspecificaciones(equipo.getId_equipo(), equipo.getEspecificaciones());
         }
     }
 
     @Override
     public void delete(Integer id) throws SQLException {
-        if(id==null){
+        if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo");
         }
-        Connection conn=TransactionsManager.getConnection();
-        String sql="{call eliminar_equipo(?)}";
-        try(CallableStatement cmd= conn.prepareCall(sql)){
-            cmd.setInt("p_id",id);
+        Connection conn = TransactionsManager.getConnection();
+        String sql = "{call eliminar_equipo(?)}";
+        try (CallableStatement cmd = conn.prepareCall(sql)) {
+            cmd.setInt("p_id", id);
 
-            if(cmd.executeUpdate()==0){
+            if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo eliminar el equipo");
             }
         }
@@ -120,47 +118,11 @@ public class EquipoDAOImpl implements EquipoDAO {
         e.setCategoria(CategoriaEquipo.valueOf(rs.getString("categoria")));
         e.setDisponible(rs.getBoolean("disponible"));
         e.setActivo(rs.getBoolean("activo"));
+        mapearEspecificaciones(e);
         return e;
     }
-
-    private void insertarEspecificaciones(Connection conn, Equipo equipo) throws SQLException {
-        String sql = "{call insertar_especificacion_equipo(?, ?, ?)}";
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-
-            for (Map.Entry<String, Object> esp : equipo.getEspecificaciones().entrySet()) {
-                cmd.setInt("p_id_equipo", equipo.getId_equipo());
-                cmd.setString("p_clave", esp.getKey());
-                cmd.setString("p_valor", String.valueOf(esp.getValue()));
-
-                if (cmd.executeUpdate() == 0) {
-                    throw new SQLException("No se pudo insertar la especificacion " + esp.getKey());
-                }
-            }
-        }
-    }
-
-    private void eliminarEspecificaciones(Connection conn, int idEquipo) throws SQLException {
-        String sql = "{call eliminar_especificaciones_equipo(?)}";
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-
-            cmd.setInt("p_id_equipo", idEquipo);
-            cmd.executeUpdate();   // sin validar 0: el equipo puede no tener especificaciones
-        }
-    }
-
-    private void cargarEspecificaciones(Connection conn, Equipo equipo) throws SQLException {
-        String sql = "{call listar_especificaciones_equipo(?)}";
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-
-            cmd.setInt("p_id_equipo", equipo.getId_equipo());
-
-            try (ResultSet rs = cmd.executeQuery()) {
-                Map<String, Object> especificaciones = new HashMap<>();
-                while (rs.next()) {
-                    especificaciones.put(rs.getString("clave"), rs.getString("valor"));
-                }
-                equipo.setEspecificaciones(especificaciones);
-            }
-        }
+    private void mapearEspecificaciones(Equipo equipo) throws SQLException {
+        EquipoEspecificacionDAO especificacionDAO = new EquipoEspecificacionDAOImpl();
+        equipo.setEspecificaciones(especificacionDAO.findByEquipoId(equipo.getId_equipo()));
     }
 }
