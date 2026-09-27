@@ -3,14 +3,13 @@ package pe.edu.pucp.klam.dao.impl;
 import pe.edu.pucp.klam.dao.BandejaInstrumentalDAO;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
-import pe.edu.pucp.klam.modelo.agendaoperaciones.CategoriaEquipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 
 import java.sql.*;
 import java.util.*;
 
-public class BadejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
+public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
     @Override
     public List<BandejaInstrumental> findAll() throws SQLException {
         String sql = "{call listar_bandejas()}";
@@ -49,7 +48,7 @@ public class BadejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
     @Override
     public void insert(BandejaInstrumental bandejaInstrumental) throws SQLException {
         if(bandejaInstrumental==null){
-            throw new IllegalArgumentException("El equipo no puede ser nulo");
+            throw new IllegalArgumentException("La bandeja instrumental no puede ser nula");
         }
         Connection conn= TransactionsManager.getConnection();
         String sql = "{call insertar_bandeja(?,?,?)}";
@@ -60,7 +59,7 @@ public class BadejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
             cmd.setBoolean("p_esterilizado", bandejaInstrumental.isEsterilizado());
 
             if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo insertar el equipo");
+                throw new SQLException("No se pudo insertar la bandeja instrumental");
             }
             bandejaInstrumental.setId_bandeja(cmd.getInt("p_id"));
 
@@ -72,7 +71,7 @@ public class BadejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
     @Override
     public void update(BandejaInstrumental bandejaInstrumental) throws SQLException {
         if (bandejaInstrumental == null) {
-            throw new IllegalArgumentException("El equipo no puede ser nulo");
+            throw new IllegalArgumentException("La bandeja instrumental no puede ser nula");
         }
         Connection conn = TransactionsManager.getConnection();
         String sql = "{call modificar_bandeja(?,?,?,?)}";
@@ -85,7 +84,7 @@ public class BadejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
             cmd.setBoolean("p_activo", bandejaInstrumental.isActivo());
 
             if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo actualizar el equipo");
+                throw new SQLException("No se pudo actualizar la bandeja instrumental");
             }
 
             eliminarConsumibles(conn, bandejaInstrumental.getId_bandeja());
@@ -104,7 +103,7 @@ public class BadejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
             cmd.setInt("p_id",id);
 
             if(cmd.executeUpdate()==0){
-                throw new SQLException("No se pudo eliminar el equipo");
+                throw new SQLException("No se pudo eliminar la bandeja instrumental");
             }
         }
     }
