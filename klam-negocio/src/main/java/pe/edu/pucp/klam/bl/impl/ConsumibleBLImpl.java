@@ -85,12 +85,6 @@ public class ConsumibleBLImpl implements ConsumibleBL {
         if (consumible.getNombreComercial() == null || consumible.getNombreComercial().isBlank()) {
             throw new BLException("El nombre comercial del consumible es obligatorio");
         }
-        if (consumible.getMarca() == null || consumible.getMarca().isBlank()) {
-            throw new BLException("La marca del consumible es obligatoria");
-        }
-        if (consumible.getMedida() == null || consumible.getMedida().isBlank()) {
-            throw new BLException("La medida del consumible es obligatoria");
-        }
     }
 
     private void validarExiste(Integer id) throws BLException {
