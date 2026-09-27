@@ -93,7 +93,6 @@ public class Equipo implements Verificable {
 
     @Override
     public boolean verificar() {
-        if (disponible) return true;
-        return false;
+        return disponible && activo;
     }
 }
