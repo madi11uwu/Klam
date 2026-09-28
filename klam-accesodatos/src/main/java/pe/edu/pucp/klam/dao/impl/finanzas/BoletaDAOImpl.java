@@ -1,8 +1,8 @@
-package pe.edu.pucp.klam.dao.impl;
+package pe.edu.pucp.klam.dao.impl.finanzas;
 
 import pe.edu.pucp.klam.dao.BoletaDAO;
-import pe.edu.pucp.klam.dao.impl.ventas.LineaBoletaDAO;
-import pe.edu.pucp.klam.dao.impl.ventas.LineaBoletaDAOImpl;
+import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaBoletaDAO;
+import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaBoletaDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.Boleta;

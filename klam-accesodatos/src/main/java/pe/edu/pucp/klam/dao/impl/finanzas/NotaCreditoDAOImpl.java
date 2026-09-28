@@ -1,8 +1,8 @@
-package pe.edu.pucp.klam.dao.impl;
+package pe.edu.pucp.klam.dao.impl.finanzas;
 
 import pe.edu.pucp.klam.dao.NotaCreditoDAO;
-import pe.edu.pucp.klam.dao.impl.ventas.LineaNotaCreditoDAO;
-import pe.edu.pucp.klam.dao.impl.ventas.LineaNotaCreditoDAOImpl;
+import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaNotaCreditoDAO;
+import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaNotaCreditoDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.*;
