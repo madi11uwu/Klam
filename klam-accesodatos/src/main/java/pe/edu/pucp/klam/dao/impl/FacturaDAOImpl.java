@@ -127,7 +127,6 @@ public class FacturaDAOImpl implements FacturaDAO {
 
         Connection conn = TransactionsManager.getConnection();
 
-        // Baja logica: la factura ya emitida no se borra, se desactiva.
         String sql = "{call eliminar_factura(?)}";
         try (CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.setInt("p_id", id);
