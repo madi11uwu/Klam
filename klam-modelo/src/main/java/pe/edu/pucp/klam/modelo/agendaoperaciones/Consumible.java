@@ -1,5 +1,7 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
+import java.util.Objects;
+
 public class Consumible {
     private int id_consumible;
     private String nombreComercial;
@@ -71,5 +73,17 @@ public class Consumible {
 
     public void setMedida(String medida) {
         this.medida = medida;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Consumible that = (Consumible) o;
+        return id_consumible == that.id_consumible;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id_consumible);
     }
 }

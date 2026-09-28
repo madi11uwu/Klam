@@ -88,7 +88,7 @@ CREATE TABLE `bandeja_consumible` (
 CREATE TABLE `equipo` (
       `id_equipo` INT NOT NULL AUTO_INCREMENT,
       `nombre` VARCHAR(150) NOT NULL,
-      `categoria` ENUM('CRANEOTOMO','NAVEGADOR','OTRO') NOT NULL,
+      `categoria` ENUM('CRANEOTOMO','NAVEGADOR','MICROSCOPIO','OTRO') NOT NULL,
       `disponible` TINYINT(1) NOT NULL DEFAULT 1,
       `activo` TINYINT(1) NOT NULL DEFAULT 1,
       PRIMARY KEY (`id_equipo`)
@@ -154,10 +154,10 @@ NOT NULL DEFAULT 'PROGRAMADA',
                ON DELETE SET NULL ON UPDATE CASCADE,
        CONSTRAINT `fk_cirugia_clinica`
            FOREIGN KEY (`id_clinica_hospital`) REFERENCES `clinica_hospital` (`id_cliente`)
-               ON DELETE RESTRICT ON UPDATE CASCADE,
+               ON DELETE RESTRICT ON UPDATE RESTRICT,
        CONSTRAINT `fk_cirugia_paciente`
            FOREIGN KEY (`id_paciente_particular`) REFERENCES `paciente_particular` (`id_cliente`)
-               ON DELETE RESTRICT ON UPDATE CASCADE,
+               ON DELETE RESTRICT ON UPDATE RESTRICT,
        CONSTRAINT `chk_cirugia_un_cliente` CHECK (
            (`id_clinica_hospital` IS NOT NULL AND `id_paciente_particular` IS NULL)
                OR
@@ -206,13 +206,13 @@ NOT NULL DEFAULT 'PENDIENTE',
                          ON DELETE SET NULL ON UPDATE CASCADE,
                  CONSTRAINT `fk_documento_ingreso_admin`
                      FOREIGN KEY (`id_administrador`) REFERENCES `administrador` (`id_usuario`)
-                         ON DELETE RESTRICT ON UPDATE CASCADE,
+                         ON DELETE RESTRICT ON UPDATE RESTRICT,
                  CONSTRAINT `fk_documento_ingreso_vendedor`
                      FOREIGN KEY (`id_vendedor`) REFERENCES `vendedor` (`id_usuario`)
-                         ON DELETE RESTRICT ON UPDATE CASCADE,
+                         ON DELETE RESTRICT ON UPDATE RESTRICT,
                  CONSTRAINT `fk_documento_ingreso_tecnico`
                      FOREIGN KEY (`id_tecnico`) REFERENCES `tecnico_instrumentista` (`id_usuario`)
-                         ON DELETE RESTRICT ON UPDATE CASCADE,
+                         ON DELETE RESTRICT ON UPDATE RESTRICT,
                  CONSTRAINT `chk_documento_ingreso_un_usuario` CHECK (
                      (`id_administrador` IS NOT NULL)
                          + (`id_vendedor` IS NOT NULL)
@@ -313,10 +313,10 @@ CREATE TABLE `nota_credito` (
             PRIMARY KEY (`id_nota_credito`),
             CONSTRAINT `fk_nota_factura`
                 FOREIGN KEY (`id_factura_original`) REFERENCES `factura` (`id_documento`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE,
+                    ON DELETE RESTRICT ON UPDATE RESTRICT,
             CONSTRAINT `fk_nota_boleta`
                 FOREIGN KEY (`id_boleta_original`) REFERENCES `boleta` (`id_documento`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE,
+                    ON DELETE RESTRICT ON UPDATE RESTRICT,
             CONSTRAINT `chk_nota_un_documento` CHECK (
                 (`id_factura_original` IS NOT NULL AND `id_boleta_original` IS NULL)
                     OR
@@ -376,13 +376,13 @@ CREATE TABLE `notificacion` (
             PRIMARY KEY (`id_notificacion`),
             CONSTRAINT `fk_notificacion_admin`
                 FOREIGN KEY (`id_administrador`) REFERENCES `administrador` (`id_usuario`)
-                    ON DELETE CASCADE ON UPDATE CASCADE,
+                    ON DELETE RESTRICT ON UPDATE RESTRICT,
             CONSTRAINT `fk_notificacion_vendedor`
                 FOREIGN KEY (`id_vendedor`) REFERENCES `vendedor` (`id_usuario`)
-                    ON DELETE CASCADE ON UPDATE CASCADE,
+                    ON DELETE RESTRICT ON UPDATE RESTRICT,
             CONSTRAINT `fk_notificacion_tecnico`
                 FOREIGN KEY (`id_tecnico`) REFERENCES `tecnico_instrumentista` (`id_usuario`)
-                    ON DELETE CASCADE ON UPDATE CASCADE,
+                    ON DELETE RESTRICT ON UPDATE RESTRICT,
             CONSTRAINT `chk_notificacion_un_usuario` CHECK (
                 (`id_administrador` IS NOT NULL)
                     + (`id_vendedor` IS NOT NULL)
