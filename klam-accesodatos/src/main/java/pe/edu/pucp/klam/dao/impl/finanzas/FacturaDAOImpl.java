@@ -1,8 +1,8 @@
-package pe.edu.pucp.klam.dao.impl;
+package pe.edu.pucp.klam.dao.impl.finanzas;
 
 import pe.edu.pucp.klam.dao.FacturaDAO;
-import pe.edu.pucp.klam.dao.impl.ventas.LineaFacturaDAO;
-import pe.edu.pucp.klam.dao.impl.ventas.LineaFacturaDAOImpl;
+import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaFacturaDAO;
+import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaFacturaDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.EstadoPago;

@@ -1,4 +1,4 @@
-package pe.edu.pucp.klam.dao.impl.ventas;
+package pe.edu.pucp.klam.dao.impl.finanzas.ventas;
 
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaNotaCredito;
 

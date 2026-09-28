@@ -1,4 +1,4 @@
-package pe.edu.pucp.klam.dao.impl;
+package pe.edu.pucp.klam.dao.impl.finanzas;
 import pe.edu.pucp.klam.dao.PacienteParticularDAO;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
