@@ -1,7 +1,7 @@
 package pe.edu.pucp.app;
 
 import pe.edu.pucp.klam.bl.BLException;
-import pe.edu.pucp.klam.bl.RegistroBL;
+import pe.edu.pucp.klam.bl.BaseBL;
 import pe.edu.pucp.klam.bl.impl.ClinicaHospitalBLImpl;
 import pe.edu.pucp.klam.bl.impl.PacienteParticularBLImpl;
 import java.util.Objects;
@@ -62,7 +62,7 @@ public class PruebaClientesBL {
     }
 
     private static <T extends Cliente> void probarValidaciones(
-            String tipo, RegistroBL<T, Integer> bl, Supplier<T> crear) {
+            String tipo, BaseBL<T, Integer> bl, Supplier<T> crear) {
         rechaza(tipo + " nulo", "Debe proporcionar", () -> bl.insert(null));
         rechaza(tipo + " ID nulo", "El id debe ser un número positivo", () -> bl.findById(null));
         rechaza(tipo + " ID negativo", "El id debe ser un número positivo", () -> bl.delete(-1));
@@ -80,7 +80,7 @@ public class PruebaClientesBL {
                 "El correo de contacto no puede exceder 120 caracteres");
     }
 
-    private static <T extends Cliente> void validarCampo(String tipo, RegistroBL<T, Integer> bl,
+    private static <T extends Cliente> void validarCampo(String tipo, BaseBL<T, Integer> bl,
             Supplier<T> crear, Consumer<T> cambiar, String mensaje) {
         T cliente = crear.get();
         cambiar.accept(cliente);
@@ -88,7 +88,7 @@ public class PruebaClientesBL {
         rechaza(tipo + " update: " + mensaje, mensaje, () -> bl.update(cliente));
     }
 
-    private static <T extends Cliente> void probarCrud(String tipo, RegistroBL<T, Integer> bl,
+    private static <T extends Cliente> void probarCrud(String tipo, BaseBL<T, Integer> bl,
             Supplier<T> crear, Consumer<T> cambiarEspecificos) {
         T cliente = crear.get();
         boolean eliminado = false;
