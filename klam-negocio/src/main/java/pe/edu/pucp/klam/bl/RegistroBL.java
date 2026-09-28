@@ -8,4 +8,7 @@ public interface RegistroBL<T, ID> {
     void insert(T entidad) throws BLException;
     void update(T entidad) throws BLException;
     void delete(ID id) throws BLException;
+    void validarDatosCliente(String nombre, String direccion, String correo, String telefono) throws BLException;
+    void validarLongitud(String valor, int maximo, String campo) throws BLException;
+    void validarId(ID id) throws BLException;
 }

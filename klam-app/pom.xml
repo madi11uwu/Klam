@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>pe.edu.pucp.softprog</groupId>
-            <artifactId>klam-modelo</artifactId>
+            <artifactId>klam-negocio</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
