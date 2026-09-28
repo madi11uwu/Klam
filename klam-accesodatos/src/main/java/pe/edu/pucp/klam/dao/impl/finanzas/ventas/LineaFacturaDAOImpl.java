@@ -88,6 +88,4 @@ public class LineaFacturaDAOImpl implements LineaFacturaDAO {
 
         return linea;
     }
-
-
 }
