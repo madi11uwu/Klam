@@ -8,6 +8,7 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
 import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
+import pe.edu.pucp.klam.modelo.comunicaciones.TipoNotificacion;
 
 /**
  * Prueba del modulo Agenda y Alertas (Rol 1).
@@ -39,14 +40,14 @@ public class PruebaAgendaAlertas {
     private static void probarNotificacion() {
         titulo("1. Creacion y lectura de Notificacion");
 
-        String idNotif = UUID.randomUUID().toString();
+        int idNotif = UUID.randomUUID().hashCode(); //ESTA FUNCION SOLO PARA LA PRUEBA
         LocalDateTime fechaActual = LocalDateTime.now();
 
         Notificacion notificacion = new Notificacion(
                 idNotif,
                 fechaActual,
                 "Alerta: Falta instrumental BAN-002",
-                false
+                false, TipoNotificacion.ALERTA_ERROR_ENVIO
         );
 
         System.out.println("   ID Notificacion : " + notificacion.getId_notifacion());

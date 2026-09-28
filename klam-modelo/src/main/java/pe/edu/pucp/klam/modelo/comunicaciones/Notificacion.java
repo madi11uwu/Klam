@@ -4,20 +4,36 @@ import java.time.LocalDateTime;
 
 
 public class Notificacion {
-    String id_notifacion;
+    int id_notifacion;
     LocalDateTime fechaHora;
     String titulo;
     boolean estado_leida;
+    TipoNotificacion tipo_notificacion;
 
-    public Notificacion(String id_notifacion, LocalDateTime fechaHora, String titulo, boolean estado_leida) {
+    public TipoNotificacion getTipo_notificacion() {
+        return tipo_notificacion;
+    }
+
+    public void setTipo_notificacion(TipoNotificacion tipo_notificacion) {
+        this.tipo_notificacion = tipo_notificacion;
+    }
+
+
+    public Notificacion(int id_notifacion, LocalDateTime fechaHora, String titulo, boolean estado_leida, TipoNotificacion tiponoti) {
         this.id_notifacion = id_notifacion;
         this.fechaHora = fechaHora;
         this.titulo = titulo;
         this.estado_leida = estado_leida;
+        this.tipo_notificacion = tiponoti;
     }
-    public String getId_notifacion() {
+    public int getId_notifacion() {
         return id_notifacion;
     }
+
+    public void setId_notifacion(int id_notifacion) {
+        this.id_notifacion = id_notifacion;
+    }
+
     public LocalDateTime getFechaHora() {
         return fechaHora;
     }

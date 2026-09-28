@@ -28,11 +28,11 @@ public class PruebaUsuarios {
         titulo("MODULO DE USUARIOS, ROLES Y CONEXION A AWS - ROL 4");
 
         Administrador admin = crearAdministrador(1, "jsebastian", "jsebastian@bioklam.com",
-                "Jose Sebastian", "Parra Salazar", "ADM-001");
+                "Jose Sebastian", "Parra Salazar");
         Vendedor vendedor = crearVendedor(2, "mfromero", "mfromero@bioklam.com",
-                "Maria Fernanda", "Romero Ilave", "VEN-001");
+                "Maria Fernanda", "Romero Ilave");
         TecnicoInstrumentista tecnico = crearTecnico(3, "hcabello", "hcabello@bioklam.com",
-                "Halim Samir", "Cabello Mendoza", "TEC-001", "Neurocirugia");
+                "Halim Samir", "Cabello Mendoza", "Neurocirugia");
 
         probarCreacionYAtributos(admin, vendedor, tecnico);
         probarPolimorfismo(admin, vendedor, tecnico);
@@ -62,11 +62,11 @@ public class PruebaUsuarios {
         verificar("El tecnico nace con rol TECNICO_INSTRUMENTISTA",
                 "TECNICO_INSTRUMENTISTA", tecnico.getRol());
         verificar("El id de negocio del administrador se guarda correctamente",
-                "ADM-001", admin.getiAdmin());
+                "ADM-001", admin.getIdUsuario());
         verificar("El id de negocio del vendedor se guarda correctamente",
-                "VEN-001", vendedor.getIdVendedor());
+                "VEN-001", vendedor.getIdUsuario());
         verificar("El id de negocio del tecnico se guarda correctamente",
-                "TEC-001", tecnico.getIdTecnico());
+                "TEC-001", tecnico.getIdUsuario());
         verificar("El nombre completo se arma a partir de nombres y apellidos",
                 "Maria Fernanda Romero Ilave", vendedor.getNombreCompleto());
         verificar("Todos los usuarios nacen activos",
@@ -107,7 +107,7 @@ public class PruebaUsuarios {
         copia.setComisionAcumulada(999.0);
 
         verificar("La copia toma los mismos datos del original al crearse",
-                vendedor.getIdVendedor(), copia.getIdVendedor());
+                vendedor.getIdUsuario(), copia.getIdUsuario());
         verificar("Modificar la copia no afecta al vendedor original",
                 0.0, vendedor.getComisionAcumulada());
         verificar("La copia si quedo con el nuevo valor asignado",
@@ -186,22 +186,21 @@ public class PruebaUsuarios {
     // Utilidades
     // -----------------------------------------------------------------
     private static Administrador crearAdministrador(int idUsuario, String username, String email,
-                                                    String nombres, String apellidos, String idAdmin) {
+                                                    String nombres, String apellidos) {
         return new Administrador(idUsuario, username, "HASH_" + idUsuario, email,
-                nombres, apellidos, true, idAdmin);
+                nombres, apellidos, true);
     }
 
     private static Vendedor crearVendedor(int idUsuario, String username, String email,
-                                          String nombres, String apellidos, String idVendedor) {
+                                          String nombres, String apellidos) {
         return new Vendedor(idUsuario, username, "HASH_" + idUsuario, email,
-                nombres, apellidos, true, idVendedor, 0.0);
+                nombres, apellidos, true, 0.0);
     }
 
     private static TecnicoInstrumentista crearTecnico(int idUsuario, String username, String email,
-                                                      String nombres, String apellidos,
-                                                      String idTecnico, String especialidad) {
+                                                      String nombres, String apellidos, String especialidad) {
         return new TecnicoInstrumentista(idUsuario, username, "HASH_" + idUsuario, email,
-                nombres, apellidos, true, idTecnico, especialidad);
+                nombres, apellidos, true, especialidad);
     }
 
     private static void verificar(String descripcion, Object esperado, Object obtenido) {

@@ -1,34 +1,25 @@
 package pe.edu.pucp.klam.modelo.usuariosPermisos;
 
+import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
+
 public class Administrador extends UsuarioPlataforma {
 
-    private String id_admin;
 
     public Administrador() {
         super();
-        this.id_admin = "";
         setRol("ADMINISTRADOR");
     }
 
     public Administrador(int id_usuario, String username, String passwordHash, String email,
-                          String nombres, String apellidos, boolean activo, String id_admin) {
+                          String nombres, String apellidos, boolean activo) {
         super(id_usuario, username, passwordHash, email, nombres, apellidos, "ADMINISTRADOR", activo);
-        this.id_admin = id_admin;
     }
     //holiiii
 
     public Administrador(Administrador otro) {
         super(otro);
-        this.id_admin = otro.id_admin;
     }
 
-    public String getiAdmin() {
-        return id_admin;
-    }
-
-    public void setidAdmin(String id_admin) {
-        this.id_admin = id_admin;
-    }
 
     // Los siguientes métodos dependen de clases de otros módulos/roles
     // (Cirugia, DocumentoIngreso, Cliente, Cotizacion, NotaCredito).
@@ -65,8 +56,12 @@ public class Administrador extends UsuarioPlataforma {
     @Override
     public String toString() {
         return "Administrador{" +
-                "idAdmin='" + id_admin + '\'' +
                 ", " + super.toString() +
                 '}';
+    }
+
+    @Override
+    public void recibirNotificacion(Notificacion notificacion) {
+
     }
 }
