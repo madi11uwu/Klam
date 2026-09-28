@@ -4,14 +4,21 @@ import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CirugiaBL;
 import pe.edu.pucp.klam.dao.BandejaInstrumentalDAO;
 import pe.edu.pucp.klam.dao.CirugiaDAO;
+import pe.edu.pucp.klam.dao.ClinicaHospitalDAO;
 import pe.edu.pucp.klam.dao.EquipoDAO;
+import pe.edu.pucp.klam.dao.PacienteParticularDAO;
 import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
+import pe.edu.pucp.klam.dao.impl.ClinicaHospitalDAOImpl;
+import pe.edu.pucp.klam.dao.impl.PacienteParticularDAOImpl;
 import pe.edu.pucp.klam.dao.impl.inventario.BandejaInstrumentalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.inventario.EquipoDAOImpl;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
+import pe.edu.pucp.klam.modelo.clientes.Cliente;
+import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
+import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -21,6 +28,8 @@ public class CirugiaBLImpl implements CirugiaBL {
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
     private final EquipoDAO equipoDAO = new EquipoDAOImpl();
     private final BandejaInstrumentalDAO bandejaDAO = new BandejaInstrumentalDAOImpl();
+    private final ClinicaHospitalDAO clinicaHospitalDAO = new ClinicaHospitalDAOImpl();
+    private final PacienteParticularDAO pacienteParticularDAO = new PacienteParticularDAOImpl();
 
     @Override
     public List<Cirugia> findAll() throws BLException {
@@ -149,6 +158,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         if (cirugia.getCliente() == null) {
             throw new BLException("La cirugía debe tener un cliente");
         }
+        validarClienteExiste(cirugia.getCliente());
 
         // Los recursos solo deben estar operativos mientras la cirugia este vigente
         boolean vigente = cirugia.getEstado() == EstadoCirugia.PROGRAMADA
@@ -178,6 +188,25 @@ public class CirugiaBLImpl implements CirugiaBL {
             return cirugia;
         } catch (SQLException e) {
             throw new BLException("No se pudo verificar la existencia de la cirugía", e);
+        }
+    }
+
+    private void validarClienteExiste(Cliente cliente) throws BLException {
+        try {
+            boolean existe;
+            if (cliente instanceof ClinicaHospital) {
+                existe = clinicaHospitalDAO.findById(cliente.getId_cliente()) != null;
+            } else if (cliente instanceof PacienteParticular) {
+                existe = pacienteParticularDAO.findById(cliente.getId_cliente()) != null;
+            } else {
+                throw new BLException("Tipo de cliente no soportado");
+            }
+
+            if (!existe) {
+                throw new BLException("No existe un cliente con id " + cliente.getId_cliente());
+            }
+        } catch (SQLException e) {
+            throw new BLException("No se pudo verificar la existencia del cliente", e);
         }
     }
 
