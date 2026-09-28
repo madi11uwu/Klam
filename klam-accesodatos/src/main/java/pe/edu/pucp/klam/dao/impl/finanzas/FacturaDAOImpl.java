@@ -18,7 +18,7 @@ public class FacturaDAOImpl implements FacturaDAO {
     @Override
     public List<Factura> findAll() throws SQLException {
 
-        String sql = "{call listar_facturas}";
+        String sql = "{call listar_facturas()}";
 
         try (Connection conn = DBManager.getInstance().getConnection();
              CallableStatement cmd = conn.prepareCall(sql);

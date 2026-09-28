@@ -148,7 +148,6 @@ public class NotaCreditoBLImpl implements NotaCreditoBL {
             throw new BLException("La nota de credito debe corregir un documento existente");
         }
 
-        // No se confia en el documento que llega de la App: se recarga de la BD.
         DocumentoFacturacion real = recargarOriginal(original);
         if (real == null) {
             throw new BLException("No existe el documento original con id " + original.getIdDocumento());
@@ -158,7 +157,6 @@ public class NotaCreditoBLImpl implements NotaCreditoBL {
         }
         nota.setDocumentoOriginal(real);
 
-        // Monto recalculado desde las lineas (base, sin IGV); lo de la App se ignora.
         double monto = nota.calcularMontoTotal();
         if (nota.excedeAlDocumentoOriginal()) {
             throw new BLException(String.format(
@@ -166,7 +164,6 @@ public class NotaCreditoBLImpl implements NotaCreditoBL {
                     monto, real.getMontoBase()));
         }
 
-        // Acumulado: lo ya acreditado por otras notas activas + esta nota.
         double yaAcreditado = 0.0;
         for (NotaCredito previa : notasDelDocumento(real)) {
             if (previa.getIdNotaCredito() != nota.getIdNotaCredito()) {
