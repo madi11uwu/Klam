@@ -172,6 +172,17 @@ public class PruebaCirugiasCRUD {
         }
 
         try {
+            Cirugia cirugia = cirugiaDemo();
+            ClinicaHospital inexistente = new ClinicaHospital();
+            inexistente.setId_cliente(999_999);
+            cirugia.setCliente(inexistente);
+            cirugiaBL.insert(cirugia);
+            System.out.println("Cirugía con cliente inexistente: NO se rechazó (falla la regla)");
+        } catch (BLException ex) {
+            System.out.println("Cirugía con cliente inexistente -> Rechazado: " + ex.getMessage());
+        }
+
+        try {
             cirugiaBL.cancelar(ID_CIRUGIA_FINALIZADA_DML, " ");
             System.out.println("Cancelar sin motivo: NO se rechazó (falla la regla)");
         } catch (BLException ex) {

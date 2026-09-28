@@ -91,8 +91,8 @@ public class Cotizacion {
     public void setFechaEmision(LocalDateTime fechaEmision) { this.fechaEmision = fechaEmision; }
 
     /** La relacion con la cirugia se modela con la referencia, no con su id. */
-    public Cirugia getCirugia() { return cirugia != null ? new Cirugia(cirugia) : null; }
-    public void setCirugia(Cirugia cirugia) { this.cirugia = (cirugia != null) ? new Cirugia(cirugia) : null; }
+    public Cirugia getCirugia() { return cirugia; }
+    public void setCirugia(Cirugia cirugia) { this.cirugia = cirugia; }
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
