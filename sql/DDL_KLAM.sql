@@ -3,53 +3,47 @@ CREATE SCHEMA IF NOT EXISTS `klam` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4
 USE `klam` ;
 
 CREATE TABLE `administrador` (
-             `id_usuario` INT NOT NULL AUTO_INCREMENT,
-             `username` VARCHAR(50) NOT NULL,
-             `password_hash` VARCHAR(255) NOT NULL,
-             `email` VARCHAR(120) NOT NULL,
-             `nombres` VARCHAR(100) NOT NULL,
-             `apellidos` VARCHAR(100) NOT NULL,
-             `rol` ENUM('ADMINISTRADOR') NOT NULL DEFAULT 'ADMINISTRADOR',
-             `activo` TINYINT(1) NOT NULL DEFAULT 1,
-             `id_admin` VARCHAR(20) NOT NULL,
-             PRIMARY KEY (`id_usuario`),
-             UNIQUE KEY `uq_administrador_username` (`username`),
-             UNIQUE KEY `uq_administrador_email` (`email`),
-             UNIQUE KEY `uq_administrador_id_admin` (`id_admin`)
+                                 `id_usuario` INT NOT NULL AUTO_INCREMENT,
+                                 `username` VARCHAR(50) NOT NULL,
+                                 `password_hash` VARCHAR(255) NOT NULL,
+                                 `email` VARCHAR(120) NOT NULL,
+                                 `nombres` VARCHAR(100) NOT NULL,
+                                 `apellidos` VARCHAR(100) NOT NULL,
+                                 `rol` ENUM('ADMINISTRADOR') NOT NULL DEFAULT 'ADMINISTRADOR',
+                                 `activo` TINYINT(1) NOT NULL DEFAULT 1,
+                                 PRIMARY KEY (`id_usuario`),
+                                 UNIQUE KEY `uq_administrador_username` (`username`),
+                                 UNIQUE KEY `uq_administrador_email` (`email`)
 );
 
 CREATE TABLE `vendedor` (
-        `id_usuario` INT NOT NULL AUTO_INCREMENT,
-        `username` VARCHAR(50) NOT NULL,
-        `password_hash` VARCHAR(255) NOT NULL,
-        `email` VARCHAR(120) NOT NULL,
-        `nombres` VARCHAR(100) NOT NULL,
-        `apellidos` VARCHAR(100) NOT NULL,
-        `rol` ENUM('VENDEDOR') NOT NULL DEFAULT 'VENDEDOR',
-        `activo` TINYINT(1) NOT NULL DEFAULT 1,
-        `id_vendedor` VARCHAR(20) NOT NULL,
-        `comision_acumulada` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-        PRIMARY KEY (`id_usuario`),
-        UNIQUE KEY `uq_vendedor_username` (`username`),
-        UNIQUE KEY `uq_vendedor_email` (`email`),
-        UNIQUE KEY `uq_vendedor_id_vendedor` (`id_vendedor`)
+                            `id_usuario` INT NOT NULL AUTO_INCREMENT,
+                            `username` VARCHAR(50) NOT NULL,
+                            `password_hash` VARCHAR(255) NOT NULL,
+                            `email` VARCHAR(120) NOT NULL,
+                            `nombres` VARCHAR(100) NOT NULL,
+                            `apellidos` VARCHAR(100) NOT NULL,
+                            `rol` ENUM('VENDEDOR') NOT NULL DEFAULT 'VENDEDOR',
+                            `activo` TINYINT(1) NOT NULL DEFAULT 1,
+                            `comision_acumulada` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                            PRIMARY KEY (`id_usuario`),
+                            UNIQUE KEY `uq_vendedor_username` (`username`),
+                            UNIQUE KEY `uq_vendedor_email` (`email`)
 );
 
 CREATE TABLE `tecnico_instrumentista` (
-              `id_usuario` INT NOT NULL AUTO_INCREMENT,
-              `username` VARCHAR(50) NOT NULL,
-              `password_hash` VARCHAR(255) NOT NULL,
-              `email` VARCHAR(120) NOT NULL,
-              `nombres` VARCHAR(100) NOT NULL,
-              `apellidos` VARCHAR(100) NOT NULL,
-              `rol` ENUM('TECNICO_INSTRUMENTISTA') NOT NULL DEFAULT 'TECNICO_INSTRUMENTISTA',
-              `activo` TINYINT(1) NOT NULL DEFAULT 1,
-              `id_tecnico` VARCHAR(20) NOT NULL,
-              `especialidad` VARCHAR(100) NULL,
-              PRIMARY KEY (`id_usuario`),
-              UNIQUE KEY `uq_tecnico_username` (`username`),
-              UNIQUE KEY `uq_tecnico_email` (`email`),
-              UNIQUE KEY `uq_tecnico_id_tecnico` (`id_tecnico`)
+                                          `id_usuario` INT NOT NULL AUTO_INCREMENT,
+                                          `username` VARCHAR(50) NOT NULL,
+                                          `password_hash` VARCHAR(255) NOT NULL,
+                                          `email` VARCHAR(120) NOT NULL,
+                                          `nombres` VARCHAR(100) NOT NULL,
+                                          `apellidos` VARCHAR(100) NOT NULL,
+                                          `rol` ENUM('TECNICO_INSTRUMENTISTA') NOT NULL DEFAULT 'TECNICO_INSTRUMENTISTA',
+                                          `activo` TINYINT(1) NOT NULL DEFAULT 1,
+                                          `especialidad` VARCHAR(100) NULL,
+                                          PRIMARY KEY (`id_usuario`),
+                                          UNIQUE KEY `uq_tecnico_username` (`username`),
+                                          UNIQUE KEY `uq_tecnico_email` (`email`)
 );
 
 CREATE TABLE `bandeja_instrumental` (
@@ -105,7 +99,7 @@ CREATE TABLE `equipo_especificacion` (
 );
 
 CREATE TABLE `clinica_hospital` (
-                `id_cliente` INT NOT NULL,
+                `id_cliente` INT NOT NULL AUTO_INCREMENT,
                 `nombre` VARCHAR(150) NOT NULL,
                 `direccion` VARCHAR(200) NULL,
                 `email_contacto` VARCHAR(120) NULL,
@@ -119,7 +113,7 @@ CREATE TABLE `clinica_hospital` (
 );
 
 CREATE TABLE `paciente_particular` (
-                   `id_cliente` INT NOT NULL,
+                   `id_cliente` INT NOT NULL AUTO_INCREMENT,
                    `nombre` VARCHAR(150) NOT NULL,
                    `direccion` VARCHAR(200) NULL,
                    `email_contacto` VARCHAR(120) NULL,
@@ -181,7 +175,7 @@ NOT NULL DEFAULT 'EMITIDA',
 );
 
 CREATE TABLE `orden_compra` (
-            `id_orden_compra` INT NOT NULL,
+            `id_orden_compra` INT NOT NULL AUTO_INCREMENT,
             `archivo_respaldo_path` VARCHAR(255) NOT NULL,
             `fecha_recepcion` DATETIME NOT NULL,
             `activo` TINYINT(1) NOT NULL DEFAULT 1,
@@ -189,7 +183,7 @@ CREATE TABLE `orden_compra` (
 );
 
 CREATE TABLE `documento_ingreso` (
-                 `id_documento` INT NOT NULL,
+                 `id_documento` INT NOT NULL AUTO_INCREMENT,
                  `tipo_documento` ENUM('DNI','RECETA_MEDICA','ORDEN_COMPRA') NOT NULL,
                  `archivo_path` VARCHAR(255) NOT NULL,
                  `estado_validacion` ENUM('PENDIENTE','VALIDADO','RECHAZADO')
@@ -365,7 +359,7 @@ CREATE TABLE `linea_orden_compra` (
 );
 
 CREATE TABLE `notificacion` (
-            `id_notificacion` INT NOT NULL,
+            `id_notificacion` INT NOT NULL AUTO_INCREMENT,
             `fecha_hora` DATETIME NOT NULL,
             `titulo` VARCHAR(150) NOT NULL,
             `mensaje` VARCHAR(500) NULL,

@@ -10,9 +10,9 @@ import pe.edu.pucp.klam.bl.impl.NotificacionBLImpl;
 import pe.edu.pucp.klam.bl.impl.TecnicoInstrumentistaBLImpl;
 import pe.edu.pucp.klam.bl.impl.VendedorBLImpl;
 import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
-import pe.edu.pucp.klam.modelo.comunicaciones.TipoNotificacion;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.TecnicoInstrumentista;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 
 import java.time.LocalDateTime;
@@ -49,6 +49,7 @@ public class PruebaUsuariosNotisCRUD {
         admin.setEmail("admin@klam.com");
         admin.setNombres("Carlos");
         admin.setApellidos("Pérez");
+        admin.setPasswordHash("hash_de_prueba_123");
 
         administradorBL.insert(admin);
         int id = admin.getIdUsuario();
@@ -72,6 +73,7 @@ public class PruebaUsuariosNotisCRUD {
             invalido.setEmail("correo-invalido");
             invalido.setNombres("Juan");
             invalido.setApellidos("Pérez");
+            invalido.setPasswordHash("hash_fail");
             administradorBL.insert(invalido);
         });
     }
@@ -86,6 +88,7 @@ public class PruebaUsuariosNotisCRUD {
         vendedor.setNombres("María");
         vendedor.setApellidos("Gómez");
         vendedor.setComisionAcumulada(150.50);
+        vendedor.setPasswordHash("hash_de_prueba_123");
 
         vendedorBL.insert(vendedor);
         int id = vendedor.getIdUsuario();
@@ -110,6 +113,7 @@ public class PruebaUsuariosNotisCRUD {
             invalido.setNombres("Ana");
             invalido.setApellidos("López");
             invalido.setComisionAcumulada(-50.0);
+            invalido.setPasswordHash("hash_fail");
             vendedorBL.insert(invalido);
         });
     }
@@ -124,6 +128,7 @@ public class PruebaUsuariosNotisCRUD {
         tecnico.setNombres("Jorge");
         tecnico.setApellidos("Salinas");
         tecnico.setEspecialidad("Neurocirugía");
+        tecnico.setPasswordHash("hash_de_prueba_123");
 
         tecnicoBL.insert(tecnico);
         int id = tecnico.getIdUsuario();
@@ -148,6 +153,7 @@ public class PruebaUsuariosNotisCRUD {
             invalido.setNombres("Luis");
             invalido.setApellidos("Torres");
             invalido.setEspecialidad("");
+            invalido.setPasswordHash("hash_fail");
             tecnicoBL.insert(invalido);
         });
     }
@@ -156,40 +162,72 @@ public class PruebaUsuariosNotisCRUD {
     // NOTIFICACIÓN
     // -----------------------------------------------------------------
     private static void probarNotificacion() {
-        // En este caso, usamos el constructor vacío o setters si están disponibles,
-        // o adaptamos según los constructores mostrados en tus clases.
+        // 1. Necesitamos un usuario real en la base de datos para cumplir la FK del destinatario.
+        Administrador adminDestino = new Administrador();
+        adminDestino.setUsername("admin_noti");
+        adminDestino.setEmail("adminnoti@klam.com");
+        adminDestino.setNombres("Usuario");
+        adminDestino.setApellidos("Destino");
+        adminDestino.setPasswordHash("hash_temp");
+        administradorBL.insert(adminDestino); // Lo insertamos para que se le asigne un ID en BD
+
+        System.out.println("  [PRE-STEP] Creado destinatario de prueba con ID: " + adminDestino.getIdUsuario());
+
+        // 2. Creamos la notificación asignando el destinatario con el nuevo constructor
         Notificacion noti = new Notificacion(
                 0, // ID 0 o autogenerado
                 LocalDateTime.now(),
                 "Alerta de inventario bajo",
+                "El producto X está por debajo del stock mínimo (5 unidades).",
                 false,
-                TipoNotificacion.ALERTA_ERROR_ENVIO
+                adminDestino
         );
 
         notificacionBL.insert(noti);
-        int id = noti.getId_notifacion();
+        int id = noti.getIdNotificacion(); // Nuevo nombre de getter
         System.out.println("[INSERT] id " + id);
 
         Notificacion leida = notificacionBL.findById(id);
         System.out.println("[FIND BY ID] " + describir(leida));
 
-        leida.setEstado_leida(true);
+        leida.setEstadoLeida(true); // Nuevo nombre de setter
         leida.setTitulo("Alerta de inventario resuelta");
         notificacionBL.update(leida);
         System.out.println("[UPDATE] " + describir(notificacionBL.findById(id)));
 
         System.out.println("[FIND ALL] total: " + notificacionBL.findAll().size());
 
+        // 3. Limpiamos los datos
         notificacionBL.delete(id);
-        System.out.println("[DELETE] Eliminación completada.");
+        System.out.println("[DELETE] Notificación eliminada completada.");
 
+        administradorBL.delete(adminDestino.getIdUsuario());
+        System.out.println("  [POST-STEP] Destinatario de prueba eliminado.");
+
+        // 4. Pruebas de error
         esperarError("notificación sin título", () -> {
             Notificacion invalida = new Notificacion(
                     0,
                     LocalDateTime.now(),
                     "", // Titulo vacío provocará BLException
+                    "Un mensaje cualquiera",
                     false,
-                    TipoNotificacion.NUEVA_SOLICITUD
+                    adminDestino
+            );
+            notificacionBL.insert(invalida);
+        });
+
+        esperarError("notificación sin destinatario válido", () -> {
+            UsuarioPlataforma usuarioFantasma = new Administrador();
+            // Usuario con ID 0, inválido según tu BL
+
+            Notificacion invalida = new Notificacion(
+                    0,
+                    LocalDateTime.now(),
+                    "Título válido",
+                    "Mensaje válido",
+                    false,
+                    usuarioFantasma
             );
             notificacionBL.insert(invalida);
         });
@@ -239,8 +277,14 @@ public class PruebaUsuariosNotisCRUD {
 
     private static String describir(Notificacion n) {
         if (n == null) return "Nulo";
-        return "título=" + n.getTitulo() + ", fechaHora=" + n.getFechaHora()
-                + ", leída=" + n.isEstado_leida() + ", tipo=" + n.getTipo_notificacion();
+
+        String tipoDest = "Desconocido";
+        if (n.getDestinatario() != null) {
+            tipoDest = n.getDestinatario().getClass().getSimpleName() + " (ID: " + n.getDestinatario().getIdUsuario() + ")";
+        }
+
+        return "título=" + n.getTitulo() + ", mensaje=" + n.getMensaje() + ", fechaHora=" + n.getFechaHora()
+                + ", leída=" + n.isEstadoLeida() + ", destinatario=" + tipoDest;
     }
 
     public static void main(String[] args) {

@@ -14,7 +14,7 @@ public class VendedorBLImpl implements VendedorBL {
     private final VendedorDAO vendedorDAO = new VendedorDAOImpl();
 
     @Override
-    public List findAll() throws BLException {
+    public List<Vendedor> findAll() throws BLException {
         try {
             return vendedorDAO.findAll();
         } catch (SQLException e) {
@@ -74,6 +74,9 @@ public class VendedorBLImpl implements VendedorBL {
         }
         if (vendedor.getUsername() == null || vendedor.getUsername().isBlank()) {
             throw new BLException("El nombre de usuario (username) es obligatorio");
+        }
+        if (vendedor.getPasswordHash() == null || vendedor.getPasswordHash().isBlank()) {
+            throw new BLException("La contraseña es obligatoria");
         }
         if (vendedor.getEmail() == null || vendedor.getEmail().isBlank()) {
             throw new BLException("El correo electrónico es obligatorio");

@@ -14,7 +14,7 @@ public class TecnicoInstrumentistaBLImpl implements TecnicoInstrumentistaBL {
     private final TecnicoInstrumentistaDAO tecnicoDAO = new TecnicoInstrumentistaDAOImpl();
 
     @Override
-    public List findAll() throws BLException {
+    public List<TecnicoInstrumentista> findAll() throws BLException {
         try {
             return tecnicoDAO.findAll();
         } catch (SQLException e) {
@@ -74,6 +74,9 @@ public class TecnicoInstrumentistaBLImpl implements TecnicoInstrumentistaBL {
         }
         if (tecnico.getUsername() == null || tecnico.getUsername().isBlank()) {
             throw new BLException("El nombre de usuario (username) es obligatorio");
+        }
+        if (tecnico.getPasswordHash() == null || tecnico.getPasswordHash().isBlank()) {
+            throw new BLException("La contraseña es obligatoria");
         }
         if (tecnico.getEmail() == null || tecnico.getEmail().isBlank()) {
             throw new BLException("El correo electrónico es obligatorio");
