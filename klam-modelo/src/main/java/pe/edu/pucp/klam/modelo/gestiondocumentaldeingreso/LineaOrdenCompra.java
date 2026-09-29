@@ -4,6 +4,9 @@ import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaDocumento;
 
 public class LineaOrdenCompra extends LineaDocumento {
 
+    public LineaOrdenCompra(){
+
+    }
     private String itemReferencia;
 
     public LineaOrdenCompra(final LineaOrdenCompra lineaOrdenCompra) {

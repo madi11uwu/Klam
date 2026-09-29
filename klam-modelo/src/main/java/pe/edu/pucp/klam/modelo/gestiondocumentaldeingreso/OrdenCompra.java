@@ -10,7 +10,7 @@ import java.util.List;
 
 public class OrdenCompra implements Verificable {
 
-    private String idOrdenCompra;
+    private int idOrdenCompra;
     private String archivoRespaldoPath;
     private LocalDateTime fechaRecepcion;
     private List<LineaOrdenCompra> lineasOrdenCompra;
@@ -52,13 +52,13 @@ public class OrdenCompra implements Verificable {
         this.lineasOrdenCompra = List.copyOf(lineasOrdenCompra);
     }
 
-    public String getIdOrdenCompra() {
+    public int getIdOrdenCompra() {
         return idOrdenCompra;
     }
 
-    public void setIdOrdenCompra(String idOrdenCompra) {
+    public void setIdOrdenCompra(int idOrdenCompra) {
 
-        if(idOrdenCompra==null || idOrdenCompra.isEmpty()){
+        if(idOrdenCompra<0){
             throw new IllegalArgumentException("El identificador de la orden de compra no puede ser nulo o vacío ");
         }
         this.idOrdenCompra = idOrdenCompra;
