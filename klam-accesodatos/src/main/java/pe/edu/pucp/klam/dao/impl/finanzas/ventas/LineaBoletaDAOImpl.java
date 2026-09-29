@@ -1,5 +1,6 @@
 package pe.edu.pucp.klam.dao.impl.finanzas.ventas;
 
+import pe.edu.pucp.klam.dao.impl.inventario.ConsumibleDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaBoleta;
@@ -76,8 +77,7 @@ public class LineaBoletaDAOImpl implements LineaBoletaDAO{
 
         int idConsumible = rs.getInt("id_consumible");
         if (!rs.wasNull()) {
-            //Consumible DAO
-            //linea.setConsumible(new ConsumibleDAOImpl().findById(idConsumible));
+            linea.setConsumible(new ConsumibleDAOImpl().findById(idConsumible));
         } else {
             linea.setConsumible(null);
         }

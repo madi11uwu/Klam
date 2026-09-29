@@ -1,4 +1,4 @@
-package pe.edu.pucp.klam.dao.impl.finanzas;
+package pe.edu.pucp.klam.dao.impl;
 
 import pe.edu.pucp.klam.dao.ClinicaHospitalDAO;
 import pe.edu.pucp.klam.db.DBManager;

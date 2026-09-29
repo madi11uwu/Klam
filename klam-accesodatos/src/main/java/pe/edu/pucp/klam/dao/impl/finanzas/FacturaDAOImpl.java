@@ -1,6 +1,7 @@
 package pe.edu.pucp.klam.dao.impl.finanzas;
 
 import pe.edu.pucp.klam.dao.FacturaDAO;
+import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaFacturaDAO;
 import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaFacturaDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
@@ -139,8 +140,7 @@ public class FacturaDAOImpl implements FacturaDAO {
 
     private Factura mapear(ResultSet rs, Factura factura) throws SQLException {
         factura.setIdDocumento(rs.getInt("id_documento"));
-        //falta el cirugiaDAO tdvia asjlkdfjasmdkl
-        //factura.setCirugia(new CirugiaDAOImpl().findById(rs.getInt("id_cirugia")));
+        factura.setCirugia(new CirugiaDAOImpl().findById(rs.getInt("id_cirugia")));
         factura.setFechaEmision(rs.getTimestamp("fecha_emision").toLocalDateTime());
         factura.setTasaIgv(rs.getDouble("tasa_igv"));
         factura.setEstadoPago(EstadoPago.valueOf(rs.getString("estado_pago")));
