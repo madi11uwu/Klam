@@ -4,24 +4,30 @@ import pe.edu.pucp.klam.dao.TecnicoInstrumentistaDAO;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.TecnicoInstrumentista;
 
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TecnicoInstrumentistaDAOImpl implements TecnicoInstrumentistaDAO {
+public class TecnicoInstrumentistaDAOImpl extends UsuarioPlataformaDAOImpl<TecnicoInstrumentista> implements TecnicoInstrumentistaDAO {
 
     @Override
-    public List findAll() throws SQLException {
+    public List<TecnicoInstrumentista> findAll() throws SQLException {
         String sql = "{call listar_tecnicos_instrumentistas()}";
 
         try (Connection conn = DBManager.getInstance().getConnection();
              CallableStatement cmd = conn.prepareCall(sql);
              ResultSet rs = cmd.executeQuery()) {
 
-            List tecnicos = new ArrayList<>();
+            List<TecnicoInstrumentista> tecnicos = new ArrayList<>();
+
             while (rs.next()) {
                 tecnicos.add(mapear(rs, new TecnicoInstrumentista()));
             }
+
             return tecnicos;
         }
     }
@@ -31,6 +37,7 @@ public class TecnicoInstrumentistaDAOImpl implements TecnicoInstrumentistaDAO {
         if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo");
         }
+
         String sql = "{call buscar_tecnico_instrumentista_por_id(?)}";
 
         try (Connection conn = DBManager.getInstance().getConnection();
@@ -39,7 +46,9 @@ public class TecnicoInstrumentistaDAOImpl implements TecnicoInstrumentistaDAO {
             cmd.setInt("p_id_usuario", id);
 
             try (ResultSet rs = cmd.executeQuery()) {
-                return rs.next() ? mapear(rs, new TecnicoInstrumentista()) : null;
+                return rs.next()
+                        ? mapear(rs, new TecnicoInstrumentista())
+                        : null;
             }
         }
     }
@@ -47,7 +56,9 @@ public class TecnicoInstrumentistaDAOImpl implements TecnicoInstrumentistaDAO {
     @Override
     public void insert(TecnicoInstrumentista tecnico) throws SQLException {
         if (tecnico == null) {
-            throw new IllegalArgumentException("El tecnico instrumentista no puede ser nulo");
+            throw new IllegalArgumentException(
+                    "El tecnico instrumentista no puede ser nulo"
+            );
         }
 
         String sql = "{call insertar_tecnico_instrumentista(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
@@ -63,12 +74,14 @@ public class TecnicoInstrumentistaDAOImpl implements TecnicoInstrumentistaDAO {
             cmd.setString("p_rol", tecnico.getRol());
             cmd.setBoolean("p_activo", tecnico.isActivo());
             cmd.setString("p_especialidad", tecnico.getEspecialidad());
-
             cmd.registerOutParameter("p_id_usuario", Types.INTEGER);
 
             if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo insertar el tecnico instrumentista");
+                throw new SQLException(
+                        "No se pudo insertar el tecnico instrumentista"
+                );
             }
+
             tecnico.setIdUsuario(cmd.getInt("p_id_usuario"));
         }
     }
@@ -76,15 +89,15 @@ public class TecnicoInstrumentistaDAOImpl implements TecnicoInstrumentistaDAO {
     @Override
     public void update(TecnicoInstrumentista tecnico) throws SQLException {
         if (tecnico == null) {
-            throw new IllegalArgumentException("El tecnico instrumentista no puede ser nulo");
+            throw new IllegalArgumentException(
+                    "El tecnico instrumentista no puede ser nulo"
+            );
         }
 
-        // 8 parámetros de datos a actualizar + 1 parámetro con el ID del usuario
         String sql = "{call modificar_tecnico_instrumentista(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection conn = DBManager.getInstance().getConnection();
              CallableStatement cmd = conn.prepareCall(sql)) {
-
             cmd.setString("p_username", tecnico.getUsername());
             cmd.setString("p_password_hash", tecnico.getPasswordHash());
             cmd.setString("p_email", tecnico.getEmail());
@@ -92,15 +105,13 @@ public class TecnicoInstrumentistaDAOImpl implements TecnicoInstrumentistaDAO {
             cmd.setString("p_apellidos", tecnico.getApellidos());
             cmd.setString("p_rol", tecnico.getRol());
             cmd.setBoolean("p_activo", tecnico.isActivo());
-
-            // Atributo específico de TecnicoInstrumentista
             cmd.setString("p_especialidad", tecnico.getEspecialidad());
-
-            // ID del usuario que se modificará
             cmd.setInt("p_id_usuario", tecnico.getIdUsuario());
 
             if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo actualizar el tecnico instrumentista");
+                throw new SQLException(
+                        "No se pudo actualizar el tecnico instrumentista"
+                );
             }
         }
     }
@@ -110,31 +121,26 @@ public class TecnicoInstrumentistaDAOImpl implements TecnicoInstrumentistaDAO {
         if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo");
         }
-
         String sql = "{call eliminar_tecnico_instrumentista(?)}";
-
         try (Connection conn = DBManager.getInstance().getConnection();
              CallableStatement cmd = conn.prepareCall(sql)) {
 
             cmd.setInt("p_id_usuario", id);
 
             if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo eliminar el tecnico instrumentista");
+                throw new SQLException(
+                        "No se pudo eliminar el tecnico instrumentista"
+                );
             }
         }
     }
 
-    private TecnicoInstrumentista mapear(ResultSet rs, TecnicoInstrumentista tecnico) throws SQLException {
-        tecnico.setIdUsuario(rs.getInt("id_usuario"));
-        tecnico.setUsername(rs.getString("username"));
-        tecnico.setPasswordHash(rs.getString("password_hash"));
-        tecnico.setEmail(rs.getString("email"));
-        tecnico.setNombres(rs.getString("nombres"));
-        tecnico.setApellidos(rs.getString("apellidos"));
-        tecnico.setRol(rs.getString("rol"));
-        tecnico.setActivo(rs.getBoolean("activo"));
-        tecnico.setEspecialidad(rs.getString("especialidad"));
-
+    @Override
+    protected TecnicoInstrumentista mapear(ResultSet rs, TecnicoInstrumentista tecnico) throws SQLException {
+        super.mapear(rs, tecnico);
+        tecnico.setEspecialidad(
+                rs.getString("especialidad")
+        );
         return tecnico;
     }
 }
