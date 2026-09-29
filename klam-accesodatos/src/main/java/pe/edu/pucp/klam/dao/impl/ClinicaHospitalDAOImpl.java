@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClinicaHospitalDAOImpl implements ClinicaHospitalDAO {
+public class ClinicaHospitalDAOImpl extends ClienteDAOImpl<ClinicaHospital> implements ClinicaHospitalDAO {
     @Override
     public List<ClinicaHospital> findAll()
             throws SQLException {
@@ -237,32 +237,10 @@ public class ClinicaHospitalDAOImpl implements ClinicaHospitalDAO {
         }
     }
 
-    private ClinicaHospital mapear(ResultSet rs,ClinicaHospital clinica)
+    @Override
+    protected ClinicaHospital mapear(ResultSet rs, ClinicaHospital clinica)
             throws SQLException {
-
-        clinica.setId_cliente(
-                rs.getInt("id_cliente")
-        );
-
-        clinica.setNombre(
-                rs.getString("nombre")
-        );
-
-        clinica.setDireccion(
-                rs.getString("direccion")
-        );
-
-        clinica.setEmailContacto(
-                rs.getString("email_contacto")
-        );
-
-        clinica.setTelefono(
-                rs.getString("telefono")
-        );
-
-        clinica.setActivo(
-                rs.getBoolean("activo")
-        );
+        super.mapear(rs, clinica);
 
         clinica.setRuc(
                 rs.getString("ruc")
