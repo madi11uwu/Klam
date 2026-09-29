@@ -107,4 +107,28 @@ public class VendedorBLImpl implements VendedorBL {
             throw new BLException("No se pudo verificar la existencia del vendedor", e);
         }
     }
+
+    @Override
+    public Vendedor findByUsername(String username) throws BLException {
+        if (username == null || username.isBlank()) {
+            throw new BLException("El nombre de usuario no puede ser nulo o vacío");
+        }
+        try {
+            return vendedorDAO.findByUsername(username);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el vendedor por username: " + username, e);
+        }
+    }
+
+    @Override
+    public Vendedor findByEmail(String email) throws BLException {
+        if (email == null || email.isBlank()) {
+            throw new BLException("El correo electrónico no puede ser nulo o vacío");
+        }
+        try {
+            return vendedorDAO.findByEmail(email);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el vendedor por email: " + email, e);
+        }
+    }
 }

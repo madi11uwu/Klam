@@ -159,4 +159,48 @@ public class VendedorDAOImpl
 
         return vendedor;
     }
+
+    @Override
+    public Vendedor findByUsername(String username) throws SQLException {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("El username no puede ser nulo o vacío");
+        }
+
+        String sql = "{call buscar_vendedor_por_username(?)}";
+
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall(sql)) {
+
+            cmd.setString(1, username);
+
+            try (ResultSet rs = cmd.executeQuery()) {
+                if (rs.next()) {
+                    return mapear(rs, new Vendedor());
+                }
+                return null; // Retorna null si no encontró a nadie con ese username
+            }
+        }
+    }
+
+    @Override
+    public Vendedor findByEmail(String email) throws SQLException {
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("El email no puede ser nulo o vacío");
+        }
+
+        String sql = "{call buscar_vendedor_por_email(?)}";
+
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall(sql)) {
+
+            cmd.setString(1, email);
+
+            try (ResultSet rs = cmd.executeQuery()) {
+                if (rs.next()) {
+                    return mapear(rs, new Vendedor());
+                }
+                return null; // Retorna null si no encontró a nadie con ese email
+            }
+        }
+    }
 }

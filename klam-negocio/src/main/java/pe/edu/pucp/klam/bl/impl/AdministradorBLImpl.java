@@ -104,4 +104,28 @@ public class AdministradorBLImpl implements AdministradorBL {
             throw new BLException("No se pudo verificar la existencia del administrador", e);
         }
     }
+
+    @Override
+    public Administrador findByUsername(String username) throws BLException {
+        if (username == null || username.isBlank()) {
+            throw new BLException("El nombre de usuario no puede ser nulo o vacío");
+        }
+        try {
+            return administradorDAO.findByUsername(username);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el administrador por username: " + username, e);
+        }
+    }
+
+    @Override
+    public Administrador findByEmail(String email) throws BLException {
+        if (email == null || email.isBlank()) {
+            throw new BLException("El correo electrónico no puede ser nulo o vacío");
+        }
+        try {
+            return administradorDAO.findByEmail(email);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el administrador por email: " + email, e);
+        }
+    }
 }

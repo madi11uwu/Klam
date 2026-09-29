@@ -5,4 +5,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface AdministradorDAO extends DAO<Administrador, Integer>{
+    Administrador findByUsername(String username) throws SQLException;
+
+    Administrador findByEmail(String email) throws SQLException;
 }

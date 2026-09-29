@@ -107,4 +107,29 @@ public class TecnicoInstrumentistaBLImpl implements TecnicoInstrumentistaBL {
             throw new BLException("No se pudo verificar la existencia del técnico instrumentista", e);
         }
     }
+
+    @Override
+    public TecnicoInstrumentista findByUsername(String username) throws BLException {
+        if (username == null || username.isBlank()) {
+            throw new BLException("El nombre de usuario no puede ser nulo o vacío");
+        }
+        try {
+            // Asegúrate de que "tecnicoDAO" coincida con el nombre de tu variable local
+            return tecnicoDAO.findByUsername(username);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el técnico por username: " + username, e);
+        }
+    }
+
+    @Override
+    public TecnicoInstrumentista findByEmail(String email) throws BLException {
+        if (email == null || email.isBlank()) {
+            throw new BLException("El correo electrónico no puede ser nulo o vacío");
+        }
+        try {
+            return tecnicoDAO.findByEmail(email);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el técnico por email: " + email, e);
+        }
+    }
 }
