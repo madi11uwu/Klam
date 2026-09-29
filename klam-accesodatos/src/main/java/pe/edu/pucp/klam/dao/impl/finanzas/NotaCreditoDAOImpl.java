@@ -14,7 +14,7 @@ import java.util.List;
 public class NotaCreditoDAOImpl implements NotaCreditoDAO {
     @Override
     public List<NotaCredito> findAll() throws SQLException {
-        String sql = "{call listar_notas_credito}";
+        String sql = "{call listar_notas_credito()}";
 
         try( Connection conn = DBManager.getInstance().getConnection();
              CallableStatement cmd = conn.prepareCall(sql);
@@ -82,7 +82,6 @@ public class NotaCreditoDAOImpl implements NotaCreditoDAO {
         }
     }
 
-
     @Override
     public void insert(NotaCredito nota) throws SQLException {
         if (nota == null) {
@@ -93,24 +92,24 @@ public class NotaCreditoDAOImpl implements NotaCreditoDAO {
 
         nota.calcularMontoTotal();
 
-        String sql = "{call modificar_nota_credito(?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{call insertar_nota_credito(?, ?, ?, ?, ?, ?, ?)}";
         try (CallableStatement cmd = conn.prepareCall(sql)) {
+            cmd.registerOutParameter("p_id", Types.INTEGER);
             asignarDocumentoOriginal(cmd, nota);
             cmd.setString("p_motivo", nota.getMotivo());
             cmd.setTimestamp("p_fecha_emision", Timestamp.valueOf(nota.getFechaEmision()));
             cmd.setDouble("p_monto_total", nota.getMontoTotal());
             cmd.setBoolean("p_activo", nota.isActivo());
-            cmd.setInt("p_id", nota.getIdNotaCredito());
 
             if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo actualizar la nota de credito");
+                throw new SQLException("No se pudo insertar la nota de credito");
             }
+
+            nota.setIdNotaCredito(cmd.getInt("p_id"));
         }
 
         LineaNotaCreditoDAO lineaDAO = new LineaNotaCreditoDAOImpl();
-        lineaDAO.deleteLineas(nota.getIdNotaCredito());
         lineaDAO.insertLineas(nota.getIdNotaCredito(), nota.getLineas());
-
     }
 
     @Override
@@ -140,7 +139,6 @@ public class NotaCreditoDAOImpl implements NotaCreditoDAO {
         LineaNotaCreditoDAO lineaDAO = new LineaNotaCreditoDAOImpl();
         lineaDAO.deleteLineas(nota.getIdNotaCredito());
         lineaDAO.insertLineas(nota.getIdNotaCredito(), nota.getLineas());
-
     }
 
     @Override
@@ -158,7 +156,6 @@ public class NotaCreditoDAOImpl implements NotaCreditoDAO {
                 throw new SQLException("No se pudo dar de baja la nota de credito");
             }
         }
-
     }
 
     private void asignarDocumentoOriginal(CallableStatement cmd, NotaCredito nota) throws SQLException {
@@ -179,9 +176,7 @@ public class NotaCreditoDAOImpl implements NotaCreditoDAO {
         }
     }
 
-
     private NotaCredito mapear(ResultSet rs, NotaCredito nota) throws SQLException {
-        // Se leen todas las columnas antes de hacer consultas anidadas.
         int idFactura = rs.getInt("id_factura_original");
         boolean sinFactura = rs.wasNull();
         int idBoleta = rs.getInt("id_boleta_original");
@@ -200,9 +195,8 @@ public class NotaCreditoDAOImpl implements NotaCreditoDAO {
 
         List<LineaNotaCredito> lineas = new LineaNotaCreditoDAOImpl()
                 .findByNotaCreditoId(nota.getIdNotaCredito());
-        nota.setLineas(lineas);   // recalcula montoTotal
+        nota.setLineas(lineas);
 
         return nota;
     }
-
 }

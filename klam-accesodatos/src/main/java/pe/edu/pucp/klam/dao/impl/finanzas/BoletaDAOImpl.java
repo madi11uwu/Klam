@@ -1,6 +1,7 @@
 package pe.edu.pucp.klam.dao.impl.finanzas;
 
 import pe.edu.pucp.klam.dao.BoletaDAO;
+import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaBoletaDAO;
 import pe.edu.pucp.klam.dao.impl.finanzas.ventas.LineaBoletaDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
@@ -142,8 +143,7 @@ public class BoletaDAOImpl implements BoletaDAO {
 
     private Boleta mapear(ResultSet rs, Boleta boleta) throws SQLException {
         boleta.setIdDocumento(rs.getInt("id_documento"));
-        //Cirugia DAOIMPL
-        //boleta.setCirugia(new CirugiaDAOImpl().findById(rs.getInt("id_cirugia")));
+        boleta.setCirugia(new CirugiaDAOImpl().findById(rs.getInt("id_cirugia")));
         boleta.setFechaEmision(rs.getTimestamp("fecha_emision").toLocalDateTime());
         boleta.setTasaIgv(rs.getDouble("tasa_igv"));
         boleta.setEstadoPago(EstadoPago.valueOf(rs.getString("estado_pago")));

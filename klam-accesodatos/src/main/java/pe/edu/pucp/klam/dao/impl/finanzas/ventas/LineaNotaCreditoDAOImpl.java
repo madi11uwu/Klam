@@ -1,5 +1,6 @@
 package pe.edu.pucp.klam.dao.impl.finanzas.ventas;
 
+import pe.edu.pucp.klam.dao.impl.inventario.ConsumibleDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.LineaNotaCredito;
@@ -79,8 +80,7 @@ public class LineaNotaCreditoDAOImpl implements LineaNotaCreditoDAO{
 
         int idConsumible = rs.getInt("id_consumible");
         if (!rs.wasNull()) {
-            // (Rol 2):
-            // linea.setConsumible(new ConsumibleDAOImpl().findById(idConsumible));
+            linea.setConsumible(new ConsumibleDAOImpl().findById(idConsumible));
         } else {
             linea.setConsumible(null);
         }
