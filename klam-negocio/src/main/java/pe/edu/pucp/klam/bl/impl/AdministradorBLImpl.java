@@ -14,7 +14,7 @@ public class AdministradorBLImpl implements AdministradorBL {
     private final AdministradorDAO administradorDAO = new AdministradorDAOImpl();
 
     @Override
-    public List findAll() throws BLException {
+    public List<Administrador> findAll() throws BLException {
         try {
             return administradorDAO.findAll();
         } catch (SQLException e) {
@@ -74,6 +74,9 @@ public class AdministradorBLImpl implements AdministradorBL {
         }
         if (administrador.getUsername() == null || administrador.getUsername().isBlank()) {
             throw new BLException("El nombre de usuario (username) es obligatorio");
+        }
+        if (administrador.getPasswordHash() == null || administrador.getPasswordHash().isBlank()) {
+            throw new BLException("La contraseña es obligatoria");
         }
         if (administrador.getEmail() == null || administrador.getEmail().isBlank()) {
             throw new BLException("El correo electrónico es obligatorio");
