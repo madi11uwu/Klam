@@ -149,4 +149,48 @@ public class TecnicoInstrumentistaDAOImpl
 
         return tecnico;
     }
+
+    @Override
+    public TecnicoInstrumentista findByUsername(String username) throws SQLException {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("El username no puede ser nulo o vacío");
+        }
+
+        String sql = "{call buscar_tecnico_por_username(?)}";
+
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall(sql)) {
+
+            cmd.setString(1, username);
+
+            try (ResultSet rs = cmd.executeQuery()) {
+                if (rs.next()) {
+                    return mapear(rs, new TecnicoInstrumentista());
+                }
+                return null;
+            }
+        }
+    }
+
+    @Override
+    public TecnicoInstrumentista findByEmail(String email) throws SQLException {
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("El email no puede ser nulo o vacío");
+        }
+
+        String sql = "{call buscar_tecnico_por_email(?)}";
+
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall(sql)) {
+
+            cmd.setString(1, email);
+
+            try (ResultSet rs = cmd.executeQuery()) {
+                if (rs.next()) {
+                    return mapear(rs, new TecnicoInstrumentista());
+                }
+                return null;
+            }
+        }
+    }
 }
