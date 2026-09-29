@@ -105,7 +105,7 @@ CREATE TABLE `equipo_especificacion` (
 );
 
 CREATE TABLE `clinica_hospital` (
-                `id_cliente` INT NOT NULL,
+                `id_cliente` INT NOT NULL AUTO_INCREMENT,
                 `nombre` VARCHAR(150) NOT NULL,
                 `direccion` VARCHAR(200) NULL,
                 `email_contacto` VARCHAR(120) NULL,
@@ -119,7 +119,7 @@ CREATE TABLE `clinica_hospital` (
 );
 
 CREATE TABLE `paciente_particular` (
-                   `id_cliente` INT NOT NULL,
+                   `id_cliente` INT NOT NULL AUTO_INCREMENT,
                    `nombre` VARCHAR(150) NOT NULL,
                    `direccion` VARCHAR(200) NULL,
                    `email_contacto` VARCHAR(120) NULL,
