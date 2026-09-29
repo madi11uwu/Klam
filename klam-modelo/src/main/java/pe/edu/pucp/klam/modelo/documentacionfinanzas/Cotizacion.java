@@ -26,6 +26,19 @@ public class Cotizacion {
         this.fechaEmision = fechaEmision;
     }
 
+    public Cotizacion(final Cotizacion cotizacion) {
+        if (cotizacion == null) {
+            throw new IllegalArgumentException("cotizacion no puede ser nula");
+        }
+        this();
+        setIdCotizacion(cotizacion.getIdCotizacion());
+        setPrecioPactado(cotizacion.getPrecioPactado());
+        setEstado(cotizacion.getEstado());
+        setFechaEmision(cotizacion.getFechaEmision());
+        setCirugia(cotizacion.getCirugia());
+        setActivo(cotizacion.isActivo());
+    }
+
     public void aceptar()  { this.transitar(EstadoCotizacion.ACEPTADA); }
     public void rechazar() { this.transitar(EstadoCotizacion.RECHAZADA); }
     public void vencer()   { this.transitar(EstadoCotizacion.VENCIDA); }

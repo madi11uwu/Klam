@@ -84,13 +84,13 @@ public class PruebaAgendaAlertas {
         cirugia.setFechaHoraInicio(LocalDateTime.of(2026, 9, 20, 8, 0));
         cirugia.setFechaHoraFin(LocalDateTime.of(2026, 9, 20, 10, 30));
         cirugia.setTipoProcedimiento("Apendicectomia Laparoscopica");
-        cirugia.setDoctornombre("Dr. Roberto Gomez");
+        cirugia.setDoctorNombre("Dr. Roberto Gomez");
         cirugia.setEstado(EstadoCirugia.PROGRAMADA);
         cirugia.setEquipo(equipoA);
         cirugia.setBandejaInstrumental(bandeja01);
 
         System.out.println("   Procedimiento   : " + cirugia.getTipoProcedimiento());
-        System.out.println("   Doctor a cargo  : " + cirugia.getDoctornombre());
+        System.out.println("   Doctor a cargo  : " + cirugia.getDoctorNombre());
 
         // CORRECCION 1: Se pasa "101" como String en lugar del entero 101
         verificar("Identificador agendable correcto", "101", cirugia.getIdentificador());
