@@ -5,7 +5,7 @@ import pe.edu.pucp.klam.modelo.interfaces.Validable;
 import java.time.LocalDateTime;
 
 public class DocumentoIngreso implements Validable {
-    private String id_documento;
+    private int id_documento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
     private EstadoValidacionDocumento estadoValidacion;
@@ -48,12 +48,12 @@ public class DocumentoIngreso implements Validable {
         this.tipoDocumento = tipoDocumento;
     }
 
-    public String getId_documento() {
+    public int getId_documento() {
         return id_documento;
     }
 
-    public void setId_documento(String id_documento) {
-        if(id_documento==null || id_documento.isEmpty()){
+    public void setId_documento(int id_documento) {
+        if(id_documento<0){
             throw new IllegalArgumentException("id_documento no puede ser nulo o vacío");
         }
         this.id_documento = id_documento;
