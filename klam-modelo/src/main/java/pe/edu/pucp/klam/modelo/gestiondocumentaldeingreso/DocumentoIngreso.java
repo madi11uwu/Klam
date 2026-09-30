@@ -1,19 +1,23 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
 import pe.edu.pucp.klam.modelo.interfaces.Validable;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 
 import java.time.LocalDateTime;
 
 public class DocumentoIngreso implements Validable {
-    private String id_documento;
+    private int id_documento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
-    private String estadoValidacion;
+    private EstadoValidacionDocumento estadoValidacion;
     private LocalDateTime fechaCarga;
     private OrdenCompra ordenCompra;
+    private boolean activo;
+    private UsuarioPlataforma usuarioCarga; // quien subio el documento (admin, vendedor o tecnico)
 
     public DocumentoIngreso(){
-        
+        this.estadoValidacion = EstadoValidacionDocumento.PENDIENTE;
+        this.activo = true;
     }
     public OrdenCompra getOrdenCompra() {
         return ordenCompra!=null? new OrdenCompra(ordenCompra):null;
@@ -33,6 +37,16 @@ public class DocumentoIngreso implements Validable {
         setEstadoValidacion(documentoIngreso.getEstadoValidacion());
         setFechaCarga(documentoIngreso.getFechaCarga());
         setOrdenCompra(documentoIngreso.getOrdenCompra());
+        setActivo(documentoIngreso.isActivo());
+        setUsuarioCarga(documentoIngreso.getUsuarioCarga());
+    }
+
+    public UsuarioPlataforma getUsuarioCarga() {
+        return usuarioCarga;
+    }
+
+    public void setUsuarioCarga(UsuarioPlataforma usuarioCarga) {
+        this.usuarioCarga = usuarioCarga;
     }
     public TipoDocumentoIngreso getTipoDocumento() {
         return tipoDocumento;
@@ -45,12 +59,12 @@ public class DocumentoIngreso implements Validable {
         this.tipoDocumento = tipoDocumento;
     }
 
-    public String getId_documento() {
+    public int getId_documento() {
         return id_documento;
     }
 
-    public void setId_documento(String id_documento) {
-        if(id_documento==null || id_documento.isEmpty()){
+    public void setId_documento(int id_documento) {
+        if(id_documento<0){
             throw new IllegalArgumentException("id_documento no puede ser nulo o vacío");
         }
         this.id_documento = id_documento;
@@ -67,15 +81,24 @@ public class DocumentoIngreso implements Validable {
         this.archivoPath = archivoPath;
     }
 
-    public String getEstadoValidacion() {
+    public EstadoValidacionDocumento getEstadoValidacion() {
         return estadoValidacion;
     }
 
-    public void setEstadoValidacion(String estadoValidacion) {
-        if(estadoValidacion==null || estadoValidacion.isEmpty()){
-            throw new IllegalArgumentException("estadoValidacion no puede ser nulo o vacío");
+    public void setEstadoValidacion(EstadoValidacionDocumento estadoValidacion) {
+        if(estadoValidacion==null){
+            throw new IllegalArgumentException("estadoValidacion no puede ser nulo");
         }
         this.estadoValidacion = estadoValidacion;
+    }
+
+    /** Eliminacion logica: el documento se conserva aunque se dé de baja. */
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public LocalDateTime getFechaCarga() {
@@ -92,6 +115,6 @@ public class DocumentoIngreso implements Validable {
 
     @Override
     public boolean validar() {
-        return "VALIDADO".equals(this.estadoValidacion);
+        return this.estadoValidacion == EstadoValidacionDocumento.VALIDADO;
     }
 }
