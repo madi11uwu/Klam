@@ -13,7 +13,7 @@ import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 
 /** Sin argumentos: validaciones locales. Con --crud: pruebas contra la BD. */
-public class PruebaClientesBL {
+public class PruebaClientesCRUD {
 
     private static int correctas;
     private static int fallos;
@@ -35,9 +35,9 @@ public class PruebaClientesBL {
             throw new IllegalArgumentException("Uso: PruebaClientesBL [--crud]");
         }
         probarValidaciones("ClinicaHospital", new ClinicaHospitalBLImpl(),
-                PruebaClientesBL::crearClinica);
+                PruebaClientesCRUD::crearClinica);
         probarValidaciones("PacienteParticular", new PacienteParticularBLImpl(),
-                PruebaClientesBL::crearPaciente);
+                PruebaClientesCRUD::crearPaciente);
         rechaza("RUC inválido", "El RUC debe tener exactamente 11 dígitos", () -> {
             ClinicaHospital c = crearClinica();
             c.setRuc("123");
@@ -56,12 +56,12 @@ public class PruebaClientesBL {
                 });
         if (args.length == 1) {
             probarCrud("ClinicaHospital", new ClinicaHospitalBLImpl(),
-                    PruebaClientesBL::crearClinica, c -> {
+                    PruebaClientesCRUD::crearClinica, c -> {
                         c.setTieneConsignacion(true);
                         c.setPeriodoCredito("60 dias");
                     });
             probarCrud("PacienteParticular", new PacienteParticularBLImpl(),
-                    PruebaClientesBL::crearPaciente, p -> p.setPagoConfirmado(true));
+                    PruebaClientesCRUD::crearPaciente, p -> p.setPagoConfirmado(true));
         } else {
             System.out.println("CRUD de BD pendiente: ejecutar con --crud tras integrar los SP.");
         }
