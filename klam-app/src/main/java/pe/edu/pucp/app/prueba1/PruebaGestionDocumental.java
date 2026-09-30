@@ -13,6 +13,7 @@ import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocume
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.LineaOrdenCompra;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
 
 public class PruebaGestionDocumental {
 
@@ -100,8 +101,7 @@ public class PruebaGestionDocumental {
             linea2.setPrecioUnitario(320.5);
             linea2.setDescripcion("Kits de sutura quirúrgica");
 
-            orden.getLineasOrdenCompra().add(linea1);
-            orden.getLineasOrdenCompra().add(linea2);
+            orden.setLineasOrdenCompra(List.of(linea1, linea2));
 
             ordenCompraBL.insert(orden);
             verificar("Registro de OrdenCompra transaccional en BL exitoso", true, orden.getIdOrdenCompra() > 0);
@@ -113,6 +113,9 @@ public class PruebaGestionDocumental {
             doc.setEstadoValidacion(EstadoValidacionDocumento.PENDIENTE);
             doc.setFechaCarga(LocalDateTime.now());
             doc.setOrdenCompra(orden);
+            Administrador admin = new Administrador();
+            admin.setIdUsuario(1); // administrador del DML
+            doc.setUsuarioCarga(admin);
 
             documentoIngresoBL.insert(doc);
             verificar("Registro de DocumentoIngreso en BL exitoso", true, doc.getId_documento() > 0);

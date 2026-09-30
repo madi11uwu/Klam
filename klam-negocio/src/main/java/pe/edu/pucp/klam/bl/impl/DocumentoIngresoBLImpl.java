@@ -9,6 +9,7 @@ import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
 import pe.edu.pucp.klam.dao.impl.DocumentoIngresoDAOImpl;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocumento;
+import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
 
 public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
 
@@ -100,6 +101,20 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         }
         if (doc.getArchivoPath() == null || doc.getArchivoPath().isBlank()) {
             throw new BLException("La ruta del archivo de respaldo es obligatoria");
+        }
+
+        // La BD exige exactamente un usuario (admin, vendedor o tecnico) que cargo el documento
+        if (doc.getUsuarioCarga() == null || doc.getUsuarioCarga().getIdUsuario() <= 0) {
+            throw new BLException("Debe indicar el usuario que carga el documento");
+        }
+
+        // Coherencia entre el tipo y la orden de compra asociada
+        boolean tieneOrden = doc.getOrdenCompra() != null && doc.getOrdenCompra().getIdOrdenCompra() > 0;
+        if (doc.getTipoDocumento() == TipoDocumentoIngreso.ORDEN_COMPRA && !tieneOrden) {
+            throw new BLException("Un documento de tipo ORDEN_COMPRA debe tener una orden de compra asociada");
+        }
+        if (doc.getTipoDocumento() != TipoDocumentoIngreso.ORDEN_COMPRA && tieneOrden) {
+            throw new BLException("Solo un documento de tipo ORDEN_COMPRA puede tener una orden de compra asociada");
         }
     }
 }

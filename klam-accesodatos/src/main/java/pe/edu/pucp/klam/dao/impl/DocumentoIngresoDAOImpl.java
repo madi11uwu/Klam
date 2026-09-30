@@ -8,18 +8,24 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
+import pe.edu.pucp.klam.dao.OrdenCompraDAO;
+import pe.edu.pucp.klam.dao.impl.compras.OrdenCompraDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocumento;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.TecnicoInstrumentista;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 
 public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
-
+    private final OrdenCompraDAO ordenCompraDAO = new OrdenCompraDAOImpl();
     @Override
    public void insert (DocumentoIngreso doc) throws SQLException {
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) {
             conn = DBManager.getInstance().getConnection();
@@ -39,11 +45,14 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
                     cs.setNull(5, Types.TIMESTAMP);
                 }
 
-                if (doc.getOrdenCompra() != null && doc.getOrdenCompra().getIdOrdenCompra() != 0) {
+                if (doc.getOrdenCompra() != null && doc.getOrdenCompra().getIdOrdenCompra() > 0) {
                     cs.setInt(6, doc.getOrdenCompra().getIdOrdenCompra());
                 } else {
                     cs.setNull(6, Types.INTEGER);
                 }
+
+                setUsuarioParams(cs, doc.getUsuarioCarga(), 7, 8, 9);
+                cs.setBoolean(10, doc.isActivo());
 
                 cs.executeUpdate();
                 int id = cs.getInt(1);
@@ -58,7 +67,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
 
     @Override
     public void update(DocumentoIngreso doc) throws SQLException {
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
@@ -76,11 +85,15 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
                     cs.setNull(5, Types.TIMESTAMP);
                 }
 
-                if (doc.getOrdenCompra() != null && doc.getOrdenCompra().getIdOrdenCompra()<0 ) {
-                    cs.setInt(6,doc.getOrdenCompra().getIdOrdenCompra());
+                if (doc.getOrdenCompra() != null && doc.getOrdenCompra().getIdOrdenCompra() > 0) {
+                    cs.setInt(6, doc.getOrdenCompra().getIdOrdenCompra());
                 } else {
                     cs.setNull(6, Types.INTEGER);
                 }
+
+                setUsuarioParams(cs, doc.getUsuarioCarga(), 7, 8, 9);
+                cs.setBoolean(10, doc.isActivo());
+
                 cs.executeUpdate();
             }
         } finally {
@@ -90,7 +103,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
 
     @Override
     public void delete(Integer id) throws SQLException{
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
@@ -107,7 +120,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
 
     @Override
     public DocumentoIngreso findById(Integer id) throws SQLException {
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
@@ -130,7 +143,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
     @Override
     public List<DocumentoIngreso> findAll() throws SQLException {
         List<DocumentoIngreso> lista = new ArrayList<>();
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
@@ -166,12 +179,62 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
 
         int idOrden = rs.getInt("id_orden_compra");
         if (!rs.wasNull()) {
-            OrdenCompra oc = new OrdenCompra();
-            oc.setIdOrdenCompra(idOrden);
-            doc.setOrdenCompra(oc);
+            OrdenCompra oc = ordenCompraDAO.findById(idOrden);
+            if (oc != null) {
+                doc.setOrdenCompra(oc);
+            }
         }
         
+        doc.setUsuarioCarga(mapearUsuario(rs));
         doc.setActivo(rs.getBoolean("activo"));
         return doc;
+    }
+
+    // Concrete table inheritance: el usuario puede estar en una de 3 columnas
+    private UsuarioPlataforma mapearUsuario(ResultSet rs) throws SQLException {
+        UsuarioPlataforma usuario = null;
+
+        int idAdmin = rs.getInt("id_administrador");
+        if (!rs.wasNull()) {
+            usuario = new Administrador();
+            usuario.setIdUsuario(idAdmin);
+        } else {
+            int idVend = rs.getInt("id_vendedor");
+            if (!rs.wasNull()) {
+                usuario = new Vendedor();
+                usuario.setIdUsuario(idVend);
+            } else {
+                int idTec = rs.getInt("id_tecnico");
+                if (!rs.wasNull()) {
+                    usuario = new TecnicoInstrumentista();
+                    usuario.setIdUsuario(idTec);
+                }
+            }
+        }
+        return usuario;
+    }
+
+    private void setUsuarioParams(CallableStatement cs, UsuarioPlataforma usuario,
+                                  int idxAdmin, int idxVend, int idxTec) throws SQLException {
+        cs.setNull(idxAdmin, Types.INTEGER);
+        cs.setNull(idxVend, Types.INTEGER);
+        cs.setNull(idxTec, Types.INTEGER);
+
+        if (usuario instanceof Administrador) {
+            cs.setInt(idxAdmin, usuario.getIdUsuario());
+        } else if (usuario instanceof Vendedor) {
+            cs.setInt(idxVend, usuario.getIdUsuario());
+        } else if (usuario instanceof TecnicoInstrumentista) {
+            cs.setInt(idxTec, usuario.getIdUsuario());
+        }
+    }
+
+    // TransactionsManager.getConnection() lanza excepcion si no hay transaccion activa
+    private Connection conexionTransaccional() {
+        try {
+            return TransactionsManager.getConnection();
+        } catch (IllegalStateException e) {
+            return null;
+        }
     }
 }

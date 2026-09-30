@@ -19,7 +19,7 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
 
     @Override
     public void insert(OrdenCompra orden) throws SQLException{
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
@@ -34,6 +34,7 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
                 } else {
                     cs.setNull(3, Types.TIMESTAMP);
                 }
+                cs.setBoolean(4, orden.isActivo());
 
                 cs.executeUpdate();
 
@@ -53,12 +54,12 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
 
     @Override
     public void update(OrdenCompra orden) throws SQLException {
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
         try {
-            String sql = "{CALL MODIFICAR_ORDEN_COMPRA(?, ?, ?)}";
+            String sql = "{CALL MODIFICAR_ORDEN_COMPRA(?, ?, ?, ?)}";
             try (CallableStatement cs = conn.prepareCall(sql)) {
                 int idOrden = orden.getIdOrdenCompra();
                 cs.setInt(1, idOrden);
@@ -69,8 +70,9 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
                 } else {
                     cs.setNull(3, Types.TIMESTAMP);
                 }
+                cs.setBoolean(4, orden.isActivo());
 
-                int res = cs.executeUpdate();
+                cs.executeUpdate();
 
                 lineaDAO.eliminarPorOrdenCompra(idOrden, conn);
                 if (orden.getLineasOrdenCompra() != null) {
@@ -86,7 +88,7 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
 
     @Override
     public void delete(Integer id) throws SQLException {
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
@@ -103,7 +105,7 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
 
     @Override
     public OrdenCompra findById(Integer id) throws SQLException{
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
@@ -130,7 +132,7 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
     @Override
     public List<OrdenCompra> findAll() throws SQLException {
         List<OrdenCompra> lista = new ArrayList<>();
-        Connection conn = TransactionsManager.getConnection();
+        Connection conn = conexionTransaccional();
         boolean localConn = (conn == null);
         if (localConn) conn = DBManager.getInstance().getConnection();
 
@@ -149,6 +151,15 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
             return lista;
         } finally {
             if (localConn && conn != null) conn.close();
+        }
+    }
+
+    // TransactionsManager.getConnection() lanza excepcion si no hay transaccion activa
+    private Connection conexionTransaccional() {
+        try {
+            return TransactionsManager.getConnection();
+        } catch (IllegalStateException e) {
+            return null;
         }
     }
 

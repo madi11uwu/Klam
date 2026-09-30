@@ -1,6 +1,7 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
 import pe.edu.pucp.klam.modelo.interfaces.Validable;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +13,7 @@ public class DocumentoIngreso implements Validable {
     private LocalDateTime fechaCarga;
     private OrdenCompra ordenCompra;
     private boolean activo;
+    private UsuarioPlataforma usuarioCarga; // quien subio el documento (admin, vendedor o tecnico)
 
     public DocumentoIngreso(){
         this.estadoValidacion = EstadoValidacionDocumento.PENDIENTE;
@@ -36,6 +38,15 @@ public class DocumentoIngreso implements Validable {
         setFechaCarga(documentoIngreso.getFechaCarga());
         setOrdenCompra(documentoIngreso.getOrdenCompra());
         setActivo(documentoIngreso.isActivo());
+        setUsuarioCarga(documentoIngreso.getUsuarioCarga());
+    }
+
+    public UsuarioPlataforma getUsuarioCarga() {
+        return usuarioCarga;
+    }
+
+    public void setUsuarioCarga(UsuarioPlataforma usuarioCarga) {
+        this.usuarioCarga = usuarioCarga;
     }
     public TipoDocumentoIngreso getTipoDocumento() {
         return tipoDocumento;

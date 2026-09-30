@@ -17,23 +17,22 @@ public class LineaOrdenCompraDAOImpl implements LineaOrdenCompraDAO {
     public Integer insertar(LineaOrdenCompra linea, Integer idOrdenCompra, Connection conn) throws SQLException {
         String sql = "{CALL INSERTAR_LINEA_ORDEN_COMPRA(?, ?, ?, ?, ?, ?, ?)}";
         try (CallableStatement cs = conn.prepareCall(sql)) {
+            // Orden de parametros del SP: p_id, p_id_orden_compra, p_id_consumible,
+            // p_item_referencia, p_descripcion, p_cantidad, p_precio_unitario
             cs.registerOutParameter(1, Types.INTEGER);
-            cs.setInt(2, linea.getCantidad());
-            cs.setDouble(3, linea.getPrecioUnitario());
-            
-            // Se usa calcularSubtotal() definido en LineaDocumento
-            cs.setDouble(4, linea.calcularSubtotal());
-            
-            cs.setString(5, linea.getDescripcion());
-            cs.setString(6, linea.getItemReferencia());
-            
-            if (linea.getConsumible() != null && linea.getConsumible().getId_consumible()<0) {
-                cs.setInt(7, linea.getConsumible(). getId_consumible());
+            cs.setInt(2, idOrdenCompra);
+
+            if (linea.getConsumible() != null && linea.getConsumible().getId_consumible() > 0) {
+                cs.setInt(3, linea.getConsumible().getId_consumible());
             } else {
-                cs.setNull(7, Types.INTEGER);
+                cs.setNull(3, Types.INTEGER);
             }
-            
-            cs.setInt(8, idOrdenCompra);
+
+            cs.setString(4, linea.getItemReferencia());
+            cs.setString(5, linea.getDescripcion());
+            cs.setInt(6, linea.getCantidad());
+            cs.setDouble(7, linea.getPrecioUnitario());
+
             cs.executeUpdate();
             
             int id = cs.getInt(1);

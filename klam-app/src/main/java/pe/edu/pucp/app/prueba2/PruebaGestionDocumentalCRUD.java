@@ -13,6 +13,7 @@ import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocume
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.LineaOrdenCompra;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
 
 public class PruebaGestionDocumentalCRUD {
 
@@ -96,7 +97,7 @@ public class PruebaGestionDocumentalCRUD {
             linea1.setPrecioUnitario(150.0);
             linea1.setDescripcion("Catéteres guía vasculares");
 
-            orden.getLineasOrdenCompra().add(linea1);
+            orden.setLineasOrdenCompra(List.of(linea1));
             ordenCompraBL.insert(orden);
             int idOrdenGenerado = orden.getIdOrdenCompra();
 
@@ -108,6 +109,9 @@ public class PruebaGestionDocumentalCRUD {
             doc.setEstadoValidacion(EstadoValidacionDocumento.PENDIENTE);
             doc.setFechaCarga(LocalDateTime.now());
             doc.setOrdenCompra(orden);
+            Administrador admin = new Administrador();
+            admin.setIdUsuario(1); // administrador del DML
+            doc.setUsuarioCarga(admin);
 
             documentoIngresoBL.insert(doc);
             int idDocGenerado = doc.getId_documento();
@@ -141,15 +145,15 @@ public class PruebaGestionDocumentalCRUD {
             // =========================================================
             documentoIngresoBL.delete(idDocGenerado);
             DocumentoIngreso docEliminado = documentoIngresoBL.findById(idDocGenerado);
-            verificar("D (Delete) - Eliminacion de DocumentoIngreso exitosa", true, docEliminado == null);
+            verificar("D (Delete) - Baja logica de DocumentoIngreso exitosa", false, docEliminado.isActivo());
 
             ordenCompraBL.delete(idOrdenGenerado);
             OrdenCompra ordenEliminada = ordenCompraBL.findById(idOrdenGenerado);
-            verificar("D (Delete) - Eliminacion transaccional de OrdenCompra exitosa", true, ordenEliminada == null);
+            verificar("D (Delete) - Baja logica de OrdenCompra exitosa", false, ordenEliminada.isActivo());
 
         } catch (BLException e) {
-            registrarFallo("Excepcion inesperada durante la ejecucion del CRUD", e.getMessage());
-        }
+            registrarFallo("Excepcion inesperada durante la ejecucion del CRUD",
+                    e.getMessage() + " -> CAUSA: " + (e.getCause() != null ? e.getCause().getMessage() : "ninguna"));        }
 
         // =========================================================
         // Regla de Negocio: Rechazo de inserción sin líneas
