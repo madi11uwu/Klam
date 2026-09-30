@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PacienteParticularDAOImpl implements PacienteParticularDAO {
+public class PacienteParticularDAOImpl extends ClienteDAOImpl<PacienteParticular> implements PacienteParticularDAO {
         @Override
         public List<PacienteParticular> findAll()
                 throws SQLException {
@@ -159,7 +159,7 @@ public class PacienteParticularDAOImpl implements PacienteParticularDAO {
                     );
                 }
 
-                paciente.setId_cliente(
+                paciente.setIdCliente(
                         cmd.getInt("p_id")
                 );
             }
@@ -224,7 +224,7 @@ public class PacienteParticularDAOImpl implements PacienteParticularDAO {
 
                 cmd.setInt(
                         "p_id",
-                        paciente.getId_cliente()
+                        paciente.getIdCliente()
                 );
 
                 if (cmd.executeUpdate() == 0) {
@@ -266,32 +266,10 @@ public class PacienteParticularDAOImpl implements PacienteParticularDAO {
             }
         }
 
-        private PacienteParticular mapear(ResultSet rs,PacienteParticular paciente)
+        @Override
+        protected PacienteParticular mapear(ResultSet rs, PacienteParticular paciente)
                 throws SQLException {
-
-            paciente.setId_cliente(
-                    rs.getInt("id_cliente")
-            );
-
-            paciente.setNombre(
-                    rs.getString("nombre")
-            );
-
-            paciente.setDireccion(
-                    rs.getString("direccion")
-            );
-
-            paciente.setEmailContacto(
-                    rs.getString("email_contacto")
-            );
-
-            paciente.setTelefono(
-                    rs.getString("telefono")
-            );
-
-            paciente.setActivo(
-                    rs.getBoolean("activo")
-            );
+            super.mapear(rs, paciente);
 
             paciente.setDni(
                     rs.getString("dni")

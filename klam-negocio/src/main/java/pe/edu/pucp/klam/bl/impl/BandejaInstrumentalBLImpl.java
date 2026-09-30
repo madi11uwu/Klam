@@ -53,7 +53,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
     @Override
     public void update(BandejaInstrumental bandejaInstrumental) throws BLException {
         validar(bandejaInstrumental);
-        validarExiste(bandejaInstrumental.getId_bandeja());
+        validarExiste(bandejaInstrumental.getIdBandeja());
 
         TransactionsManager.iniciar();
         try {
@@ -104,7 +104,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
             if (e.getValue() < 0) {
                 throw new BLException("La cantidad despachada no puede ser negativa");
             }
-            validarConsumibleExiste(e.getKey().getId_consumible());
+            validarConsumibleExiste(e.getKey().getIdConsumible());
         }
 
         for (Map.Entry<Consumible, Integer> e : consumidos.entrySet()) {
@@ -115,7 +115,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
             }
             if (consumida > despachada) {
                 throw new BLException("No se puede consumir mas de lo despachado (consumible "
-                        + e.getKey().getId_consumible() + ")");
+                        + e.getKey().getIdConsumible() + ")");
             }
         }
     }

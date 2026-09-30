@@ -1,42 +1,42 @@
 package pe.edu.pucp.klam.modelo.comunicaciones;
 
+import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 import java.time.LocalDateTime;
 
-
 public class Notificacion {
-    String id_notifacion;
-    LocalDateTime fechaHora;
-    String titulo;
-    boolean estado_leida;
+    private int idNotificacion; // Cambiado a camelCase
+    private LocalDateTime fechaHora;
+    private String titulo;
+    private String mensaje;
+    private boolean estadoLeida; // Cambiado a camelCase
+    private UsuarioPlataforma destinatario; // <-- LA CLAVE DEL POLIMORFISMO
 
-    public Notificacion(String id_notifacion, LocalDateTime fechaHora, String titulo, boolean estado_leida) {
-        this.id_notifacion = id_notifacion;
+    public Notificacion() {}
+
+    public Notificacion(int idNotificacion, LocalDateTime fechaHora, String titulo, String mensaje, boolean estadoLeida, UsuarioPlataforma destinatario) {
+        this.idNotificacion = idNotificacion;
         this.fechaHora = fechaHora;
         this.titulo = titulo;
-        this.estado_leida = estado_leida;
-    }
-    public String getId_notifacion() {
-        return id_notifacion;
-    }
-    public LocalDateTime getFechaHora() {
-        return fechaHora;
-    }
-    public void setFechaHora(LocalDateTime fechaHora) {
-        this.fechaHora=fechaHora;
+        this.mensaje = mensaje;
+        this.estadoLeida = estadoLeida;
+        this.destinatario = destinatario;
     }
 
-    public String getTitulo() {
-        return titulo;
-    }
+    public int getIdNotificacion() { return idNotificacion; }
+    public void setIdNotificacion(int idNotificacion) { this.idNotificacion = idNotificacion; }
 
-    public void setTitulo(String titulo) {
-        this.titulo=titulo;
-    }
-    public boolean isEstado_leida() {
-        return estado_leida;
-    }
+    public LocalDateTime getFechaHora() { return fechaHora; }
+    public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
 
-    public void setEstado_leida(boolean estado_leida) {
-        this.estado_leida = estado_leida;
-    }
+    public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
+
+    public String getMensaje() { return mensaje; }
+    public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+
+    public boolean isEstadoLeida() { return estadoLeida; }
+    public void setEstadoLeida(boolean estadoLeida) { this.estadoLeida = estadoLeida; }
+
+    public UsuarioPlataforma getDestinatario() { return destinatario; }
+    public void setDestinatario(UsuarioPlataforma destinatario) { this.destinatario = destinatario; }
 }

@@ -62,7 +62,7 @@ public class PruebaAgendaOperaciones {
         Consumible cuchilla = new Consumible(3, "Cuchilla quirurgica", "Medtronic", "70");
 
         BandejaInstrumental bandeja = new BandejaInstrumental();
-        bandeja.setId_bandeja(1);
+        bandeja.setIdBandeja(1);
         bandeja.setTipo("CABEZA");
         bandeja.setEsterilizado(true);
 
@@ -96,7 +96,7 @@ public class PruebaAgendaOperaciones {
         titulo("3. Pruebas de Equipo");
 
         Equipo equipo = new Equipo();
-        equipo.setId_equipo(1);
+        equipo.setIdEquipo(1);
         equipo.setNombre("Craneotomo 01");
         equipo.setCategoria(CategoriaEquipo.CRANEOTOMO);
         equipo.setDisponible(true);
@@ -147,7 +147,7 @@ public class PruebaAgendaOperaciones {
         Consumible fresa = new Consumible(1, "Fresa cortante", "Medtronic", "70");
 
         BandejaInstrumental original = new BandejaInstrumental();
-        original.setId_bandeja(1);
+        original.setIdBandeja(1);
         original.setTipo("CABEZA");
         original.setEsterilizado(true);
         original.agregarConsumible(fresa, 2);
@@ -172,7 +172,7 @@ public class PruebaAgendaOperaciones {
         titulo("6. Constructor Copia - Equipo");
 
         Equipo original = new Equipo();
-        original.setId_equipo(1);
+        original.setIdEquipo(1);
         original.setNombre("Neuronavegador 01");
         original.setCategoria(CategoriaEquipo.NAVEGADOR);
         original.setDisponible(true);

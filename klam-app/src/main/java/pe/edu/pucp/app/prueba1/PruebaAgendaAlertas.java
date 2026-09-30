@@ -8,6 +8,7 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
 import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
 
 /**
  * Prueba del modulo Agenda y Alertas (Rol 1).
@@ -39,25 +40,30 @@ public class PruebaAgendaAlertas {
     private static void probarNotificacion() {
         titulo("1. Creacion y lectura de Notificacion");
 
-        String idNotif = UUID.randomUUID().toString();
+        int idNotif = UUID.randomUUID().hashCode(); //ESTA FUNCION SOLO PARA LA PRUEBA
         LocalDateTime fechaActual = LocalDateTime.now();
+
+        //  usuario que sea el destinatario
+        Administrador adminDestino = new Administrador();
+        adminDestino.setIdUsuario(1); // Usa un ID válido que exista en tu prueba o base de datos
 
         Notificacion notificacion = new Notificacion(
                 idNotif,
                 fechaActual,
                 "Alerta: Falta instrumental BAN-002",
-                false
+                "El instrumental BAN-002 no se encuentra en el almacén o envío.", // NUEVO: El mensaje (String)
+                false,
+                adminDestino // NUEVO: El objeto destinatario en vez del TipoNotificacion
         );
-
-        System.out.println("   ID Notificacion : " + notificacion.getId_notifacion());
+        System.out.println("   ID Notificacion : " + notificacion.getIdNotificacion());
         System.out.println("   Fecha y Hora    : " + notificacion.getFechaHora());
         System.out.println("   Titulo          : " + notificacion.getTitulo());
 
-        verificar("Asigna correctamente el ID generado", idNotif, notificacion.getId_notifacion());
-        verificar("El estado inicial leido es falso (NO)", false, notificacion.isEstado_leida());
+        verificar("Asigna correctamente el ID generado", idNotif, notificacion.getIdNotificacion());
+        verificar("El estado inicial leido es falso (NO)", false, notificacion.isEstadoLeida());
 
-        notificacion.setEstado_leida(true);
-        verificar("El estado cambia a leido (SI) tras actualizar", true, notificacion.isEstado_leida());
+        notificacion.setEstadoLeida(true);
+        verificar("El estado cambia a leido (SI) tras actualizar", true, notificacion.isEstadoLeida());
     }
 
     // -----------------------------------------------------------------
@@ -73,17 +79,17 @@ public class PruebaAgendaAlertas {
         BandejaInstrumental bandeja01 = new BandejaInstrumental(1, "BAN-001");
 
         Cirugia cirugia = new Cirugia();
-        cirugia.setId_cirugia(101);
+        cirugia.setIdCirugia(101);
         cirugia.setFechaHoraInicio(LocalDateTime.of(2026, 9, 20, 8, 0));
         cirugia.setFechaHoraFin(LocalDateTime.of(2026, 9, 20, 10, 30));
         cirugia.setTipoProcedimiento("Apendicectomia Laparoscopica");
-        cirugia.setDoctornombre("Dr. Roberto Gomez");
+        cirugia.setDoctorNombre("Dr. Roberto Gomez");
         cirugia.setEstado(EstadoCirugia.PROGRAMADA);
         cirugia.setEquipo(equipoA);
         cirugia.setBandejaInstrumental(bandeja01);
 
         System.out.println("   Procedimiento   : " + cirugia.getTipoProcedimiento());
-        System.out.println("   Doctor a cargo  : " + cirugia.getDoctornombre());
+        System.out.println("   Doctor a cargo  : " + cirugia.getDoctorNombre());
 
         // CORRECCION 1: Se pasa "101" como String en lugar del entero 101
         verificar("Identificador agendable correcto", "101", cirugia.getIdentificador());
@@ -102,7 +108,7 @@ public class PruebaAgendaAlertas {
         titulo("3. Cancelacion de Cirugia (Interfaz Cancelable)");
 
         Cirugia cirugia = new Cirugia();
-        cirugia.setId_cirugia(102);
+        cirugia.setIdCirugia(102);
         cirugia.setEstado(EstadoCirugia.PROGRAMADA);
 
         String motivo = "Paciente no cumplio con el tiempo de ayuno requerido";

@@ -1,8 +1,10 @@
 package pe.edu.pucp.klam.modelo.usuariosPermisos;
 
-public abstract class UsuarioPlataforma {
+import pe.edu.pucp.klam.modelo.interfaces.Notificable;
 
-    private int id_usuario;
+public abstract class UsuarioPlataforma implements Notificable {
+
+    private int idUsuario;
     private String username;
     private String passwordHash;
     private String email;
@@ -12,7 +14,7 @@ public abstract class UsuarioPlataforma {
     private boolean activo;
 
     public UsuarioPlataforma() {
-        this.id_usuario = 0;
+        this.idUsuario = 0;
         this.username = "";
         this.passwordHash = "";
         this.email = "";
@@ -22,9 +24,9 @@ public abstract class UsuarioPlataforma {
         this.activo = true;
     }
 
-    public UsuarioPlataforma(int id_usuario, String username, String passwordHash, String email,
-                              String nombres, String apellidos, String rol, boolean activo) {
-        this.id_usuario = id_usuario;
+    public UsuarioPlataforma(int idUsuario, String username, String passwordHash, String email,
+                             String nombres, String apellidos, String rol, boolean activo) {
+        this.idUsuario = idUsuario;
         this.username = username;
         this.passwordHash = passwordHash;
         this.email = email;
@@ -35,7 +37,7 @@ public abstract class UsuarioPlataforma {
     }
 
     public UsuarioPlataforma(UsuarioPlataforma otro) {
-        this.id_usuario = otro.id_usuario;
+        this.idUsuario = otro.idUsuario;
         this.username = otro.username;
         this.passwordHash = otro.passwordHash;
         this.email = otro.email;
@@ -46,11 +48,11 @@ public abstract class UsuarioPlataforma {
     }
 
     public int getIdUsuario() {
-        return id_usuario;
+        return idUsuario;
     }
 
     public void setIdUsuario(int id_usuario) {
-        this.id_usuario = id_usuario;
+        this.idUsuario = id_usuario;
     }
 
     public String getUsername() {
@@ -121,7 +123,7 @@ public abstract class UsuarioPlataforma {
     @Override
     public String toString() {
         return "UsuarioPlataforma{" +
-                "id_usuario=" + id_usuario +
+                "id_usuario=" + idUsuario +
                 ", username='" + username + '\'' +
                 ", nombreCompleto='" + getNombreCompleto() + '\'' +
                 ", rol='" + rol + '\'' +

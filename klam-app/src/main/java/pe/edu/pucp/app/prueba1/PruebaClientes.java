@@ -53,8 +53,8 @@ public class PruebaClientes {
         titulo("3. Polimorfismo de Clientes");
         Cliente cliente1 = c;
         Cliente cliente2 = p;
-        verificar("La clinica es tratable como Cliente base", "CLI-001", cliente1.getId_cliente());
-        verificar("El paciente es tratable como Cliente base", "PAC-001", cliente2.getId_cliente());
+        verificar("La clinica es tratable como Cliente base", "CLI-001", cliente1.getIdCliente());
+        verificar("El paciente es tratable como Cliente base", "PAC-001", cliente2.getIdCliente());
     }
 
     private static void probarCirugiasDelCliente(Cliente cliente) {
@@ -82,7 +82,7 @@ public class PruebaClientes {
 
     private static Cirugia crearCirugia(int id, String tipoProcedimiento) {
         Cirugia c = new Cirugia();
-        c.setId_cirugia(id);
+        c.setIdCirugia(id);
         c.setTipoProcedimiento(tipoProcedimiento);
         c.setFechaHoraInicio(LocalDateTime.now());
         return c;

@@ -1,72 +1,72 @@
 package pe.edu.pucp.klam.modelo.usuariosPermisos;
 
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+import pe.edu.pucp.klam.modelo.clientes.Cliente;
+import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
+import pe.edu.pucp.klam.modelo.documentacionfinanzas.Cotizacion;
+import pe.edu.pucp.klam.modelo.documentacionfinanzas.NotaCredito;
+import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
+
 public class Administrador extends UsuarioPlataforma {
 
-    private String id_admin;
 
     public Administrador() {
         super();
-        this.id_admin = "";
         setRol("ADMINISTRADOR");
     }
 
     public Administrador(int id_usuario, String username, String passwordHash, String email,
-                          String nombres, String apellidos, boolean activo, String id_admin) {
+                          String nombres, String apellidos, boolean activo) {
         super(id_usuario, username, passwordHash, email, nombres, apellidos, "ADMINISTRADOR", activo);
-        this.id_admin = id_admin;
     }
     //holiiii
 
     public Administrador(Administrador otro) {
         super(otro);
-        this.id_admin = otro.id_admin;
     }
 
-    public String getiAdmin() {
-        return id_admin;
-    }
-
-    public void setidAdmin(String id_admin) {
-        this.id_admin = id_admin;
-    }
 
     // Los siguientes métodos dependen de clases de otros módulos/roles
     // (Cirugia, DocumentoIngreso, Cliente, Cotizacion, NotaCredito).
     // Tiran el mensaje pq las demás clases no están implementadas
 
-    public void crearCirugia(Object cirugia) {
+    public void crearCirugia(Cirugia cirugia) {
         throw new UnsupportedOperationException("Metodo no implementado aun.");
     }
 
-    public void modificarCirugia(Object cirugia) {
+    public void modificarCirugia(Cirugia cirugia) {
         throw new UnsupportedOperationException("Metodo no implementado aun.");
     }
 
-    public boolean validarDocumentoIngreso(Object documentoIngreso) {
+    public boolean validarDocumentoIngreso(DocumentoIngreso documentoIngreso) {
         throw new UnsupportedOperationException("Metodo no implementado aun.");
     }
 
-    public void aprobarDocumentacionYAgendar(Object cliente) {
+    public void aprobarDocumentacionYAgendar(Cliente cliente) {
         throw new UnsupportedOperationException("Metodo no implementado aun.");
     }
 
-    public void gestionarCotizacion(Object cotizacion) {
+    public void gestionarCotizacion(Cotizacion cotizacion) {
         throw new UnsupportedOperationException("Metodo no implementado aun.");
     }
 
-    public void emitirDocumentoFacturacion(Object cirugia) {
+    public void emitirDocumentoFacturacion(Cirugia cirugia) {
         throw new UnsupportedOperationException("Metodo no implementado aun.");
     }
 
-    public void reaperturarCirugiaConNotaCredito(Object cirugia, Object notaCredito) {
+    public void reaperturarCirugiaConNotaCredito(Cirugia cirugia, NotaCredito notaCredito) {
         throw new UnsupportedOperationException("Metodo no implementado aun.");
     }
 
     @Override
     public String toString() {
         return "Administrador{" +
-                "idAdmin='" + id_admin + '\'' +
                 ", " + super.toString() +
                 '}';
+    }
+
+    @Override
+    public void recibirNotificacion(Notificacion notificacion) {
+
     }
 }

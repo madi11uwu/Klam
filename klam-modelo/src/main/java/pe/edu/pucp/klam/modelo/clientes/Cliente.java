@@ -6,7 +6,7 @@ import java.util.List;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 
 public abstract class Cliente {
-    private int id_cliente;
+    private int idCliente;
     private String nombre;
     private String direccion;
     private String emailContacto;
@@ -18,7 +18,7 @@ public abstract class Cliente {
         if (cliente==null){
             throw new IllegalArgumentException("Cliente no puede ser nulo");
         }
-        setId_cliente(cliente.getId_cliente());
+        setIdCliente(cliente.getIdCliente());
         setNombre(cliente.getNombre());
         setDireccion(cliente.getDireccion());
         setEmailContacto(cliente.getEmailContacto());
@@ -28,7 +28,7 @@ public abstract class Cliente {
     }
     public Cliente (){activo=true;}
     public Cliente(int id, String nombre, String direccion, String emailContacto, String telefono) {
-        this.id_cliente = id;
+        this.idCliente = id;
         this.nombre = nombre;
         this.direccion = direccion;
         this.emailContacto = emailContacto;
@@ -36,8 +36,8 @@ public abstract class Cliente {
     }
 
     // Getters y Setters
-    public int getId_cliente() { return id_cliente; }
-    public void setId_cliente(int id_cliente) { this.id_cliente = id_cliente; }
+    public int getIdCliente() { return idCliente; }
+    public void setIdCliente(int idCliente) { this.idCliente = idCliente; }
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }

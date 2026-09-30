@@ -3,37 +3,31 @@
 -- Compatible con el DDL usando Concrete Table Inheritance
 -- ============================================================
 
--- ------------------------------------------------------------
+USE `klam`;
 -- administrador
--- ------------------------------------------------------------
-INSERT INTO `administrador`
-(`id_usuario`, `username`, `password_hash`, `email`, `nombres`, `apellidos`,
- `rol`, `activo`, `id_admin`)
+
+INSERT INTO administrador
+(id_usuario, username, password_hash, email, nombres, apellidos, rol, activo)
 VALUES
     (1, 'admin.rojas',
-     '$2y$10$examplehash0000000000000000000001',
+     '2y10$examplehash0000000000000000000001',
      'crojas@bioklam.com',
      'Carlos',
      'Rojas Medina',
      'ADMINISTRADOR',
-     1,
      1);
 
-
--- ------------------------------------------------------------
 -- vendedor
--- ------------------------------------------------------------
-INSERT INTO `vendedor`
-(`id_usuario`, `username`, `password_hash`, `email`, `nombres`, `apellidos`,
- `rol`, `activo`, `id_vendedor`, `comision_acumulada`)
+
+INSERT INTO vendedor
+(id_usuario, username, password_hash, email, nombres, apellidos, rol, activo, comision_acumulada)
 VALUES
     (2, 'vend.torres',
-     '$2y$10$examplehash0000000000000000000002',
+     '2y10$examplehash0000000000000000000002',
      'ltorres@bioklam.com',
      'Lucía',
      'Torres Vega',
      'VENDEDOR',
-     1,
      1,
      1250.50),
 
@@ -44,24 +38,18 @@ VALUES
      'Quispe Huamán',
      'VENDEDOR',
      1,
-     2,
      780.00);
-
-
--- ------------------------------------------------------------
 -- tecnico_instrumentista
--- ------------------------------------------------------------
-INSERT INTO `tecnico_instrumentista`
-(`id_usuario`, `username`, `password_hash`, `email`, `nombres`, `apellidos`,
- `rol`, `activo`, `id_tecnico`, `especialidad`)
+
+INSERT INTO tecnico_instrumentista
+(id_usuario, username, password_hash, email, nombres, apellidos, rol, activo, especialidad)
 VALUES
     (4, 'tec.fernandez',
-     '$2y$10$examplehash0000000000000000000004',
+     '2y10$examplehash0000000000000000000004',
      'jfernandez@bioklam.com',
      'José',
      'Fernández Castro',
      'TECNICO_INSTRUMENTISTA',
-     1,
      1,
      'Neurocirugía'),
 
@@ -72,81 +60,63 @@ VALUES
      'Salazar Díaz',
      'TECNICO_INSTRUMENTISTA',
      1,
-     2,
      'Cirugía general');
-
-
--- ------------------------------------------------------------
 -- bandeja_instrumental
--- ------------------------------------------------------------
-INSERT INTO `bandeja_instrumental`
-(`id_bandeja`, `tipo`, `esterilizado`, `activo`)
+
+INSERT INTO bandeja_instrumental
+(id_bandeja, tipo, esterilizado, activo)
 VALUES
     (1, 'Bandeja de craneotomía', 1, 1),
     (2, 'Bandeja de microcirugía', 1, 1),
     (3, 'Bandeja de navegación estereotáxica', 0, 1);
 
-
--- ------------------------------------------------------------
 -- consumible
--- ------------------------------------------------------------
-INSERT INTO `consumible`
-(`id_consumible`, `nombre_comercial`, `marca`, `medida`, `activo`)
+
+INSERT INTO consumible
+(id_consumible, nombre_comercial, marca, medida, activo)
 VALUES
     (1, 'Sutura de nylon',   'Ethicon',  '4-0',      1),
     (2, 'Gasa estéril',      'Medline',  '10x10cm',  1),
     (3, 'Clip de aneurisma', 'Aesculap', 'Mediano',  1),
     (4, 'Cera para hueso',   'Ethicon',  '2.5g',     1);
 
-
--- ------------------------------------------------------------
 -- bandeja_consumible
--- ------------------------------------------------------------
-INSERT INTO `bandeja_consumible`
-(`id_bandeja`, `id_consumible`, `cantidad_despachada`, `cantidad_consumida`)
+
+INSERT INTO bandeja_consumible
+(id_bandeja, id_consumible, cantidad_despachada, cantidad_consumida)
 VALUES
     (1, 1, 10, 6),
     (1, 3, 4,  2),
     (2, 2, 20, 15),
     (3, 4, 5,  1);
 
-
--- ------------------------------------------------------------
 -- equipo
--- ------------------------------------------------------------
-INSERT INTO `equipo`
-(`id_equipo`, `nombre`, `categoria`, `disponible`, `activo`)
+
+INSERT INTO equipo
+(id_equipo, nombre, categoria, disponible, activo)
 VALUES
     (1, 'Craneótomo Midas Rex',        'CRANEOTOMO', 1, 1),
     (2, 'Navegador StealthStation S8', 'NAVEGADOR',  1, 1),
     (3, 'Craneótomo Anspach eMax',     'CRANEOTOMO', 0, 1);
 
-
--- ------------------------------------------------------------
 -- equipo_especificacion
--- ------------------------------------------------------------
-INSERT INTO `equipo_especificacion`
-(`id_equipo`, `clave`, `valor`)
+
+INSERT INTO equipo_especificacion
+(id_equipo, clave, valor)
 VALUES
     (1, 'voltaje',    '110V'),
     (1, 'peso_kg',    '2.3'),
     (2, 'version_sw', '8.0.1'),
     (3, 'voltaje',    '220V');
 
-
 -- ============================================================
 -- CLIENTES
--- Cliente es abstracta: no existe INSERT a tabla cliente.
--- Los atributos heredados se guardan directamente en cada
--- tabla concreta.
 -- ============================================================
 
--- ------------------------------------------------------------
 -- paciente_particular
--- ------------------------------------------------------------
-INSERT INTO `paciente_particular`
-(`id_cliente`, `nombre`, `direccion`, `email_contacto`, `telefono`, `activo`,
- `dni`, `pago_confirmado`)
+
+INSERT INTO paciente_particular
+(id_cliente, nombre, direccion, email_contacto, telefono, activo, dni, pago_confirmado)
 VALUES
     (1,
      'Juan Pérez Alarcón',
@@ -157,13 +127,10 @@ VALUES
      '45678912',
      1);
 
-
--- ------------------------------------------------------------
 -- clinica_hospital
--- ------------------------------------------------------------
-INSERT INTO `clinica_hospital`
-(`id_cliente`, `nombre`, `direccion`, `email_contacto`, `telefono`, `activo`,
- `ruc`, `tiene_consignacion`, `periodo_credito`)
+
+INSERT INTO clinica_hospital
+(id_cliente, nombre, direccion, email_contacto, telefono, activo, ruc, tiene_consignacion, periodo_credito)
 VALUES
     (2,
      'Clínica San Felipe',
@@ -184,30 +151,23 @@ VALUES
      '20131312955',
      0,
      '60 días');
-
-
--- ------------------------------------------------------------
 -- orden_compra
--- ------------------------------------------------------------
-INSERT INTO `orden_compra`
-(`id_orden_compra`, `archivo_respaldo_path`, `fecha_recepcion`, `activo`)
+
+INSERT INTO orden_compra
+(id_orden_compra, archivo_respaldo_path, fecha_recepcion, activo)
 VALUES
     (1,
      '/docs/oc/OC-2026-001.pdf',
      '2026-08-10 09:15:00',
      1);
 
-
 -- ============================================================
 -- DOCUMENTOS DE INGRESO
--- UsuarioPlataforma es abstracta: se usa la FK concreta que
--- corresponda y las demás quedan en NULL.
 -- ============================================================
-
-INSERT INTO `documento_ingreso`
-(`id_documento`, `tipo_documento`, `archivo_path`, `estado_validacion`,
- `fecha_carga`, `id_orden_compra`, `activo`,
- `id_administrador`, `id_vendedor`, `id_tecnico`)
+INSERT INTO documento_ingreso
+(id_documento, tipo_documento, archivo_path, estado_validacion,
+ fecha_carga, id_orden_compra, activo,
+ id_administrador, id_vendedor, id_tecnico)
 VALUES
     (1,
      'DNI',
@@ -235,19 +195,14 @@ VALUES
      NULL,
      1,
      NULL, 2, NULL);
-
-
 -- ============================================================
 -- CIRUGIAS
--- Cliente es abstracta: cada cirugía referencia exactamente
--- una clase concreta de Cliente.
 -- ============================================================
-
-INSERT INTO `cirugia`
-(`id_cirugia`, `fecha_hora_inicio`, `fecha_hora_fin`,
- `tipo_procedimiento`, `doctor_nombre`, `motivo_cancelacion`,
- `estado`, `id_equipo`, `id_bandeja`,
- `id_clinica_hospital`, `id_paciente_particular`, `activo`)
+INSERT INTO cirugia
+(id_cirugia, fecha_hora_inicio, fecha_hora_fin,
+ tipo_procedimiento, doctor_nombre, motivo_cancelacion,
+ estado, id_equipo, id_bandeja,
+ id_clinica_hospital, id_paciente_particular, activo)
 VALUES
     (1,
      '2026-08-15 08:00:00',
@@ -287,33 +242,24 @@ VALUES
      3,
      NULL,
      1);
-
-
--- ------------------------------------------------------------
 -- cotizacion
--- ------------------------------------------------------------
-INSERT INTO `cotizacion`
-(`id_cotizacion`, `id_cirugia`, `precio_pactado`,
- `estado`, `fecha_emision`, `activo`)
+
+INSERT INTO cotizacion
+(id_cotizacion, id_cirugia, precio_pactado, estado, fecha_emision, activo)
 VALUES
     (1, 1, 8500.00,  'ACEPTADA', '2026-08-05 12:00:00', 1),
     (2, 2, 12300.00, 'EMITIDA',  '2026-08-16 10:00:00', 1);
 
-
 -- ============================================================
 -- FACTURACION
--- DocumentoFacturacion es abstracta: no existe INSERT a una
--- tabla documento_facturacion.
--- Factura y Boleta contienen directamente los atributos comunes.
 -- ============================================================
 
--- ------------------------------------------------------------
 -- boleta
--- ------------------------------------------------------------
-INSERT INTO `boleta`
-(`id_documento`, `id_cirugia`, `fecha_emision`,
- `monto_base`, `tasa_igv`, `igv`, `monto_total`,
- `estado_pago`, `activo`, `dni_receptor`)
+
+INSERT INTO boleta
+(id_documento, id_cirugia, fecha_emision,
+ monto_base, tasa_igv, igv, monto_total,
+ estado_pago, activo, dni_receptor)
 VALUES
     (1,
      1,
@@ -326,14 +272,12 @@ VALUES
      1,
      '45678912');
 
-
--- ------------------------------------------------------------
 -- factura
--- ------------------------------------------------------------
-INSERT INTO `factura`
-(`id_documento`, `id_cirugia`, `fecha_emision`,
- `monto_base`, `tasa_igv`, `igv`, `monto_total`,
- `estado_pago`, `activo`, `ruc_receptor`)
+
+INSERT INTO factura
+(id_documento, id_cirugia, fecha_emision,
+ monto_base, tasa_igv, igv, monto_total,
+ estado_pago, activo, ruc_receptor)
 VALUES
     (2,
      1,
@@ -346,42 +290,28 @@ VALUES
      1,
      '20100123456');
 
-
--- ------------------------------------------------------------
 -- linea_boleta
--- ------------------------------------------------------------
-INSERT INTO `linea_boleta`
-(`id_linea`, `id_documento`, `id_consumible`,
- `item_referencia`, `descripcion`, `cantidad`, `precio_unitario`)
+
+INSERT INTO linea_boleta
+(id_linea, id_documento, id_consumible,
+ item_referencia, descripcion, cantidad, precio_unitario)
 VALUES
-    (1,
-     1,
-     NULL,
-     'SRV-CIR',
-     'Servicio de cirugía - Craneotomía por tumor',
-     1,
-     8500.00);
+    (1, 1, NULL, 'SRV-CIR', 'Servicio de cirugía - Craneotomía por tumor', 1, 8500.00);
 
-
--- ------------------------------------------------------------
 -- linea_factura
--- ------------------------------------------------------------
-INSERT INTO `linea_factura`
-(`id_linea`, `id_documento`, `id_consumible`,
- `item_referencia`, `descripcion`, `cantidad`, `precio_unitario`)
+
+INSERT INTO linea_factura
+(id_linea, id_documento, id_consumible,
+ item_referencia, descripcion, cantidad, precio_unitario)
 VALUES
     (1, 2, 1, NULL, 'Sutura de nylon 4-0',       6, 100.00),
     (2, 2, 3, NULL, 'Clip de aneurisma mediano', 2, 300.00);
 
-
--- ------------------------------------------------------------
 -- nota_credito
--- La nota original del DML apuntaba al documento 2, que era
--- una FACTURA. Ahora se referencia directamente a factura.
--- ------------------------------------------------------------
-INSERT INTO `nota_credito`
-(`id_nota_credito`, `id_factura_original`, `id_boleta_original`,
- `motivo`, `fecha_emision`, `monto_total`, `activo`)
+
+INSERT INTO nota_credito
+(id_nota_credito, id_factura_original, id_boleta_original,
+ motivo, fecha_emision, monto_total, activo)
 VALUES
     (1,
      2,
@@ -391,45 +321,30 @@ VALUES
      300.00,
      1);
 
-
--- ------------------------------------------------------------
 -- linea_nota_credito
--- ------------------------------------------------------------
-INSERT INTO `linea_nota_credito`
-(`id_linea`, `id_nota_credito`, `id_consumible`,
- `item_referencia`, `descripcion`, `cantidad`,
- `precio_unitario`, `motivo_devolucion`)
+
+INSERT INTO linea_nota_credito
+(id_linea, id_nota_credito, id_consumible,
+ item_referencia, descripcion, cantidad,
+ precio_unitario, motivo_devolucion)
 VALUES
-    (1,
-     1,
-     3,
-     NULL,
-     'Clip de aneurisma mediano',
-     1,
-     300.00,
-     'Empaque no utilizado, devuelto sin abrir');
+    (1, 1, 3, NULL, 'Clip de aneurisma mediano', 1, 300.00, 'Empaque no utilizado, devuelto sin abrir');
 
-
--- ------------------------------------------------------------
 -- linea_orden_compra
--- ------------------------------------------------------------
-INSERT INTO `linea_orden_compra`
-(`id_linea`, `id_orden_compra`, `id_consumible`,
- `item_referencia`, `descripcion`, `cantidad`, `precio_unitario`)
+
+INSERT INTO linea_orden_compra
+(id_linea, id_orden_compra, id_consumible,
+ item_referencia, descripcion, cantidad, precio_unitario)
 VALUES
     (1, 1, 2, NULL, 'Gasa estéril 10x10cm', 50, 5.50),
     (2, 1, 4, NULL, 'Cera para hueso 2.5g', 10, 35.00);
 
-
 -- ============================================================
 -- NOTIFICACIONES
--- UsuarioPlataforma es abstracta: se indica el subtipo concreto.
--- El DML original no incluía un valor para mensaje; se deja NULL.
 -- ============================================================
-
-INSERT INTO `notificacion`
-(`id_notificacion`, `fecha_hora`, `titulo`, `mensaje`,
- `estado_leida`, `id_administrador`, `id_vendedor`, `id_tecnico`)
+INSERT INTO notificacion
+(id_notificacion, fecha_hora, titulo, mensaje,
+ estado_leida, id_administrador, id_vendedor, id_tecnico)
 VALUES
     (1,
      '2026-08-16 10:01:00',
