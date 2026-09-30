@@ -1,7 +1,7 @@
 package pe.edu.pucp.klam.bl.impl;
 
-import pe.edu.pucp.klam.bl.BaseBL;
 import pe.edu.pucp.klam.bl.BLException;
+import pe.edu.pucp.klam.bl.BaseBL;
 import pe.edu.pucp.klam.dao.DAO;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
 
@@ -85,8 +85,7 @@ public abstract class ClienteBLImpl<T extends Cliente> implements BaseBL<T, Inte
         }
     }
 
-    @Override
-    public void validarDatosCliente(String nombre, String direccion, String correo, String telefono)
+    protected void validarDatosCliente(String nombre, String direccion, String correo, String telefono)
             throws BLException {
         if (nombre == null || nombre.isBlank()) {
             throw new BLException("El nombre es obligatorio");
@@ -101,14 +100,12 @@ public abstract class ClienteBLImpl<T extends Cliente> implements BaseBL<T, Inte
         }
     }
 
-    @Override
     public void validarLongitud(String valor, int maximo, String campo) {
         if (valor != null && valor.length() > maximo) {
             throw new BLException(campo + " no puede exceder " + maximo + " caracteres");
         }
     }
 
-    @Override
     public void validarId(Integer id) throws BLException {
         if (id == null || id <= 0) {
             throw new BLException("El id debe ser un número positivo");

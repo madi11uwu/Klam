@@ -47,4 +47,9 @@ public class ClinicaHospitalBLImpl extends ClienteBLImpl<ClinicaHospital> implem
             throw new BLException("No se pudo verificar la unicidad del RUC", e);
         }
     }
+
+    @Override
+    public void validarDatosCliente(String nombre, String direccion, String correo, String telefono) throws BLException {
+
+    }
 }

@@ -15,7 +15,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     private final DocumentoIngresoDAO documentoDAO = new DocumentoIngresoDAOImpl();
 
     @Override
-    public void insertar(DocumentoIngreso doc) throws BLException {
+    public void insert(DocumentoIngreso doc) throws BLException {
         validarDocumento(doc);
         try {
             if (doc.getEstadoValidacion() == null) {
@@ -28,7 +28,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     }
 
     @Override
-    public void actualizar(DocumentoIngreso doc) throws BLException {
+    public void update(DocumentoIngreso doc) throws BLException {
         if (doc == null || doc.getId_documento() <= 0) {
             throw new BLException("El ID del documento de ingreso debe ser valido para actualizar");
         }
@@ -41,7 +41,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     }
 
     @Override
-    public void eliminar(Integer id) throws BLException {
+    public void delete(Integer id) throws BLException {
         if (id == null || id <= 0) {
             throw new BLException("Debe proporcionar un ID valido de documento de ingreso para eliminar");
         }
@@ -53,7 +53,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     }
 
     @Override
-    public DocumentoIngreso obtenerPorId(Integer id) throws BLException {
+    public DocumentoIngreso findById(Integer id) throws BLException {
         if (id == null || id <= 0) {
             throw new BLException("Debe proporcionar un ID valido de documento de ingreso");
         }
@@ -65,7 +65,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     }
 
     @Override
-    public List<DocumentoIngreso> listarTodos() throws BLException {
+    public List<DocumentoIngreso> findAll() throws BLException {
         try {
             return documentoDAO.findAll();
         } catch (SQLException e) {
@@ -82,13 +82,13 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             throw new BLException("El nuevo estado de validacion no puede ser nulo");
         }
 
-        DocumentoIngreso doc = obtenerPorId(idDocumento);
+        DocumentoIngreso doc = findById(idDocumento);
         if (doc == null) {
             throw new BLException("No existe un documento de ingreso registrado con el ID proporcionado");
         }
 
         doc.setEstadoValidacion(nuevoEstado);
-        actualizar(doc);
+        update(doc);
     }
 
     private void validarDocumento(DocumentoIngreso doc) throws BLException {
