@@ -6,7 +6,7 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface CirugiaBL extends RegistroBL<Cirugia, Integer> {
+public interface CirugiaBL extends BaseBL<Cirugia, Integer> {
     List<Cirugia> findByEstado(EstadoCirugia estado) throws BLException;
     List<Cirugia> findByRangoFechas(LocalDateTime desde, LocalDateTime hasta) throws BLException;
     void cancelar(Integer id, String motivo) throws BLException;

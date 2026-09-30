@@ -4,7 +4,7 @@ import pe.edu.pucp.klam.modelo.documentacionfinanzas.Cotizacion;
 
 import java.util.List;
 
-public interface CotizacionBL extends RegistroBL<Cotizacion, Integer> {
+public interface CotizacionBL extends BaseBL<Cotizacion, Integer> {
     List<Cotizacion> findByCirugia(Integer idCirugia) throws BLException;
     void aceptar(Integer id) throws BLException;
     void rechazar(Integer id) throws BLException;
