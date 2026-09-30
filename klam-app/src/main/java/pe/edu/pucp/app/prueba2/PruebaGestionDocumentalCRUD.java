@@ -97,7 +97,7 @@ public class PruebaGestionDocumentalCRUD {
             linea1.setDescripcion("Catéteres guía vasculares");
 
             orden.getLineasOrdenCompra().add(linea1);
-            ordenCompraBL.insertar(orden);
+            ordenCompraBL.insert(orden);
             int idOrdenGenerado = orden.getIdOrdenCompra();
 
             verificar("C (Create) - Insercion transaccional de OrdenCompra exitosa", true, idOrdenGenerado > 0);
@@ -109,42 +109,42 @@ public class PruebaGestionDocumentalCRUD {
             doc.setFechaCarga(LocalDateTime.now());
             doc.setOrdenCompra(orden);
 
-            documentoIngresoBL.insertar(doc);
+            documentoIngresoBL.insert(doc);
             int idDocGenerado = doc.getId_documento();
             verificar("C (Create) - Insercion de DocumentoIngreso exitosa", true, idDocGenerado > 0);
 
             // =========================================================
             // B. READ (Consultar por ID y Listar)
             // =========================================================
-            OrdenCompra ordenObtenida = ordenCompraBL.obtenerPorId(idOrdenGenerado);
+            OrdenCompra ordenObtenida = ordenCompraBL.findById(idOrdenGenerado);
             verificar("R (Read) - Obtener OrdenCompra por ID", true, ordenObtenida != null);
 
-            List<OrdenCompra> listaOrdenes = ordenCompraBL.listarTodas();
+            List<OrdenCompra> listaOrdenes = ordenCompraBL.findAll();
             verificar("R (Read) - Listar todas las Ordenes de Compra", true, !listaOrdenes.isEmpty());
 
             // =========================================================
             // C. UPDATE (Actualizar Datos/Estado)
             // =========================================================
             documentoIngresoBL.cambiarEstadoValidacion(idDocGenerado, EstadoValidacionDocumento.VALIDADO);
-            DocumentoIngreso docActualizado = documentoIngresoBL.obtenerPorId(idDocGenerado);
+            DocumentoIngreso docActualizado = documentoIngresoBL.findById(idDocGenerado);
             verificar("U (Update) - Cambio de estado de validacion a VALIDADO",
                     EstadoValidacionDocumento.VALIDADO, docActualizado.getEstadoValidacion());
 
             ordenObtenida.setArchivoRespaldoPath("/archivos/ordenes/OC_BL_100_MODIFICADO.pdf");
-            ordenCompraBL.actualizar(ordenObtenida);
-            OrdenCompra ordenTrasUpdate = ordenCompraBL.obtenerPorId(idOrdenGenerado);
+            ordenCompraBL.update(ordenObtenida);
+            OrdenCompra ordenTrasUpdate = ordenCompraBL.findById(idOrdenGenerado);
             verificar("U (Update) - Modificacion de ruta de respaldo en OrdenCompra",
                     "/archivos/ordenes/OC_BL_100_MODIFICADO.pdf", ordenTrasUpdate.getArchivoRespaldoPath());
 
             // =========================================================
             // D. DELETE (Eliminar Entidades)
             // =========================================================
-            documentoIngresoBL.eliminar(idDocGenerado);
-            DocumentoIngreso docEliminado = documentoIngresoBL.obtenerPorId(idDocGenerado);
+            documentoIngresoBL.delete(idDocGenerado);
+            DocumentoIngreso docEliminado = documentoIngresoBL.findById(idDocGenerado);
             verificar("D (Delete) - Eliminacion de DocumentoIngreso exitosa", true, docEliminado == null);
 
-            ordenCompraBL.eliminar(idOrdenGenerado);
-            OrdenCompra ordenEliminada = ordenCompraBL.obtenerPorId(idOrdenGenerado);
+            ordenCompraBL.delete(idOrdenGenerado);
+            OrdenCompra ordenEliminada = ordenCompraBL.findById(idOrdenGenerado);
             verificar("D (Delete) - Eliminacion transaccional de OrdenCompra exitosa", true, ordenEliminada == null);
 
         } catch (BLException e) {
@@ -159,7 +159,7 @@ public class PruebaGestionDocumentalCRUD {
             ordenInvalida.setArchivoRespaldoPath("/archivos/ordenes/OC_INVALIDA.pdf");
             ordenInvalida.setFechaRecepcion(LocalDateTime.now());
 
-            ordenCompraBL.insertar(ordenInvalida);
+            ordenCompraBL.insert(ordenInvalida);
             registrarFallo("Validacion Negocio - Rechaza OrdenCompra sin lineas", "No lanzo BLException");
         } catch (BLException e) {
             verificar("Validacion Negocio - Rechaza insercion de OrdenCompra sin lineas correctamente", true, true);
@@ -201,5 +201,9 @@ public class PruebaGestionDocumentalCRUD {
                 ? " RESULTADO: El modulo de gestion documental cumple con el CRUD al 100%."
                 : " RESULTADO: Hay fallos en el modulo de gestion documental.");
         System.out.println();
+    }
+
+    public static void main(String[] args) {
+        ejecutar();
     }
 }
