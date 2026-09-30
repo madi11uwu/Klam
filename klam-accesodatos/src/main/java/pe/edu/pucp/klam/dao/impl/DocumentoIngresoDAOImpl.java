@@ -56,7 +56,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
 
                 cs.executeUpdate();
                 int id = cs.getInt(1);
-                doc.setId_documento(id);
+                doc.setIdDocumento(id);
             }
         } finally {
             if (localConn && conn != null) {
@@ -74,7 +74,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         try {
             String sql = "{CALL MODIFICAR_DOCUMENTO_INGRESO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
             try (CallableStatement cs = conn.prepareCall(sql)) {
-                cs.setInt(1, doc.getId_documento());
+                cs.setInt(1, doc.getIdDocumento());
                 cs.setString(2, doc.getTipoDocumento() != null ? doc.getTipoDocumento().name() : null);
                 cs.setString(3, doc.getArchivoPath());
                 cs.setString(4, doc.getEstadoValidacion() != null ? doc.getEstadoValidacion().name() : null);
@@ -163,7 +163,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
 
     private DocumentoIngreso mapear(ResultSet rs) throws SQLException {
         DocumentoIngreso doc = new DocumentoIngreso();
-        doc.setId_documento(rs.getInt("id_documento"));
+        doc.setIdDocumento(rs.getInt("id_documento"));
         
         String tipoStr = rs.getString("tipo_documento");
         if (tipoStr != null) doc.setTipoDocumento(TipoDocumentoIngreso.valueOf(tipoStr));

@@ -123,7 +123,7 @@ public class PruebaFacturacion {
         verificar("Queda registrada como PAGADO",
                 "PAGADO", boleta.getEstadoPago().name());
         verificar("La boleta corresponde a otra cirugia",
-                2, boleta.getCirugia().getId_cirugia());
+                2, boleta.getCirugia().getIdCirugia());
 
         try {
             boleta.setEstadoPago(EstadoPago.PENDIENTE);
@@ -223,7 +223,7 @@ public class PruebaFacturacion {
     // -----------------------------------------------------------------
     private static Cirugia crearCirugia(int id, String tipoProcedimiento) {
         Cirugia c = new Cirugia();
-        c.setId_cirugia(id);
+        c.setIdCirugia(id);
         c.setTipoProcedimiento(tipoProcedimiento);
         c.setFechaHoraInicio(LocalDateTime.now());
         return c;
@@ -231,7 +231,7 @@ public class PruebaFacturacion {
 
     private static Consumible crearConsumible(int id, String nombre, String marca, String medida) {
         Consumible c = new Consumible();
-        c.setId_consumible(id);
+        c.setIdConsumible(id);
         c.setNombreComercial(nombre);
         c.setMarca(marca);
         c.setMedida(medida);

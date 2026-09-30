@@ -104,10 +104,10 @@ public class PruebaClientesCRUD {
         boolean eliminado = false;
         try {
             bl.insert(cliente);
-            exigir(cliente.getId_cliente() > 0, "Insert devuelve un ID positivo");
-            System.out.println(tipo + ": registro de prueba ID " + cliente.getId_cliente());
-            comparar(cliente, bl.findById(cliente.getId_cliente()));
-            exigir(bl.findAll().stream().anyMatch(c -> c.getId_cliente() == cliente.getId_cliente()),
+            exigir(cliente.getIdCliente() > 0, "Insert devuelve un ID positivo");
+            System.out.println(tipo + ": registro de prueba ID " + cliente.getIdCliente());
+            comparar(cliente, bl.findById(cliente.getIdCliente()));
+            exigir(bl.findAll().stream().anyMatch(c -> c.getIdCliente() == cliente.getIdCliente()),
                     "FindAll incluye el registro insertado");
 
             // Incluso con el mismo ID, una segunda inserción debe rechazarse.
@@ -120,13 +120,13 @@ public class PruebaClientesCRUD {
             cliente.setTelefono("987654321");
             cambiarEspecificos.accept(cliente);
             bl.update(cliente);
-            comparar(cliente, bl.findById(cliente.getId_cliente()));
+            comparar(cliente, bl.findById(cliente.getIdCliente()));
 
-            bl.delete(cliente.getId_cliente());
-            T baja = bl.findById(cliente.getId_cliente());
+            bl.delete(cliente.getIdCliente());
+            T baja = bl.findById(cliente.getIdCliente());
             exigir(baja == null || !baja.isActivo(), "Delete da de baja el registro");
             exigir(bl.findAll().stream().noneMatch(c ->
-                            c.getId_cliente() == cliente.getId_cliente() && c.isActivo()),
+                            c.getIdCliente() == cliente.getIdCliente() && c.isActivo()),
                     "FindAll no muestra como activo el registro eliminado");
             eliminado = true;
             correctas++;
@@ -137,15 +137,15 @@ public class PruebaClientesCRUD {
             e.printStackTrace(System.err);
         } finally {
             // Solo se da de baja el registro creado por esta ejecución.
-            if (!eliminado && cliente.getId_cliente() > 0) {
+            if (!eliminado && cliente.getIdCliente() > 0) {
                 try {
-                    T pendiente = bl.findById(cliente.getId_cliente());
+                    T pendiente = bl.findById(cliente.getIdCliente());
                     if (pendiente != null && pendiente.isActivo()) {
-                        bl.delete(cliente.getId_cliente());
+                        bl.delete(cliente.getIdCliente());
                     }
                 } catch (Exception e) {
                     fallos++;
-                    System.err.println("Revisar registro de prueba ID " + cliente.getId_cliente()
+                    System.err.println("Revisar registro de prueba ID " + cliente.getIdCliente()
                             + ": no se pudo completar su baja: " + e.getMessage());
                 }
             }
@@ -154,7 +154,7 @@ public class PruebaClientesCRUD {
 
     private static void comparar(Cliente esperado, Cliente actual) {
         exigir(actual != null, "FindById encuentra el registro");
-        exigir(esperado.getId_cliente() == actual.getId_cliente(), "ID persistido");
+        exigir(esperado.getIdCliente() == actual.getIdCliente(), "ID persistido");
         exigir(Objects.equals(esperado.getNombre(), actual.getNombre()), "Nombre persistido");
         exigir(Objects.equals(esperado.getDireccion(), actual.getDireccion()), "Dirección persistida");
         exigir(Objects.equals(esperado.getEmailContacto(), actual.getEmailContacto()), "Correo persistido");

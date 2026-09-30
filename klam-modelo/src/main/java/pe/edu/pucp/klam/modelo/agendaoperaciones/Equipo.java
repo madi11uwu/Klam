@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Equipo implements Verificable {
-    private int id_equipo;
+    private int idEquipo;
     private String nombre;
     private CategoriaEquipo categoria;
     private Map<String,Object> especificaciones;
@@ -19,7 +19,7 @@ public class Equipo implements Verificable {
         if (equipo == null){
             throw new IllegalArgumentException("Equipo no puede ser nulo");
         }
-        setId_equipo(equipo.getId_equipo());
+        setIdEquipo(equipo.getIdEquipo());
         setNombre(equipo.getNombre());
         setCategoria(equipo.getCategoria());
         setEspecificaciones(equipo.getEspecificaciones());
@@ -28,18 +28,18 @@ public class Equipo implements Verificable {
     }
 
     public Equipo(int i, String equipoQuirúrgicoA) {
-        this.id_equipo=i;
+        this.idEquipo =i;
         this.nombre=equipoQuirúrgicoA;
         this.especificaciones= new HashMap<>();
         this.activo = true;
     }
 
-    public int getId_equipo() {
-        return id_equipo;
+    public int getIdEquipo() {
+        return idEquipo;
     }
 
-    public void setId_equipo(int id_equipo) {
-        this.id_equipo = id_equipo;
+    public void setIdEquipo(int idEquipo) {
+        this.idEquipo = idEquipo;
     }
 
     public Map<String, Object> getEspecificaciones() {

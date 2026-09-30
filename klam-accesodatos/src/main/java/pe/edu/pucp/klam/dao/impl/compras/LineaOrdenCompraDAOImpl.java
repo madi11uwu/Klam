@@ -22,8 +22,8 @@ public class LineaOrdenCompraDAOImpl implements LineaOrdenCompraDAO {
             cs.registerOutParameter(1, Types.INTEGER);
             cs.setInt(2, idOrdenCompra);
 
-            if (linea.getConsumible() != null && linea.getConsumible().getId_consumible() > 0) {
-                cs.setInt(3, linea.getConsumible().getId_consumible());
+            if (linea.getConsumible() != null && linea.getConsumible().getIdConsumible() > 0) {
+                cs.setInt(3, linea.getConsumible().getIdConsumible());
             } else {
                 cs.setNull(3, Types.INTEGER);
             }
@@ -64,7 +64,7 @@ public class LineaOrdenCompraDAOImpl implements LineaOrdenCompraDAO {
                     int idConsumible = rs.getInt("id_consumible");
                     if (!rs.wasNull()) {
                         c = new Consumible();
-                        c.setId_consumible(idConsumible);
+                        c.setIdConsumible(idConsumible);
                     }
 
                     // Se asignan los atributos con sus métodos reales

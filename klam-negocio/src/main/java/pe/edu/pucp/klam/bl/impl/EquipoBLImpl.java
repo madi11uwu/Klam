@@ -48,7 +48,7 @@ public class EquipoBLImpl implements EquipoBL {
     @Override
     public void update(Equipo equipo) throws BLException {
         validar(equipo);
-        validarExiste(equipo.getId_equipo());
+        validarExiste(equipo.getIdEquipo());
 
         TransactionsManager.iniciar();
         try {

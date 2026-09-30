@@ -30,7 +30,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
 
     @Override
     public void update(DocumentoIngreso doc) throws BLException {
-        if (doc == null || doc.getId_documento() <= 0) {
+        if (doc == null || doc.getIdDocumento() <= 0) {
             throw new BLException("El ID del documento de ingreso debe ser valido para actualizar");
         }
         validarDocumento(doc);

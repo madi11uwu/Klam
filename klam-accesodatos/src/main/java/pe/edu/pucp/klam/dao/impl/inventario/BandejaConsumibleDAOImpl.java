@@ -24,12 +24,12 @@ class BandejaConsumibleDAOImpl implements BandejaConsumibleDAO {
         try (CallableStatement cmd = conn.prepareCall(sql)) {
             for (Consumible c : todos) {
                 cmd.setInt("p_id_bandeja", idBandeja);
-                cmd.setInt("p_id_consumible", c.getId_consumible());
+                cmd.setInt("p_id_consumible", c.getIdConsumible());
                 cmd.setInt("p_cantidad_despachada", despachados.getOrDefault(c, 0));
                 cmd.setInt("p_cantidad_consumida", consumidos.getOrDefault(c, 0));
 
                 if (cmd.executeUpdate() == 0) {
-                    throw new SQLException("No se pudo insertar el consumible " + c.getId_consumible());
+                    throw new SQLException("No se pudo insertar el consumible " + c.getIdConsumible());
                 }
             }
         }
@@ -78,7 +78,7 @@ class BandejaConsumibleDAOImpl implements BandejaConsumibleDAO {
 
     private Consumible mapearConsumible(ResultSet rs) throws SQLException {
         Consumible c = new Consumible();
-        c.setId_consumible(rs.getInt("id_consumible"));
+        c.setIdConsumible(rs.getInt("id_consumible"));
         c.setNombreComercial(rs.getString("nombre_comercial"));
         c.setMarca(rs.getString("marca"));
         c.setMedida(rs.getString("medida"));

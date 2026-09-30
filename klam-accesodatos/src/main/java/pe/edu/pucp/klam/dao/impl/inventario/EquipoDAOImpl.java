@@ -8,9 +8,7 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class EquipoDAOImpl implements EquipoDAO {
 
@@ -64,10 +62,10 @@ public class EquipoDAOImpl implements EquipoDAO {
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo insertar el equipo");
             }
-            equipo.setId_equipo(cmd.getInt("p_id"));
+            equipo.setIdEquipo(cmd.getInt("p_id"));
 
             EquipoEspecificacionDAO equipoEspecificacionDAO = new EquipoEspecificacionDAOImpl();
-            equipoEspecificacionDAO.insertEspecificaciones(equipo.getId_equipo(), equipo.getEspecificaciones());
+            equipoEspecificacionDAO.insertEspecificaciones(equipo.getIdEquipo(), equipo.getEspecificaciones());
 
         }
     }
@@ -80,7 +78,7 @@ public class EquipoDAOImpl implements EquipoDAO {
         Connection conn = TransactionsManager.getConnection();
         String sql = "{call modificar_equipo(?,?,?,?,?)}";
         try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id", equipo.getId_equipo());
+            cmd.setInt("p_id", equipo.getIdEquipo());
             cmd.setString("p_nombre", equipo.getNombre());
             cmd.setString("p_categoria", equipo.getCategoria().name());
             cmd.setBoolean("p_disponible", equipo.isDisponible());
@@ -90,8 +88,8 @@ public class EquipoDAOImpl implements EquipoDAO {
                 throw new SQLException("No se pudo actualizar el equipo");
             }
             EquipoEspecificacionDAO equipoEspecificacionDAO = new EquipoEspecificacionDAOImpl();
-            equipoEspecificacionDAO.deleteEspecificaciones(equipo.getId_equipo());
-            equipoEspecificacionDAO.insertEspecificaciones(equipo.getId_equipo(), equipo.getEspecificaciones());
+            equipoEspecificacionDAO.deleteEspecificaciones(equipo.getIdEquipo());
+            equipoEspecificacionDAO.insertEspecificaciones(equipo.getIdEquipo(), equipo.getEspecificaciones());
         }
     }
 
@@ -113,7 +111,7 @@ public class EquipoDAOImpl implements EquipoDAO {
 
     private Equipo mapear(ResultSet rs) throws SQLException {
         Equipo e = new Equipo();
-        e.setId_equipo(rs.getInt("id_equipo"));
+        e.setIdEquipo(rs.getInt("id_equipo"));
         e.setNombre(rs.getString("nombre"));
         e.setCategoria(CategoriaEquipo.valueOf(rs.getString("categoria")));
         e.setDisponible(rs.getBoolean("disponible"));
@@ -123,6 +121,6 @@ public class EquipoDAOImpl implements EquipoDAO {
     }
     private void mapearEspecificaciones(Equipo equipo) throws SQLException {
         EquipoEspecificacionDAO especificacionDAO = new EquipoEspecificacionDAOImpl();
-        equipo.setEspecificaciones(especificacionDAO.findByEquipoId(equipo.getId_equipo()));
+        equipo.setEspecificaciones(especificacionDAO.findByEquipoId(equipo.getIdEquipo()));
     }
 }

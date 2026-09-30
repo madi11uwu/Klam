@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BandejaInstrumental implements Verificable {
-    private int id_bandeja;
+    private int idBandeja;
     private String tipo;
     private boolean esterilizado;
     private Map<Consumible,Integer> consumibles;            // despachados a la cirugia
@@ -20,7 +20,7 @@ public class BandejaInstrumental implements Verificable {
     }
 
     public BandejaInstrumental(int i, String s) {
-        this.id_bandeja = i;
+        this.idBandeja = i;
         this.tipo = s;
         this.consumibles = new HashMap<>();
         this.consumiblesConsumidos = new HashMap<>();
@@ -31,7 +31,7 @@ public class BandejaInstrumental implements Verificable {
         if (bandejaInstrumental == null) {
             throw new IllegalArgumentException("bandejaInstrumental nula");
         }
-        setId_bandeja(bandejaInstrumental.getId_bandeja());
+        setIdBandeja(bandejaInstrumental.getIdBandeja());
         setTipo(bandejaInstrumental.getTipo());
         setEsterilizado(bandejaInstrumental.isEsterilizado());
         setConsumibles(bandejaInstrumental.getConsumibles());
@@ -80,12 +80,12 @@ public class BandejaInstrumental implements Verificable {
         this.tipo = tipo;
     }
 
-    public int getId_bandeja() {
-        return id_bandeja;
+    public int getIdBandeja() {
+        return idBandeja;
     }
 
-    public void setId_bandeja(int id_bandeja) {
-        this.id_bandeja = id_bandeja;
+    public void setIdBandeja(int idBandeja) {
+        this.idBandeja = idBandeja;
     }
 
     public void agregarConsumible(Consumible consumible, int cantidad) {

@@ -47,7 +47,7 @@ public class PruebaGestionDocumental {
         verificar("Orden de Compra es verificable si tiene path de respaldo", true, orden.verificar());
 
         DocumentoIngreso doc = new DocumentoIngreso();
-        doc.setId_documento(1001);
+        doc.setIdDocumento(1001);
         doc.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
         doc.setArchivoPath("/archivos/docs/DOC1001.pdf");
         doc.setEstadoValidacion(EstadoValidacionDocumento.VALIDADO);
@@ -68,7 +68,7 @@ public class PruebaGestionDocumental {
         ordenOriginal.setFechaRecepcion(LocalDateTime.now());
 
         DocumentoIngreso doc = new DocumentoIngreso();
-        doc.setId_documento(2002);
+        doc.setIdDocumento(2002);
         doc.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
         doc.setArchivoPath("/path/doc.pdf");
         doc.setEstadoValidacion(EstadoValidacionDocumento.VALIDADO);
@@ -118,11 +118,11 @@ public class PruebaGestionDocumental {
             doc.setUsuarioCarga(admin);
 
             documentoIngresoBL.insert(doc);
-            verificar("Registro de DocumentoIngreso en BL exitoso", true, doc.getId_documento() > 0);
+            verificar("Registro de DocumentoIngreso en BL exitoso", true, doc.getIdDocumento() > 0);
 
             // C. Cambiar estado de validación en la capa BL
-            documentoIngresoBL.cambiarEstadoValidacion(doc.getId_documento(), EstadoValidacionDocumento.VALIDADO);
-            DocumentoIngreso docConsultado = documentoIngresoBL.findById(doc.getId_documento());
+            documentoIngresoBL.cambiarEstadoValidacion(doc.getIdDocumento(), EstadoValidacionDocumento.VALIDADO);
+            DocumentoIngreso docConsultado = documentoIngresoBL.findById(doc.getIdDocumento());
             verificar("Transicion de estado a VALIDADO en BL exitosa",
                     EstadoValidacionDocumento.VALIDADO, docConsultado.getEstadoValidacion());
 

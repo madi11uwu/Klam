@@ -54,7 +54,7 @@ public class ConsumibleBLImpl implements ConsumibleBL {
     @Override
     public void update(Consumible consumible) throws BLException {
         validar(consumible);
-        validarExiste(consumible.getId_consumible());
+        validarExiste(consumible.getIdConsumible());
 
         try {
             consumibleDAO.update(consumible);
