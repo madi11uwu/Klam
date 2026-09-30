@@ -4,7 +4,7 @@ public class Programa2 {
 
     public static void main(String []args){
         PruebaCirugiasCRUD.ejecutar();
-        PruebaClientesBL.ejecutar();
+        PruebaClientesCRUD.ejecutar();
         PruebaFacturacionCRUD.ejecutar();
         PruebaGestionDocumentalCRUD.ejecutar();
         PruebaInventarioCRUD.ejecutar();
