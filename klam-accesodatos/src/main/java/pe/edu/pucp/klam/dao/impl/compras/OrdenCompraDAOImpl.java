@@ -24,7 +24,7 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
         if (localConn) conn = DBManager.getInstance().getConnection();
 
         try {
-            String sql = "{CALL INSERTAR_ORDEN_COMPRA(?, ?, ?)}";
+            String sql = "{CALL INSERTAR_ORDEN_COMPRA(?, ?, ?, ?)}";
             try (CallableStatement cs = conn.prepareCall(sql)) {
                 cs.registerOutParameter(1, Types.INTEGER);
                 cs.setString(2, orden.getArchivoRespaldoPath());
@@ -108,7 +108,7 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
         if (localConn) conn = DBManager.getInstance().getConnection();
 
         try {
-            String sql = "{CALL OBTENER_ORDEN_COMPRA_POR_ID(?)}";
+            String sql = "{CALL BUSCAR_ORDEN_COMPRA_POR_ID(?)}";
             OrdenCompra orden = null;
             try (CallableStatement cs = conn.prepareCall(sql)) {
                 cs.setInt(1, id);
@@ -135,7 +135,7 @@ public class OrdenCompraDAOImpl implements OrdenCompraDAO {
         if (localConn) conn = DBManager.getInstance().getConnection();
 
         try {
-            String sql = "{CALL LISTAR_ORDENES_COMPRA_TODAS()}";
+            String sql = "{CALL LISTAR_ORDENES_COMPRA()}";
             try (CallableStatement cs = conn.prepareCall(sql);
                  ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {

@@ -26,7 +26,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         }
 
         try {
-            String sql = "{CALL INSERTAR_DOCUMENTO_INGRESO(?, ?, ?, ?, ?, ?)}";
+            String sql = "{CALL INSERTAR_DOCUMENTO_INGRESO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
             try (CallableStatement cs = conn.prepareCall(sql)) {
                 cs.registerOutParameter(1, Types.INTEGER);
                 cs.setString(2, doc.getTipoDocumento() != null ? doc.getTipoDocumento().name() : null);
@@ -63,7 +63,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         if (localConn) conn = DBManager.getInstance().getConnection();
 
         try {
-            String sql = "{CALL MODIFICAR_DOCUMENTO_INGRESO(?, ?, ?, ?, ?, ?)}";
+            String sql = "{CALL MODIFICAR_DOCUMENTO_INGRESO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
             try (CallableStatement cs = conn.prepareCall(sql)) {
                 cs.setInt(1, doc.getId_documento());
                 cs.setString(2, doc.getTipoDocumento() != null ? doc.getTipoDocumento().name() : null);
@@ -112,7 +112,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         if (localConn) conn = DBManager.getInstance().getConnection();
 
         try {
-            String sql = "{CALL OBTENER_DOCUMENTO_INGRESO_POR_ID(?)}";
+            String sql = "{CALL BUSCAR_DOCUMENTO_INGRESO_POR_ID(?)}";
             try (CallableStatement cs = conn.prepareCall(sql)) {
                 cs.setInt(1, id);
                 try (ResultSet rs = cs.executeQuery()) {
@@ -135,7 +135,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         if (localConn) conn = DBManager.getInstance().getConnection();
 
         try {
-            String sql = "{CALL LISTAR_DOCUMENTOS_INGRESO_TODOS()}";
+            String sql = "{CALL LISTAR_DOCUMENTOS_INGRESO()}";
             try (CallableStatement cs = conn.prepareCall(sql);
                  ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
@@ -164,7 +164,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
             doc.setFechaCarga(rs.getTimestamp("fecha_carga").toLocalDateTime());
         }
 
-        int idOrden = rs.getInt("fid_orden_compra");
+        int idOrden = rs.getInt("id_orden_compra");
         if (!rs.wasNull()) {
             OrdenCompra oc = new OrdenCompra();
             oc.setIdOrdenCompra(idOrden);

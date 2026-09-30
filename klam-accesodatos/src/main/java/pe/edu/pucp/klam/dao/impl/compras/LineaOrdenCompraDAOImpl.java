@@ -15,7 +15,7 @@ public class LineaOrdenCompraDAOImpl implements LineaOrdenCompraDAO {
 
     @Override
     public Integer insertar(LineaOrdenCompra linea, Integer idOrdenCompra, Connection conn) throws SQLException {
-        String sql = "{CALL INSERTAR_LINEA_ORDEN_COMPRA(?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{CALL INSERTAR_LINEA_ORDEN_COMPRA(?, ?, ?, ?, ?, ?, ?)}";
         try (CallableStatement cs = conn.prepareCall(sql)) {
             cs.registerOutParameter(1, Types.INTEGER);
             cs.setInt(2, linea.getCantidad());
@@ -62,7 +62,7 @@ public class LineaOrdenCompraDAOImpl implements LineaOrdenCompraDAO {
                 while (rs.next()) {
                     // Creamos el objeto consumible si viene en el ResultSet
                     Consumible c = null;
-                    int idConsumible = rs.getInt("fid_consumible");
+                    int idConsumible = rs.getInt("id_consumible");
                     if (!rs.wasNull()) {
                         c = new Consumible();
                         c.setId_consumible(idConsumible);
@@ -70,7 +70,7 @@ public class LineaOrdenCompraDAOImpl implements LineaOrdenCompraDAO {
 
                     // Se asignan los atributos con sus métodos reales
                     LineaOrdenCompra linea = new LineaOrdenCompra();
-                    linea.setIdLinea(rs.getInt("id_linea_orden_compra"));
+                    linea.setIdLinea(rs.getInt("id_linea"));
                     linea.setCantidad(rs.getInt("cantidad"));
                     linea.setPrecioUnitario(rs.getDouble("precio_unitario"));
                     linea.setDescripcion(rs.getString("descripcion"));
