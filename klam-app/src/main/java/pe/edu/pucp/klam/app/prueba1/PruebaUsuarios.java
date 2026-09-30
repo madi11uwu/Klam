@@ -1,4 +1,4 @@
-package pe.edu.pucp.app.prueba1;
+package pe.edu.pucp.klam.app.prueba1;
 
 import java.util.ArrayList;
 import java.util.List;
