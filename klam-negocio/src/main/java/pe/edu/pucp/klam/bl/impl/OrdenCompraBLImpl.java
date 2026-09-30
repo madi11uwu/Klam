@@ -16,7 +16,7 @@ public class OrdenCompraBLImpl implements OrdenCompraBL {
     private final OrdenCompraDAO ordenDAO = new OrdenCompraDAOImpl();
 
     @Override
-    public void insertar(OrdenCompra orden) throws BLException {
+    public void insert(OrdenCompra orden) throws BLException {
         validarOrdenCompra(orden);
         
         // Manejo de Transaccion en Capa Negocio (BL) para Cabecera + Lineas
@@ -31,7 +31,7 @@ public class OrdenCompraBLImpl implements OrdenCompraBL {
     }
 
     @Override
-    public void actualizar(OrdenCompra orden) throws BLException {
+    public void update(OrdenCompra orden) throws BLException {
         if (orden == null || orden.getIdOrdenCompra() <= 0) {
             throw new BLException("El ID de la orden de compra debe ser valido para actualizar");
         }
@@ -48,7 +48,7 @@ public class OrdenCompraBLImpl implements OrdenCompraBL {
     }
 
     @Override
-    public void eliminar(Integer id) throws BLException {
+    public void delete(Integer id) throws BLException {
         if (id == null || id <= 0) {
             throw new BLException("Debe proporcionar un ID valido de orden de compra para eliminar");
         }
@@ -64,7 +64,7 @@ public class OrdenCompraBLImpl implements OrdenCompraBL {
     }
 
     @Override
-    public OrdenCompra obtenerPorId(Integer id) throws BLException {
+    public OrdenCompra findById(Integer id) throws BLException {
         if (id == null || id <= 0) {
             throw new BLException("Debe proporcionar un ID valido de orden de compra");
         }
@@ -76,7 +76,7 @@ public class OrdenCompraBLImpl implements OrdenCompraBL {
     }
 
     @Override
-    public List<OrdenCompra> listarTodas() throws BLException {
+    public List<OrdenCompra> findAll() throws BLException {
         try {
             return ordenDAO.findAll();
         } catch (SQLException e) {

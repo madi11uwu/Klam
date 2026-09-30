@@ -202,8 +202,4 @@ public class PruebaGestionDocumentalCRUD {
                 : " RESULTADO: Hay fallos en el modulo de gestion documental.");
         System.out.println();
     }
-
-    public static void main(String[] args) {
-        ejecutar();
-    }
 }

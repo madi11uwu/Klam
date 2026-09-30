@@ -103,7 +103,7 @@ public class PruebaGestionDocumental {
             orden.getLineasOrdenCompra().add(linea1);
             orden.getLineasOrdenCompra().add(linea2);
 
-            ordenCompraBL.insertar(orden);
+            ordenCompraBL.insert(orden);
             verificar("Registro de OrdenCompra transaccional en BL exitoso", true, orden.getIdOrdenCompra() > 0);
 
             // B. Registrar Documento de Ingreso asociado
@@ -114,17 +114,17 @@ public class PruebaGestionDocumental {
             doc.setFechaCarga(LocalDateTime.now());
             doc.setOrdenCompra(orden);
 
-            documentoIngresoBL.insertar(doc);
+            documentoIngresoBL.insert(doc);
             verificar("Registro de DocumentoIngreso en BL exitoso", true, doc.getId_documento() > 0);
 
             // C. Cambiar estado de validación en la capa BL
             documentoIngresoBL.cambiarEstadoValidacion(doc.getId_documento(), EstadoValidacionDocumento.VALIDADO);
-            DocumentoIngreso docConsultado = documentoIngresoBL.obtenerPorId(doc.getId_documento());
+            DocumentoIngreso docConsultado = documentoIngresoBL.findById(doc.getId_documento());
             verificar("Transicion de estado a VALIDADO en BL exitosa",
                     EstadoValidacionDocumento.VALIDADO, docConsultado.getEstadoValidacion());
 
             // D. Listar órdenes de compra
-            List<OrdenCompra> listaOrdenes = ordenCompraBL.listarTodas();
+            List<OrdenCompra> listaOrdenes = ordenCompraBL.findAll();
             verificar("Listado de Ordenes de Compra en BL retorne elementos", true, !listaOrdenes.isEmpty());
 
         } catch (BLException e) {
@@ -137,7 +137,7 @@ public class PruebaGestionDocumental {
             ordenSinLineas.setArchivoRespaldoPath("/archivos/ordenes/OC_INVALIDA.pdf");
             ordenSinLineas.setFechaRecepcion(LocalDateTime.now());
 
-            ordenCompraBL.insertar(ordenSinLineas);
+            ordenCompraBL.insert(ordenSinLineas);
             registrarFallo("Rechaza OrdenCompra sin lineas", "No lanzo BLException");
         } catch (BLException e) {
             verificar("Rechaza insercion de OrdenCompra sin lineas correctamente", true, true);
