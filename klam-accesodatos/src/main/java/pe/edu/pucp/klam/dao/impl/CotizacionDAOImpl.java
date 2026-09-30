@@ -84,7 +84,7 @@ public class CotizacionDAOImpl implements CotizacionDAO {
             Connection conn = DBManager.getInstance().getConnection();
             CallableStatement cmd = conn.prepareCall(sql)) {
 
-            cmd.setInt("p_id_cirugia", cotizacion.getCirugia().getId_cirugia());
+            cmd.setInt("p_id_cirugia", cotizacion.getCirugia().getIdCirugia());
             cmd.setDouble("p_precio_pactado", cotizacion.getPrecioPactado());
             cmd.setString("p_estado", cotizacion.getEstado().name());
             cmd.setTimestamp("p_fecha_emision", Timestamp.valueOf(cotizacion.getFechaEmision()));
@@ -110,7 +110,7 @@ public class CotizacionDAOImpl implements CotizacionDAO {
             Connection conn = DBManager.getInstance().getConnection();
             CallableStatement cmd = conn.prepareCall(sql)) {
 
-            cmd.setInt("p_id_cirugia", cotizacion.getCirugia().getId_cirugia());
+            cmd.setInt("p_id_cirugia", cotizacion.getCirugia().getIdCirugia());
             cmd.setDouble("p_precio_pactado", cotizacion.getPrecioPactado());
             cmd.setString("p_estado", cotizacion.getEstado().name());
             cmd.setTimestamp("p_fecha_emision", Timestamp.valueOf(cotizacion.getFechaEmision()));

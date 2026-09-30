@@ -152,7 +152,7 @@ public class BoletaBLImpl implements BoletaBL {
         if (boleta == null) {
             throw new BLException("La boleta no puede ser nula");
         }
-        if (boleta.getCirugia() == null || boleta.getCirugia().getId_cirugia() <= 0) {
+        if (boleta.getCirugia() == null || boleta.getCirugia().getIdCirugia() <= 0) {
             throw new BLException("La boleta debe estar asociada a una cirugia existente");
         }
         if (boleta.getFechaEmision() == null) {

@@ -67,7 +67,7 @@ public class BoletaDAOImpl implements BoletaDAO {
 
         String sql = "{call insertar_boleta(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_cirugia", boleta.getCirugia().getId_cirugia());
+            cmd.setInt("p_id_cirugia", boleta.getCirugia().getIdCirugia());
             cmd.setTimestamp("p_fecha_emision", Timestamp.valueOf(boleta.getFechaEmision()));
             cmd.setDouble("p_monto_base", boleta.getMontoBase());
             cmd.setDouble("p_tasa_igv", boleta.getTasaIgv());
@@ -101,7 +101,7 @@ public class BoletaDAOImpl implements BoletaDAO {
 
         String sql = "{call modificar_boleta(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_cirugia", boleta.getCirugia().getId_cirugia());
+            cmd.setInt("p_id_cirugia", boleta.getCirugia().getIdCirugia());
             cmd.setTimestamp("p_fecha_emision", Timestamp.valueOf(boleta.getFechaEmision()));
             cmd.setDouble("p_monto_base", boleta.getMontoBase());
             cmd.setDouble("p_tasa_igv", boleta.getTasaIgv());

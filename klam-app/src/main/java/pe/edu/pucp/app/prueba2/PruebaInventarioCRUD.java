@@ -46,7 +46,7 @@ public class PruebaInventarioCRUD {
         equipo.setEspecificaciones(Map.of("marca", "Medtronic", "voltaje", "220V"));
 
         equipoBL.insert(equipo);
-        int id = equipo.getId_equipo();
+        int id = equipo.getIdEquipo();
         System.out.println("[INSERT] id " + id);
 
         Equipo leido = equipoBL.findById(id);
@@ -84,7 +84,7 @@ public class PruebaInventarioCRUD {
         consumible.setMedida("10x10 cm");
 
         consumibleBL.insert(consumible);
-        int id = consumible.getId_consumible();
+        int id = consumible.getIdConsumible();
         System.out.println("[INSERT] id " + id);
 
         Consumible leido = consumibleBL.findById(id);
@@ -133,7 +133,7 @@ public class PruebaInventarioCRUD {
         bandeja.agregarConsumible(clip, 4);
 
         bandejaBL.insert(bandeja);
-        int id = bandeja.getId_bandeja();
+        int id = bandeja.getIdBandeja();
         System.out.println("[INSERT] id " + id);
 
         BandejaInstrumental leida = bandejaBL.findById(id);

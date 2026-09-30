@@ -147,7 +147,7 @@ public class FacturaBLImpl implements FacturaBL {
         if (factura == null) {
             throw new BLException("La factura no puede ser nula");
         }
-        if (factura.getCirugia() == null || factura.getCirugia().getId_cirugia() <= 0) {
+        if (factura.getCirugia() == null || factura.getCirugia().getIdCirugia() <= 0) {
             throw new BLException("La factura debe estar asociada a una cirugia existente");
         }
         if (factura.getFechaEmision() == null) {

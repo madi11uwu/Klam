@@ -91,7 +91,7 @@ public class CirugiaBLImpl implements CirugiaBL {
     @Override
     public void update(Cirugia cirugia) throws BLException {
         validarDatos(cirugia);
-        buscarCirugia(cirugia.getId_cirugia());
+        buscarCirugia(cirugia.getIdCirugia());
         try {
             cirugiaDAO.update(cirugia);
         } catch (SQLException e) {
@@ -165,14 +165,14 @@ public class CirugiaBLImpl implements CirugiaBL {
                 || cirugia.getEstado() == EstadoCirugia.EN_PROCESO;
 
         if (cirugia.getEquipo() != null) {
-            Equipo equipo = buscarEquipo(cirugia.getEquipo().getId_equipo());
+            Equipo equipo = buscarEquipo(cirugia.getEquipo().getIdEquipo());
             if (vigente && !equipo.verificar()) {
                 throw new BLException("El equipo " + equipo.getNombre() + " no está disponible");
             }
         }
 
         if (cirugia.getBandejaInstrumental() != null) {
-            BandejaInstrumental bandeja = buscarBandeja(cirugia.getBandejaInstrumental().getId_bandeja());
+            BandejaInstrumental bandeja = buscarBandeja(cirugia.getBandejaInstrumental().getIdBandeja());
             if (vigente && !bandeja.verificar()) {
                 throw new BLException("La bandeja " + bandeja.getTipo() + " no está esterilizada");
             }
@@ -195,15 +195,15 @@ public class CirugiaBLImpl implements CirugiaBL {
         try {
             boolean existe;
             if (cliente instanceof ClinicaHospital) {
-                existe = clinicaHospitalDAO.findById(cliente.getId_cliente()) != null;
+                existe = clinicaHospitalDAO.findById(cliente.getIdCliente()) != null;
             } else if (cliente instanceof PacienteParticular) {
-                existe = pacienteParticularDAO.findById(cliente.getId_cliente()) != null;
+                existe = pacienteParticularDAO.findById(cliente.getIdCliente()) != null;
             } else {
                 throw new BLException("Tipo de cliente no soportado");
             }
 
             if (!existe) {
-                throw new BLException("No existe un cliente con id " + cliente.getId_cliente());
+                throw new BLException("No existe un cliente con id " + cliente.getIdCliente());
             }
         } catch (SQLException e) {
             throw new BLException("No se pudo verificar la existencia del cliente", e);

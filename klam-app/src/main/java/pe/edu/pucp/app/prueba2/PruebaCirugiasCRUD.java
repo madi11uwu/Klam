@@ -82,7 +82,7 @@ public class PruebaCirugiasCRUD {
         cirugiaBL.insert(cirugia);
         System.out.println("Insertada:   " + describir(cirugia));
 
-        cirugia = cirugiaBL.findById(cirugia.getId_cirugia());
+        cirugia = cirugiaBL.findById(cirugia.getIdCirugia());
         System.out.println("Recuperada:  " + describir(cirugia));
 
         cirugia.setFechaHoraInicio(LocalDateTime.of(2026, 10, 16, 9, 0));
@@ -90,7 +90,7 @@ public class PruebaCirugiasCRUD {
         cirugia.setDoctorNombre("Dra. Prueba Editada");
         cirugia.setEstado(EstadoCirugia.EN_PROCESO);
         cirugiaBL.update(cirugia);
-        System.out.println("Actualizada: " + describir(cirugiaBL.findById(cirugia.getId_cirugia())));
+        System.out.println("Actualizada: " + describir(cirugiaBL.findById(cirugia.getIdCirugia())));
 
         System.out.println("En proceso:  " + cirugiaBL.findByEstado(EstadoCirugia.EN_PROCESO).size()
                 + " cirugía(s)");
@@ -98,17 +98,17 @@ public class PruebaCirugiasCRUD {
                 LocalDateTime.of(2026, 10, 16, 0, 0),
                 LocalDateTime.of(2026, 10, 16, 23, 59)).size() + " cirugía(s)");
 
-        cirugiaBL.cancelar(cirugia.getId_cirugia(), "Paciente con fiebre " + RUN);
-        System.out.println("Cancelada:   " + describir(cirugiaBL.findById(cirugia.getId_cirugia())));
+        cirugiaBL.cancelar(cirugia.getIdCirugia(), "Paciente con fiebre " + RUN);
+        System.out.println("Cancelada:   " + describir(cirugiaBL.findById(cirugia.getIdCirugia())));
 
-        cirugiaBL.delete(cirugia.getId_cirugia());
-        System.out.println("Eliminada:   id " + cirugia.getId_cirugia()
-                + " (activo=" + cirugiaBL.findById(cirugia.getId_cirugia()).isActivo() + ")");
+        cirugiaBL.delete(cirugia.getIdCirugia());
+        System.out.println("Eliminada:   id " + cirugia.getIdCirugia()
+                + " (activo=" + cirugiaBL.findById(cirugia.getIdCirugia()).isActivo() + ")");
 
         listarCirugias(cirugiaBL.findAll());
 
-        equipoBL.delete(equipo.getId_equipo());
-        bandejaBL.delete(bandeja.getId_bandeja());
+        equipoBL.delete(equipo.getIdEquipo());
+        bandejaBL.delete(bandeja.getIdBandeja());
     }
 
     private static void probarCotizaciones() throws BLException {
@@ -134,8 +134,8 @@ public class PruebaCirugiasCRUD {
         cotizacionBL.update(cotizacion);
         System.out.println("Actualizada: " + describir(cotizacionBL.findById(cotizacion.getIdCotizacion())));
 
-        System.out.println("De la cirugía " + cirugia.getId_cirugia() + ": "
-                + cotizacionBL.findByCirugia(cirugia.getId_cirugia()).size() + " cotización(es)");
+        System.out.println("De la cirugía " + cirugia.getIdCirugia() + ": "
+                + cotizacionBL.findByCirugia(cirugia.getIdCirugia()).size() + " cotización(es)");
 
         cotizacionBL.aceptar(cotizacion.getIdCotizacion());
         System.out.println("Aceptada:    " + describir(cotizacionBL.findById(cotizacion.getIdCotizacion())));
@@ -146,7 +146,7 @@ public class PruebaCirugiasCRUD {
 
         listarCotizaciones(cotizacionBL.findAll());
 
-        cirugiaBL.delete(cirugia.getId_cirugia());
+        cirugiaBL.delete(cirugia.getIdCirugia());
     }
 
     private static void probarReglasDeNegocio() {
@@ -174,7 +174,7 @@ public class PruebaCirugiasCRUD {
         try {
             Cirugia cirugia = cirugiaDemo();
             ClinicaHospital inexistente = new ClinicaHospital();
-            inexistente.setId_cliente(999_999);
+            inexistente.setIdCliente(999_999);
             cirugia.setCliente(inexistente);
             cirugiaBL.insert(cirugia);
             System.out.println("Cirugía con cliente inexistente: NO se rechazó (falla la regla)");
@@ -223,7 +223,7 @@ public class PruebaCirugiasCRUD {
 
     private static ClinicaHospital clinicaDML() {
         ClinicaHospital clinica = new ClinicaHospital();
-        clinica.setId_cliente(ID_CLINICA_DML);
+        clinica.setIdCliente(ID_CLINICA_DML);
         return clinica;
     }
 
@@ -261,7 +261,7 @@ public class PruebaCirugiasCRUD {
         if (cirugia.getCliente() != null) {
             cliente = cirugia.getCliente().getNombre() != null
                     ? cirugia.getCliente().getNombre()
-                    : "id " + cirugia.getCliente().getId_cliente();
+                    : "id " + cirugia.getCliente().getIdCliente();
         }
         String equipo = cirugia.getEquipo() != null ? cirugia.getEquipo().getNombre() : "(sin equipo)";
         String bandeja = cirugia.getBandejaInstrumental() != null
@@ -271,7 +271,7 @@ public class PruebaCirugiasCRUD {
                 ? FORMATO_FECHA.format(cirugia.getFechaHoraFin())
                 : "--";
         return String.format("[%d] %s  %s -> %s  %s  doctor=%s  cliente=%s  equipo=%s  bandeja=%s%s  activo=%s",
-                cirugia.getId_cirugia(),
+                cirugia.getIdCirugia(),
                 cirugia.getTipoProcedimiento(),
                 FORMATO_FECHA.format(cirugia.getFechaHoraInicio()),
                 fin,

@@ -8,7 +8,6 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
 import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
-import pe.edu.pucp.klam.modelo.comunicaciones.TipoNotificacion;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
 
 /**
@@ -80,7 +79,7 @@ public class PruebaAgendaAlertas {
         BandejaInstrumental bandeja01 = new BandejaInstrumental(1, "BAN-001");
 
         Cirugia cirugia = new Cirugia();
-        cirugia.setId_cirugia(101);
+        cirugia.setIdCirugia(101);
         cirugia.setFechaHoraInicio(LocalDateTime.of(2026, 9, 20, 8, 0));
         cirugia.setFechaHoraFin(LocalDateTime.of(2026, 9, 20, 10, 30));
         cirugia.setTipoProcedimiento("Apendicectomia Laparoscopica");
@@ -109,7 +108,7 @@ public class PruebaAgendaAlertas {
         titulo("3. Cancelacion de Cirugia (Interfaz Cancelable)");
 
         Cirugia cirugia = new Cirugia();
-        cirugia.setId_cirugia(102);
+        cirugia.setIdCirugia(102);
         cirugia.setEstado(EstadoCirugia.PROGRAMADA);
 
         String motivo = "Paciente no cumplio con el tiempo de ayuno requerido";

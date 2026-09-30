@@ -159,7 +159,7 @@ public class PacienteParticularDAOImpl extends ClienteDAOImpl<PacienteParticular
                     );
                 }
 
-                paciente.setId_cliente(
+                paciente.setIdCliente(
                         cmd.getInt("p_id")
                 );
             }
@@ -224,7 +224,7 @@ public class PacienteParticularDAOImpl extends ClienteDAOImpl<PacienteParticular
 
                 cmd.setInt(
                         "p_id",
-                        paciente.getId_cliente()
+                        paciente.getIdCliente()
                 );
 
                 if (cmd.executeUpdate() == 0) {

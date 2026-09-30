@@ -22,7 +22,7 @@ public class LineaFacturaDAOImpl implements LineaFacturaDAO {
                 cmd.setInt("p_id_documento", idDocumento);
 
                 if (linea.getConsumible() != null) {
-                    cmd.setInt("p_id_consumible", linea.getConsumible().getId_consumible());
+                    cmd.setInt("p_id_consumible", linea.getConsumible().getIdConsumible());
                 } else {
                     cmd.setNull("p_id_consumible", Types.INTEGER);
                 }

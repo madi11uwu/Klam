@@ -81,7 +81,7 @@ public class ConsumibleDAOImpl implements ConsumibleDAO {
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo insertar el consumible");
             }
-            consumible.setId_consumible(cmd.getInt("p_id"));
+            consumible.setIdConsumible(cmd.getInt("p_id"));
 
 
         }
@@ -96,7 +96,7 @@ public class ConsumibleDAOImpl implements ConsumibleDAO {
         try (
                 Connection conn = DBManager.getInstance().getConnection();
                 CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id", consumible.getId_consumible());
+            cmd.setInt("p_id", consumible.getIdConsumible());
             cmd.setString("p_nombre_comercial", consumible.getNombreComercial());
             cmd.setString("p_marca", consumible.getMarca());
             cmd.setString("p_medida", consumible.getMedida());
@@ -128,7 +128,7 @@ public class ConsumibleDAOImpl implements ConsumibleDAO {
 
     private Consumible mapear(ResultSet rs) throws SQLException {
         Consumible c = new Consumible();
-        c.setId_consumible(rs.getInt("id_consumible"));
+        c.setIdConsumible(rs.getInt("id_consumible"));
         c.setNombreComercial(rs.getString("nombre_comercial"));
         c.setMarca(rs.getString("marca"));
         c.setMedida(rs.getString("medida"));

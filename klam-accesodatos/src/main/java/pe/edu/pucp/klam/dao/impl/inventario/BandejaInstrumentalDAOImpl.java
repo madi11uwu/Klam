@@ -58,10 +58,10 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo insertar la bandeja instrumental");
             }
-            bandejaInstrumental.setId_bandeja(cmd.getInt("p_id"));
+            bandejaInstrumental.setIdBandeja(cmd.getInt("p_id"));
 
             BandejaConsumibleDAO bandejaConsumibleDAO=new BandejaConsumibleDAOImpl();
-            bandejaConsumibleDAO.insertConsumibles(bandejaInstrumental.getId_bandeja(),
+            bandejaConsumibleDAO.insertConsumibles(bandejaInstrumental.getIdBandeja(),
                     bandejaInstrumental.getConsumibles(), bandejaInstrumental.getConsumiblesConsumidos());
 
         }
@@ -77,7 +77,7 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
 
 
         try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id", bandejaInstrumental.getId_bandeja());
+            cmd.setInt("p_id", bandejaInstrumental.getIdBandeja());
             cmd.setString("p_tipo", bandejaInstrumental.getTipo());
             cmd.setBoolean("p_esterilizado", bandejaInstrumental.isEsterilizado());
             cmd.setBoolean("p_activo", bandejaInstrumental.isActivo());
@@ -86,8 +86,8 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
                 throw new SQLException("No se pudo actualizar la bandeja instrumental");
             }
             BandejaConsumibleDAO bandejaConsumibleDAO = new BandejaConsumibleDAOImpl();
-            bandejaConsumibleDAO.deleteConsumibles(bandejaInstrumental.getId_bandeja());
-            bandejaConsumibleDAO.insertConsumibles(bandejaInstrumental.getId_bandeja(),
+            bandejaConsumibleDAO.deleteConsumibles(bandejaInstrumental.getIdBandeja());
+            bandejaConsumibleDAO.insertConsumibles(bandejaInstrumental.getIdBandeja(),
                     bandejaInstrumental.getConsumibles(), bandejaInstrumental.getConsumiblesConsumidos());
         }
     }
@@ -110,7 +110,7 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
 
     private BandejaInstrumental mapear(ResultSet rs) throws SQLException {
         BandejaInstrumental b = new BandejaInstrumental();
-        b.setId_bandeja(rs.getInt("id_bandeja"));
+        b.setIdBandeja(rs.getInt("id_bandeja"));
         b.setTipo(rs.getString("tipo"));
         b.setEsterilizado(rs.getBoolean("esterilizado"));
         b.setActivo(rs.getBoolean("activo"));
@@ -120,7 +120,7 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
     }
     private void mapearConsumibles(BandejaInstrumental bandeja) throws SQLException {
         BandejaConsumibleDAO consumibleDAO = new BandejaConsumibleDAOImpl();
-        bandeja.setConsumibles(consumibleDAO.findDespachadosByBandejaId(bandeja.getId_bandeja()));
-        bandeja.setConsumiblesConsumidos(consumibleDAO.findConsumidosByBandejaId(bandeja.getId_bandeja()));
+        bandeja.setConsumibles(consumibleDAO.findDespachadosByBandejaId(bandeja.getIdBandeja()));
+        bandeja.setConsumiblesConsumidos(consumibleDAO.findConsumidosByBandejaId(bandeja.getIdBandeja()));
     }
 }

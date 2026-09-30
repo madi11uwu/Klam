@@ -29,6 +29,10 @@ public class PruebaUsuariosNotisCRUD {
     private static final TecnicoInstrumentistaBL tecnicoBL = new TecnicoInstrumentistaBLImpl();
     private static final NotificacionBL notificacionBL = new NotificacionBLImpl();
 
+    // Sufijo por ejecucion: username y email son UNIQUE y el delete es baja logica,
+    // asi la prueba se puede correr varias veces sin "Duplicate entry".
+    private static final String SUFIJO = String.valueOf(System.currentTimeMillis() % 1000000);
+
     public static void ejecutar() {
         System.out.println("==================================================");
         System.out.println("   CRUD USUARIOS Y NOTIFICACIONES (BL TESTS)      ");
@@ -45,8 +49,8 @@ public class PruebaUsuariosNotisCRUD {
     // -----------------------------------------------------------------
     private static void probarAdministrador() {
         Administrador admin = new Administrador();
-        admin.setUsername("admin_test");
-        admin.setEmail("admin@klam.com");
+        admin.setUsername("admin_test" + SUFIJO);
+        admin.setEmail("admin" + SUFIJO + "@klam.com");
         admin.setNombres("Carlos");
         admin.setApellidos("Pérez");
         admin.setPasswordHash("hash_de_prueba_123");
@@ -83,8 +87,8 @@ public class PruebaUsuariosNotisCRUD {
     // -----------------------------------------------------------------
     private static void probarVendedor() {
         Vendedor vendedor = new Vendedor();
-        vendedor.setUsername("vendedor_test");
-        vendedor.setEmail("ventas@klam.com");
+        vendedor.setUsername("vendedor_test" + SUFIJO);
+        vendedor.setEmail("ventas" + SUFIJO + "@klam.com");
         vendedor.setNombres("María");
         vendedor.setApellidos("Gómez");
         vendedor.setComisionAcumulada(150.50);
@@ -123,8 +127,8 @@ public class PruebaUsuariosNotisCRUD {
     // -----------------------------------------------------------------
     private static void probarTecnicoInstrumentista() {
         TecnicoInstrumentista tecnico = new TecnicoInstrumentista();
-        tecnico.setUsername("tecnico_test");
-        tecnico.setEmail("tecnico@klam.com");
+        tecnico.setUsername("tecnico_test" + SUFIJO);
+        tecnico.setEmail("tecnico" + SUFIJO + "@klam.com");
         tecnico.setNombres("Jorge");
         tecnico.setApellidos("Salinas");
         tecnico.setEspecialidad("Neurocirugía");
@@ -164,8 +168,8 @@ public class PruebaUsuariosNotisCRUD {
     private static void probarNotificacion() {
         // 1. Necesitamos un usuario real en la base de datos para cumplir la FK del destinatario.
         Administrador adminDestino = new Administrador();
-        adminDestino.setUsername("admin_noti");
-        adminDestino.setEmail("adminnoti@klam.com");
+        adminDestino.setUsername("admin_noti" + SUFIJO);
+        adminDestino.setEmail("adminnoti" + SUFIJO + "@klam.com");
         adminDestino.setNombres("Usuario");
         adminDestino.setApellidos("Destino");
         adminDestino.setPasswordHash("hash_temp");

@@ -139,7 +139,7 @@ public class CotizacionBLImpl implements CotizacionBL {
         if (cotizacion.getCirugia() == null) {
             throw new BLException("La cotización debe estar asociada a una cirugía");
         }
-        validarCirugiaExiste(cotizacion.getCirugia().getId_cirugia());
+        validarCirugiaExiste(cotizacion.getCirugia().getIdCirugia());
     }
 
     private void validarCirugiaExiste(int idCirugia) throws BLException {

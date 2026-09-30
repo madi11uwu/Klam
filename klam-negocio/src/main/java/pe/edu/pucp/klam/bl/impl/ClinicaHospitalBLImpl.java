@@ -37,7 +37,7 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
         try {
             ClinicaHospital existente = clinicaHospitalDAO.findByRUC(clinicaHospital.getRuc());
             if (existente != null && (!modificacion
-                    || existente.getId_cliente() != clinicaHospital.getId_cliente())) {
+                    || existente.getIdCliente() != clinicaHospital.getIdCliente())) {
                 throw new BLException(
                         "Ya existe un registro con el RUC " + clinicaHospital.getRuc());
             }
@@ -79,7 +79,7 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
     @Override
     public void update(ClinicaHospital cliente) throws BLException {
         validarDatos(cliente);
-        validarExiste(cliente.getId_cliente());
+        validarExiste(cliente.getIdCliente());
         validarDocumentoUnico(cliente, true);
         try {
             clinicaHospitalDAO.update(cliente);

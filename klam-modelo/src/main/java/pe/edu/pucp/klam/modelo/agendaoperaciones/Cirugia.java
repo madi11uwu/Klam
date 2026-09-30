@@ -6,7 +6,7 @@ import pe.edu.pucp.klam.modelo.interfaces.Agendable;
 import pe.edu.pucp.klam.modelo.interfaces.Cancelable;
 
 public class Cirugia implements Agendable, Cancelable {
-    private int id_cirugia;
+    private int idCirugia;
     private LocalDateTime fechaHoraInicio;
     private LocalDateTime fechaHoraFin;
     private String tipoProcedimiento;
@@ -29,7 +29,7 @@ public class Cirugia implements Agendable, Cancelable {
         if (cirugia == null) {
             throw new IllegalArgumentException("cirugia no puede ser nula");
         }
-        setId_cirugia(cirugia.getId_cirugia());
+        setIdCirugia(cirugia.getIdCirugia());
         setFechaHoraInicio(cirugia.getFechaHoraInicio());
         setFechaHoraFin(cirugia.getFechaHoraFin());
         setTipoProcedimiento(cirugia.getTipoProcedimiento());
@@ -42,15 +42,15 @@ public class Cirugia implements Agendable, Cancelable {
         setActivo(cirugia.isActivo());
     }
 
-    public int getId_cirugia() {
-        return id_cirugia;
+    public int getIdCirugia() {
+        return idCirugia;
     }
 
-    public void setId_cirugia(int id_cirugia) {
-        if (id_cirugia < 0) {
+    public void setIdCirugia(int idCirugia) {
+        if (idCirugia < 0) {
             throw new IllegalArgumentException("id no puede ser negativo");
         }
-        this.id_cirugia = id_cirugia;
+        this.idCirugia = idCirugia;
     }
 
     public LocalDateTime getFechaHoraInicio() {
@@ -141,7 +141,7 @@ public class Cirugia implements Agendable, Cancelable {
     //metodos de la interfaz Agendable, Cancelable
     @Override
     public String getIdentificador() {
-        return String.valueOf(id_cirugia);
+        return String.valueOf(idCirugia);
     }
 
     @Override

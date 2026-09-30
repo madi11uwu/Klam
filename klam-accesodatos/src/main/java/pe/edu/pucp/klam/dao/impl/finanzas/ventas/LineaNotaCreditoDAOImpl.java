@@ -20,7 +20,7 @@ public class LineaNotaCreditoDAOImpl implements LineaNotaCreditoDAO{
                 cmd.setInt("p_id_nota_credito", idNotaCredito);
 
                 if (linea.getConsumible() != null) {
-                    cmd.setInt("p_id_consumible", linea.getConsumible().getId_consumible());
+                    cmd.setInt("p_id_consumible", linea.getConsumible().getIdConsumible());
                 } else {
                     cmd.setNull("p_id_consumible", Types.INTEGER);
                 }

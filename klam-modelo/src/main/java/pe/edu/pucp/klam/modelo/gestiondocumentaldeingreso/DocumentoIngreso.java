@@ -6,7 +6,7 @@ import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 import java.time.LocalDateTime;
 
 public class DocumentoIngreso implements Validable {
-    private int id_documento;
+    private int idDocumento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
     private EstadoValidacionDocumento estadoValidacion;
@@ -31,7 +31,7 @@ public class DocumentoIngreso implements Validable {
         if(documentoIngreso==null){
             throw new IllegalArgumentException("documentoIngreso no puede ser nulo");
         }
-        setId_documento(documentoIngreso.getId_documento());
+        setIdDocumento(documentoIngreso.getIdDocumento());
         setTipoDocumento(documentoIngreso.getTipoDocumento());
         setArchivoPath(documentoIngreso.getArchivoPath());
         setEstadoValidacion(documentoIngreso.getEstadoValidacion());
@@ -59,15 +59,15 @@ public class DocumentoIngreso implements Validable {
         this.tipoDocumento = tipoDocumento;
     }
 
-    public int getId_documento() {
-        return id_documento;
+    public int getIdDocumento() {
+        return idDocumento;
     }
 
-    public void setId_documento(int id_documento) {
-        if(id_documento<0){
+    public void setIdDocumento(int idDocumento) {
+        if(idDocumento <0){
             throw new IllegalArgumentException("id_documento no puede ser nulo o vacío");
         }
-        this.id_documento = id_documento;
+        this.idDocumento = idDocumento;
     }
 
     public String getArchivoPath() {

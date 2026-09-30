@@ -101,6 +101,6 @@ public class Cotizacion {
     public String toString() {
         return "Cotizacion{id=" + idCotizacion + ", precio=" + precioPactado
                 + ", estado=" + estado
-                + ", cirugia=" + (cirugia == null ? "sin cirugia" : cirugia.getId_cirugia()) + "}";
+                + ", cirugia=" + (cirugia == null ? "sin cirugia" : cirugia.getIdCirugia()) + "}";
     }
 }

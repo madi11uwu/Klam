@@ -36,7 +36,7 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
         try {
             PacienteParticular existente = pacienteParticularDAO.findByDNI(pacienteParticular.getDni());
             if (existente != null && (!modificacion
-                    || existente.getId_cliente() != pacienteParticular.getId_cliente())) {
+                    || existente.getIdCliente() != pacienteParticular.getIdCliente())) {
                 throw new BLException(
                         "Ya existe un registro con el DNI " + pacienteParticular.getDni());
             }
@@ -78,7 +78,7 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
     @Override
     public void update(PacienteParticular cliente) throws BLException {
         validarDatos(cliente);
-        validarExiste(cliente.getId_cliente());
+        validarExiste(cliente.getIdCliente());
         validarDocumentoUnico(cliente, true);
         try {
             pacienteParticularDAO.update(cliente);

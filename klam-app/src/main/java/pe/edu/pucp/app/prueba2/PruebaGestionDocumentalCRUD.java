@@ -47,7 +47,7 @@ public class PruebaGestionDocumentalCRUD {
         verificar("Orden de Compra es verificable si tiene path de respaldo", true, orden.verificar());
 
         DocumentoIngreso doc = new DocumentoIngreso();
-        doc.setId_documento(1001);
+        doc.setIdDocumento(1001);
         doc.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
         doc.setArchivoPath("/archivos/docs/DOC1001.pdf");
         doc.setEstadoValidacion(EstadoValidacionDocumento.VALIDADO);
@@ -68,7 +68,7 @@ public class PruebaGestionDocumentalCRUD {
         ordenOriginal.setFechaRecepcion(LocalDateTime.now());
 
         DocumentoIngreso doc = new DocumentoIngreso();
-        doc.setId_documento(2002);
+        doc.setIdDocumento(2002);
         doc.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
         doc.setArchivoPath("/path/doc.pdf");
         doc.setEstadoValidacion(EstadoValidacionDocumento.VALIDADO);
@@ -114,7 +114,7 @@ public class PruebaGestionDocumentalCRUD {
             doc.setUsuarioCarga(admin);
 
             documentoIngresoBL.insert(doc);
-            int idDocGenerado = doc.getId_documento();
+            int idDocGenerado = doc.getIdDocumento();
             verificar("C (Create) - Insercion de DocumentoIngreso exitosa", true, idDocGenerado > 0);
 
             // =========================================================

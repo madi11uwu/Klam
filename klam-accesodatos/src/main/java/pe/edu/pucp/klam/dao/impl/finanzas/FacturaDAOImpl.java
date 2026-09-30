@@ -63,7 +63,7 @@ public class FacturaDAOImpl implements FacturaDAO {
         String sql = "{call insertar_factura(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (CallableStatement cmd = conn.prepareCall(sql)){
-            cmd.setInt("p_id_cirugia", factura.getCirugia().getId_cirugia());
+            cmd.setInt("p_id_cirugia", factura.getCirugia().getIdCirugia());
             cmd.setTimestamp("p_fecha_emision", Timestamp.valueOf(factura.getFechaEmision()));
             cmd.setDouble("p_monto_base", factura.getMontoBase());
             cmd.setDouble("p_tasa_igv", factura.getTasaIgv());
@@ -97,7 +97,7 @@ public class FacturaDAOImpl implements FacturaDAO {
 
         String sql = "{call modificar_factura(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_cirugia", factura.getCirugia().getId_cirugia());
+            cmd.setInt("p_id_cirugia", factura.getCirugia().getIdCirugia());
             cmd.setTimestamp("p_fecha_emision", Timestamp.valueOf(factura.getFechaEmision()));
             cmd.setDouble("p_monto_base", factura.getMontoBase());
             cmd.setDouble("p_tasa_igv", factura.getTasaIgv());

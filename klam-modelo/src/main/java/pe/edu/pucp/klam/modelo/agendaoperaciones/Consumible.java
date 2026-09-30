@@ -3,7 +3,7 @@ package pe.edu.pucp.klam.modelo.agendaoperaciones;
 import java.util.Objects;
 
 public class Consumible {
-    private int id_consumible;
+    private int idConsumible;
     private String nombreComercial;
     private String marca;
     private String medida;
@@ -16,7 +16,7 @@ public class Consumible {
     public Consumible(int id,String nombreComercial,
                       String marca,
                       String medida) {
-        this.id_consumible = id;
+        this.idConsumible = id;
         this.nombreComercial = nombreComercial;
         this.marca = marca;
         this.medida = medida;
@@ -27,7 +27,7 @@ public class Consumible {
         if (consumible == null){
             throw new IllegalArgumentException("Consumible no puede ser nulo");
         }
-        setId_consumible(consumible.getId_consumible());
+        setIdConsumible(consumible.getIdConsumible());
         setNombreComercial(consumible.getNombreComercial());
         setMarca(consumible.getMarca());
         setMedida(consumible.getMedida());
@@ -43,12 +43,12 @@ public class Consumible {
         this.activo = activo;
     }
 
-    public int getId_consumible() {
-        return id_consumible;
+    public int getIdConsumible() {
+        return idConsumible;
     }
 
-    public void setId_consumible(int id_consumible) {
-        this.id_consumible = id_consumible;
+    public void setIdConsumible(int idConsumible) {
+        this.idConsumible = idConsumible;
     }
 
     public String getNombreComercial() {
@@ -79,11 +79,11 @@ public class Consumible {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Consumible that = (Consumible) o;
-        return id_consumible == that.id_consumible;
+        return idConsumible == that.idConsumible;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id_consumible);
+        return Objects.hashCode(idConsumible);
     }
 }

@@ -125,13 +125,13 @@ public class CirugiaDAOImpl implements CirugiaDAO {
             cmd.setString("p_estado", cirugia.getEstado().name());
 
             if (cirugia.getEquipo() != null) {
-                cmd.setInt("p_id_equipo", cirugia.getEquipo().getId_equipo());
+                cmd.setInt("p_id_equipo", cirugia.getEquipo().getIdEquipo());
             } else {
                 cmd.setNull("p_id_equipo", Types.INTEGER);
             }
 
             if (cirugia.getBandejaInstrumental() != null) {
-                cmd.setInt("p_id_bandeja", cirugia.getBandejaInstrumental().getId_bandeja());
+                cmd.setInt("p_id_bandeja", cirugia.getBandejaInstrumental().getIdBandeja());
             } else {
                 cmd.setNull("p_id_bandeja", Types.INTEGER);
             }
@@ -144,7 +144,7 @@ public class CirugiaDAOImpl implements CirugiaDAO {
                 throw new SQLException("No se pudo insertar la cirugia");
             }
 
-            cirugia.setId_cirugia(cmd.getInt("p_id"));
+            cirugia.setIdCirugia(cmd.getInt("p_id"));
         }
     }
 
@@ -171,20 +171,20 @@ public class CirugiaDAOImpl implements CirugiaDAO {
             cmd.setString("p_estado", cirugia.getEstado().name());
 
             if (cirugia.getEquipo() != null) {
-                cmd.setInt("p_id_equipo", cirugia.getEquipo().getId_equipo());
+                cmd.setInt("p_id_equipo", cirugia.getEquipo().getIdEquipo());
             } else {
                 cmd.setNull("p_id_equipo", Types.INTEGER);
             }
 
             if (cirugia.getBandejaInstrumental() != null) {
-                cmd.setInt("p_id_bandeja", cirugia.getBandejaInstrumental().getId_bandeja());
+                cmd.setInt("p_id_bandeja", cirugia.getBandejaInstrumental().getIdBandeja());
             } else {
                 cmd.setNull("p_id_bandeja", Types.INTEGER);
             }
 
             asignarCliente(cmd, cirugia);
             cmd.setBoolean("p_activo", cirugia.isActivo());
-            cmd.setInt("p_id", cirugia.getId_cirugia());
+            cmd.setInt("p_id", cirugia.getIdCirugia());
 
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo actualizar la cirugia");
@@ -232,7 +232,7 @@ public class CirugiaDAOImpl implements CirugiaDAO {
     }
 
     protected Cirugia mapear(ResultSet rs, Cirugia cirugia) throws SQLException {
-        cirugia.setId_cirugia(rs.getInt("id_cirugia"));
+        cirugia.setIdCirugia(rs.getInt("id_cirugia"));
         cirugia.setFechaHoraInicio(rs.getTimestamp("fecha_hora_inicio").toLocalDateTime());
 
         Timestamp fechaHoraFin = rs.getTimestamp("fecha_hora_fin");
@@ -254,13 +254,13 @@ public class CirugiaDAOImpl implements CirugiaDAO {
     // En la BD el cliente se guarda en una de dos columnas segun su tipo concreto
     private void asignarCliente(CallableStatement cmd, Cirugia cirugia) throws SQLException {
         if (cirugia.getCliente() instanceof ClinicaHospital clinica) {
-            cmd.setInt("p_id_clinica_hospital", clinica.getId_cliente());
+            cmd.setInt("p_id_clinica_hospital", clinica.getIdCliente());
         } else {
             cmd.setNull("p_id_clinica_hospital", Types.INTEGER);
         }
 
         if (cirugia.getCliente() instanceof PacienteParticular paciente) {
-            cmd.setInt("p_id_paciente_particular", paciente.getId_cliente());
+            cmd.setInt("p_id_paciente_particular", paciente.getIdCliente());
         } else {
             cmd.setNull("p_id_paciente_particular", Types.INTEGER);
         }

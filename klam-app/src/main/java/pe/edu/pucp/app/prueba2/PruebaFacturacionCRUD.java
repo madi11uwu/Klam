@@ -68,8 +68,8 @@ public class PruebaFacturacionCRUD {
             return;
         }
 
-        System.out.println("[PRE-STEP] Cirugía usada: ID " + cirugia.getId_cirugia());
-        System.out.println("[PRE-STEP] Consumible usado: ID " + consumible.getId_consumible()
+        System.out.println("[PRE-STEP] Cirugía usada: ID " + cirugia.getIdCirugia());
+        System.out.println("[PRE-STEP] Consumible usado: ID " + consumible.getIdConsumible()
                 + " - " + consumible.getNombreComercial());
 
         try {
@@ -307,7 +307,7 @@ public class PruebaFacturacionCRUD {
         List<Cirugia> cirugias = cirugiaBL.findAll();
 
         for (Cirugia cirugia : cirugias) {
-            if (cirugia != null && cirugia.getId_cirugia() > 0 && cirugia.isActivo()) {
+            if (cirugia != null && cirugia.getIdCirugia() > 0 && cirugia.isActivo()) {
                 return cirugia;
             }
         }
@@ -320,7 +320,7 @@ public class PruebaFacturacionCRUD {
 
         for (Consumible consumible : consumibles) {
             if (consumible != null
-                    && consumible.getId_consumible() > 0
+                    && consumible.getIdConsumible() > 0
                     && consumible.isActivo()) {
                 return consumible;
             }
