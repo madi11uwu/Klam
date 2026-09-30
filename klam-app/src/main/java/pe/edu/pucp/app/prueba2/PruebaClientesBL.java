@@ -18,6 +18,16 @@ public class PruebaClientesBL {
     private static int correctas;
     private static int fallos;
 
+    /** Para Programa2: corre validaciones + CRUD contra la BD sin cortar las demas pruebas. */
+    public static void ejecutar() {
+        System.out.println("\n=== CLIENTES (ROL 4) ===");
+        try {
+            main(new String[]{"--crud"});
+        } catch (IllegalStateException e) {
+            System.out.println("[FALLO] " + e.getMessage());
+        }
+    }
+
     public static void main(String[] args) {
         correctas = 0;
         fallos = 0;
@@ -81,7 +91,7 @@ public class PruebaClientesBL {
     }
 
     private static <T extends Cliente> void validarCampo(String tipo, BaseBL<T, Integer> bl,
-            Supplier<T> crear, Consumer<T> cambiar, String mensaje) {
+                                                         Supplier<T> crear, Consumer<T> cambiar, String mensaje) {
         T cliente = crear.get();
         cambiar.accept(cliente);
         rechaza(tipo + " insert: " + mensaje, mensaje, () -> bl.insert(cliente));
@@ -89,7 +99,7 @@ public class PruebaClientesBL {
     }
 
     private static <T extends Cliente> void probarCrud(String tipo, BaseBL<T, Integer> bl,
-            Supplier<T> crear, Consumer<T> cambiarEspecificos) {
+                                                       Supplier<T> crear, Consumer<T> cambiarEspecificos) {
         T cliente = crear.get();
         boolean eliminado = false;
         try {
@@ -116,7 +126,7 @@ public class PruebaClientesBL {
             T baja = bl.findById(cliente.getId_cliente());
             exigir(baja == null || !baja.isActivo(), "Delete da de baja el registro");
             exigir(bl.findAll().stream().noneMatch(c ->
-                    c.getId_cliente() == cliente.getId_cliente() && c.isActivo()),
+                            c.getId_cliente() == cliente.getId_cliente() && c.isActivo()),
                     "FindAll no muestra como activo el registro eliminado");
             eliminado = true;
             correctas++;
