@@ -4,12 +4,59 @@ import pe.edu.pucp.klam.dao.BandejaInstrumentalDAO;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
+    @Override
+    public void asociarConsumible(int idBandeja, int idConsumible, int cantDespachada) {
+        String sql = "{CALL SP_BANDEJA_ASOCIAR_CONSUMIBLE(?, ?, ?)}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, idBandeja);
+            cs.setInt(2, idConsumible);
+            cs.setInt(3, cantDespachada);
+            cs.executeUpdate();
+        } catch (SQLException ex) { ex.printStackTrace(); }
+    }
+
+    @Override
+    public void registrarConsumoReal(int idBandeja, int idConsumible, int cantConsumida) {
+        String sql = "{CALL SP_BANDEJA_REGISTRAR_CONSUMO(?, ?, ?)}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, idBandeja);
+            cs.setInt(2, idConsumible);
+            cs.setInt(3, cantConsumida);
+            cs.executeUpdate();
+        } catch (SQLException ex) { ex.printStackTrace(); }
+    }
+
+    @Override
+    public void cargarConsumiblesPorBandeja(BandejaInstrumental bandeja) {
+        String sql = "{CALL SP_BANDEJA_LISTAR_CONSUMIBLES(?)}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, bandeja.getIdBandeja());
+            try (ResultSet rs = cs.executeQuery()) {
+                while (rs.next()) {
+                    Consumible c = new Consumible(
+                            rs.getInt("id_consumible"),
+                            rs.getString("nombre_comercial"),
+                            rs.getString("marca"),
+                            rs.getString("medida")
+                    );
+                    c.setActivo(rs.getBoolean("activo"));
+
+                    bandeja.agregarConsumible(c, rs.getInt("cantidad_despachada"));
+                    bandeja.registrarConsumo(c, rs.getInt("cantidad_consumida"));
+                }
+            }
+        } catch (SQLException ex) { ex.printStackTrace(); }
+    }
     @Override
     public List<BandejaInstrumental> findAll() throws SQLException {
         String sql = "{call listar_bandejas()}";

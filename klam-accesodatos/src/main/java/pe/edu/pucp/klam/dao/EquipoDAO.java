@@ -2,6 +2,9 @@ package pe.edu.pucp.klam.dao;
 
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 
-public interface EquipoDAO extends DAO<Equipo,Integer> {
+import java.util.List;
 
+public interface EquipoDAO extends DAO<Equipo,Integer> {
+    List<Equipo> listarDisponibles();
+    void registrarRetorno(int idEquipo);
 }

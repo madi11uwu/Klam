@@ -14,6 +14,19 @@ public class EquipoBLImpl implements EquipoBL {
     private final EquipoDAO equipoDAO = new EquipoDAOImpl();
 
     @Override
+    public List<Equipo> listarDisponibles() {
+        return equipoDAO.listarDisponibles();
+    }
+
+    @Override
+    public void registrarRetorno(int idEquipo) throws BLException {
+        if (idEquipo <= 0) {
+            throw new BLException("ID de equipo inválido.");
+        }
+        equipoDAO.registrarRetorno(idEquipo);
+    }
+
+    @Override
     public List<Equipo> findAll() throws BLException {
         try {
             return equipoDAO.findAll();

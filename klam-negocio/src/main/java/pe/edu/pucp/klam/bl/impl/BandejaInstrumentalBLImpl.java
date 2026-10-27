@@ -15,8 +15,10 @@ import java.util.List;
 import java.util.Map;
 
 public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
+
     private final BandejaInstrumentalDAO bandejaInstrumentalDAO = new BandejaInstrumentalDAOImpl();
     private final ConsumibleDAO consumibleDAO = new ConsumibleDAOImpl();
+
 
     @Override
     public List<BandejaInstrumental> findAll() throws BLException {
@@ -128,6 +130,27 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
         } catch (SQLException e) {
             throw new BLException("No se pudo verificar el consumible", e);
         }
+    }
+
+    private final BandejaInstrumentalDAO bandejaDAO = new BandejaInstrumentalDAOImpl();
+
+    @Override
+    public void cargarConsumibles(BandejaInstrumental bandeja) throws Exception {
+        if (bandeja == null || bandeja.getIdBandeja() <= 0) {
+            throw new Exception("Bandeja inválida para cargar consumibles.");
+        }
+        bandejaDAO.cargarConsumiblesPorBandeja(bandeja);
+    }
+
+    @Override
+    public void registrarConsumoReal(int idBandeja, int idConsumible, int cantConsumida) throws Exception {
+        if (idBandeja <= 0 || idConsumible <= 0) {
+            throw new Exception("Identificadores inválidos.");
+        }
+        if (cantConsumida < 0) {
+            throw new Exception("La cantidad consumida no puede ser negativa.");
+        }
+        bandejaDAO.registrarConsumoReal(idBandeja, idConsumible, cantConsumida);
     }
 
 }

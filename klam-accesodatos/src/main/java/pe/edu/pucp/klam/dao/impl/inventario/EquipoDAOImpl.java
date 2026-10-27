@@ -13,6 +13,36 @@ import java.util.List;
 public class EquipoDAOImpl implements EquipoDAO {
 
     @Override
+    public List<Equipo> listarDisponibles() {
+        List<Equipo> equipos = new ArrayList<>();
+        String sql = "{CALL SP_EQUIPO_LISTAR_DISPONIBLES()}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cs = conn.prepareCall(sql);
+             ResultSet rs = cs.executeQuery()) {
+            while (rs.next()) {
+                Equipo eq = new Equipo();
+                eq.setIdEquipo(rs.getInt("id_equipo"));
+                eq.setNombre(rs.getString("nombre"));
+                eq.setCategoria(CategoriaEquipo.valueOf(rs.getString("categoria")));
+                eq.setDisponible(rs.getBoolean("disponible"));
+                eq.setActivo(rs.getBoolean("activo"));
+                equipos.add(eq);
+            }
+        } catch (SQLException ex) { ex.printStackTrace(); }
+        return equipos;
+    }
+
+    @Override
+    public void registrarRetorno(int idEquipo) {
+        String sql = "{CALL SP_EQUIPO_REGISTRAR_RETORNO(?)}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, idEquipo);
+            cs.executeUpdate();
+        } catch (SQLException ex) { ex.printStackTrace(); }
+    }
+
+    @Override
     public List<Equipo> findAll() throws SQLException {
         String sql = "{call listar_equipos()}";
         try (Connection conn = DBManager.getInstance().getConnection();
