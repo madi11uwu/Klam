@@ -22,8 +22,6 @@ public class Programa {
         // Rol 5: Gestion Documental de Ingreso
         PruebaGestionDocumental.ejecutar();
 
-        // Rol 6: Documentacion y Finanzas / Facturacion
-        PruebaFacturacion.ejecutar();
 
         System.out.println("======================================================================");
         System.out.println("     TODAS LAS PRUEBAS DEL SISTEMA HAN FINALIZADO CON EXITO           ");

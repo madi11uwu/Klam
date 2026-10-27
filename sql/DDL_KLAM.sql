@@ -214,130 +214,17 @@ NOT NULL DEFAULT 'PENDIENTE',
                      )
 );
 
-CREATE TABLE `factura` (
-       `id_documento` INT NOT NULL AUTO_INCREMENT,
-       `id_cirugia` INT NOT NULL,
-       `fecha_emision` DATETIME NOT NULL,
-       `monto_base` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-       `tasa_igv` DECIMAL(5,4) NOT NULL DEFAULT 0.1800,
-       `igv` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-       `monto_total` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-       `estado_pago` ENUM('PENDIENTE','PAGADO','ANULADO')
-NOT NULL DEFAULT 'PENDIENTE',
-       `activo` TINYINT(1) NOT NULL DEFAULT 1,
-       `ruc_receptor` CHAR(11) NOT NULL,
-       PRIMARY KEY (`id_documento`),
-       CONSTRAINT `fk_factura_cirugia`
-           FOREIGN KEY (`id_cirugia`) REFERENCES `cirugia` (`id_cirugia`)
-               ON DELETE RESTRICT ON UPDATE CASCADE,
-       CONSTRAINT `chk_factura_montos` CHECK (
-           `monto_base` >= 0 AND `tasa_igv` >= 0
-               AND `igv` >= 0 AND `monto_total` >= 0
-           )
-);
 
-CREATE TABLE `boleta` (
-      `id_documento` INT NOT NULL AUTO_INCREMENT,
-      `id_cirugia` INT NOT NULL,
-      `fecha_emision` DATETIME NOT NULL,
-      `monto_base` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-      `tasa_igv` DECIMAL(5,4) NOT NULL DEFAULT 0.1800,
-      `igv` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-      `monto_total` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-      `estado_pago` ENUM('PENDIENTE','PAGADO','ANULADO')
-NOT NULL DEFAULT 'PENDIENTE',
-      `activo` TINYINT(1) NOT NULL DEFAULT 1,
-      `dni_receptor` CHAR(8) NOT NULL,
-      PRIMARY KEY (`id_documento`),
-      CONSTRAINT `fk_boleta_cirugia`
-          FOREIGN KEY (`id_cirugia`) REFERENCES `cirugia` (`id_cirugia`)
-              ON DELETE RESTRICT ON UPDATE CASCADE,
-      CONSTRAINT `chk_boleta_montos` CHECK (
-          `monto_base` >= 0 AND `tasa_igv` >= 0
-              AND `igv` >= 0 AND `monto_total` >= 0
-          )
-);
 
-CREATE TABLE `linea_factura` (
-             `id_linea` INT NOT NULL AUTO_INCREMENT,
-             `id_documento` INT NOT NULL,
-             `id_consumible` INT NULL,
-             `item_referencia` VARCHAR(50) NULL,
-             `descripcion` VARCHAR(150) NOT NULL,
-             `cantidad` INT NOT NULL,
-             `precio_unitario` DECIMAL(10,2) NOT NULL,
-             PRIMARY KEY (`id_linea`),
-             CONSTRAINT `fk_linea_factura_documento`
-                 FOREIGN KEY (`id_documento`) REFERENCES `factura` (`id_documento`)
-                     ON DELETE CASCADE ON UPDATE CASCADE,
-             CONSTRAINT `fk_linea_factura_consumible`
-                 FOREIGN KEY (`id_consumible`) REFERENCES `consumible` (`id_consumible`)
-                     ON DELETE SET NULL ON UPDATE CASCADE,
-             CHECK (`cantidad` > 0),
-             CHECK (`precio_unitario` >= 0)
-);
 
-CREATE TABLE `linea_boleta` (
-            `id_linea` INT NOT NULL AUTO_INCREMENT,
-            `id_documento` INT NOT NULL,
-            `id_consumible` INT NULL,
-            `item_referencia` VARCHAR(50) NULL,
-            `descripcion` VARCHAR(150) NOT NULL,
-            `cantidad` INT NOT NULL,
-            `precio_unitario` DECIMAL(10,2) NOT NULL,
-            PRIMARY KEY (`id_linea`),
-            CONSTRAINT `fk_linea_boleta_documento`
-                FOREIGN KEY (`id_documento`) REFERENCES `boleta` (`id_documento`)
-                    ON DELETE CASCADE ON UPDATE CASCADE,
-            CONSTRAINT `fk_linea_boleta_consumible`
-                FOREIGN KEY (`id_consumible`) REFERENCES `consumible` (`id_consumible`)
-                    ON DELETE SET NULL ON UPDATE CASCADE,
-            CHECK (`cantidad` > 0),
-            CHECK (`precio_unitario` >= 0)
-);
 
-CREATE TABLE `nota_credito` (
-            `id_nota_credito` INT NOT NULL AUTO_INCREMENT,
-            `id_factura_original` INT NULL,
-            `id_boleta_original` INT NULL,
-            `motivo` VARCHAR(255) NOT NULL,
-            `fecha_emision` DATETIME NOT NULL,
-            `monto_total` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-            `activo` TINYINT(1) NOT NULL DEFAULT 1,
-            PRIMARY KEY (`id_nota_credito`),
-            CONSTRAINT `fk_nota_factura`
-                FOREIGN KEY (`id_factura_original`) REFERENCES `factura` (`id_documento`)
-                    ON DELETE RESTRICT ON UPDATE RESTRICT,
-            CONSTRAINT `fk_nota_boleta`
-                FOREIGN KEY (`id_boleta_original`) REFERENCES `boleta` (`id_documento`)
-                    ON DELETE RESTRICT ON UPDATE RESTRICT,
-            CONSTRAINT `chk_nota_un_documento` CHECK (
-                (`id_factura_original` IS NOT NULL AND `id_boleta_original` IS NULL)
-                    OR
-                (`id_factura_original` IS NULL AND `id_boleta_original` IS NOT NULL)
-                ),
-            CHECK (`monto_total` >= 0)
-);
 
-CREATE TABLE `linea_nota_credito` (
-                  `id_linea` INT NOT NULL AUTO_INCREMENT,
-                  `id_nota_credito` INT NOT NULL,
-                  `id_consumible` INT NULL,
-                  `item_referencia` VARCHAR(50) NULL,
-                  `descripcion` VARCHAR(150) NOT NULL,
-                  `cantidad` INT NOT NULL,
-                  `precio_unitario` DECIMAL(10,2) NOT NULL,
-                  `motivo_devolucion` VARCHAR(255) NULL,
-                  PRIMARY KEY (`id_linea`),
-                  CONSTRAINT `fk_linea_nota_credito_nota`
-                      FOREIGN KEY (`id_nota_credito`) REFERENCES `nota_credito` (`id_nota_credito`)
-                          ON DELETE CASCADE ON UPDATE CASCADE,
-                  CONSTRAINT `fk_linea_nota_credito_consumible`
-                      FOREIGN KEY (`id_consumible`) REFERENCES `consumible` (`id_consumible`)
-                          ON DELETE SET NULL ON UPDATE CASCADE,
-                  CHECK (`cantidad` > 0),
-                  CHECK (`precio_unitario` >= 0)
-);
+
+
+
+
+
+
 
 CREATE TABLE `linea_orden_compra` (
                   `id_linea` INT NOT NULL AUTO_INCREMENT,
