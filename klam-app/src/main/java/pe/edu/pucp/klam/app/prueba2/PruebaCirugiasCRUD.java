@@ -73,6 +73,7 @@ public class PruebaCirugiasCRUD {
         cirugia.setFechaHoraInicio(LocalDateTime.of(2026, 10, 15, 8, 0));
         cirugia.setFechaHoraFin(LocalDateTime.of(2026, 10, 15, 11, 30));
         cirugia.setTipoProcedimiento("Craneotomía " + RUN);
+        cirugia.setDiagnostico("Diagnóstico de prueba");
         cirugia.setDoctorNombre("Dr. Prueba");
         cirugia.setEstado(EstadoCirugia.PROGRAMADA);
         cirugia.setEquipo(equipo);
@@ -117,6 +118,7 @@ public class PruebaCirugiasCRUD {
         Cirugia cirugia = new Cirugia();
         cirugia.setFechaHoraInicio(LocalDateTime.of(2026, 11, 3, 10, 0));
         cirugia.setTipoProcedimiento("Clipaje de aneurisma " + RUN);
+        cirugia.setDiagnostico("Diagnóstico de prueba");
         cirugia.setDoctorNombre("Dr. Cotizado");
         cirugia.setEstado(EstadoCirugia.PROGRAMADA);
         cirugia.setCliente(clinicaDML());
@@ -231,6 +233,8 @@ public class PruebaCirugiasCRUD {
         Cirugia cirugia = new Cirugia();
         cirugia.setFechaHoraInicio(LocalDateTime.of(2026, 10, 15, 8, 0));
         cirugia.setTipoProcedimiento("Cirugía temporal " + RUN);
+        cirugia.setDoctorNombre("Dr. Temporal");
+        cirugia.setDiagnostico("Diagnóstico de prueba");
         cirugia.setEstado(EstadoCirugia.PROGRAMADA);
         cirugia.setCliente(clinicaDML());
         cirugia.setActivo(true);
