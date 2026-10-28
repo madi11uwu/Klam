@@ -1,11 +1,10 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
-import pe.edu.pucp.klam.modelo.interfaces.Validable;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 
 import java.time.LocalDateTime;
 
-public class DocumentoIngreso implements Validable {
+public class DocumentoIngreso {
     private int idDocumento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
@@ -111,10 +110,5 @@ public class DocumentoIngreso implements Validable {
             throw new IllegalArgumentException("fechaCarga no puede ser nulo");
         }
         this.fechaCarga = fechaCarga;
-    }
-
-    @Override
-    public boolean validar() {
-        return this.estadoValidacion == EstadoValidacionDocumento.VALIDADO;
     }
 }

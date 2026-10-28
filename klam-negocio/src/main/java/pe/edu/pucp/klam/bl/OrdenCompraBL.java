@@ -6,5 +6,5 @@ import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
 
 public interface OrdenCompraBL extends BaseBL<OrdenCompra,Integer> {
-
+    boolean verificar(OrdenCompra orden) throws BLException;
 }

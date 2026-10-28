@@ -44,7 +44,7 @@ public class PruebaGestionDocumental {
         orden.setArchivoRespaldoPath("/archivos/ordenes/OC001.pdf");
         orden.setFechaRecepcion(LocalDateTime.now());
 
-        verificar("Orden de Compra es verificable si tiene path de respaldo", true, orden.verificar());
+        verificar("Orden de Compra es verificable si tiene path de respaldo", true, ordenCompraBL.verificar(orden));
 
         DocumentoIngreso doc = new DocumentoIngreso();
         doc.setIdDocumento(1001);
@@ -54,7 +54,7 @@ public class PruebaGestionDocumental {
         doc.setFechaCarga(LocalDateTime.now());
         doc.setOrdenCompra(orden);
 
-        verificar("El documento ingresado es valido", true, doc.validar());
+        verificar("El documento ingresado es valido", true, documentoIngresoBL.validar(doc));
         verificar("El documento asigna correctamente el tipo", TipoDocumentoIngreso.ORDEN_COMPRA, doc.getTipoDocumento());
         verificar("Asocia correctamente el ID de la Orden de Compra", Integer.valueOf(1), doc.getOrdenCompra().getIdOrdenCompra());
     }

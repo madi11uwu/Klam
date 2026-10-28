@@ -1,14 +1,12 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
-import pe.edu.pucp.klam.modelo.interfaces.Verificable;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 
-public class OrdenCompra implements Verificable {
+public class OrdenCompra {
 
     private int idOrdenCompra;
     private String archivoRespaldoPath;
@@ -84,11 +82,6 @@ public class OrdenCompra implements Verificable {
             throw new IllegalArgumentException("La fecha de recepción no puede ser nula");
         }
         this.fechaRecepcion = fechaRecepcion;
-    }
-
-    @Override
-    public boolean verificar() {
-        return this.archivoRespaldoPath != null && !this.archivoRespaldoPath.isEmpty();
     }
 
 }

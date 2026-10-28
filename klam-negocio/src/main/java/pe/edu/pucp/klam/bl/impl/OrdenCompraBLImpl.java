@@ -84,6 +84,14 @@ public class OrdenCompraBLImpl implements OrdenCompraBL {
         }
     }
 
+    @Override
+    public boolean verificar(OrdenCompra orden) throws BLException {
+        if (orden == null) {
+            throw new BLException("La orden de compra no puede ser nula");
+        }
+        return orden.getArchivoRespaldoPath() != null && !orden.getArchivoRespaldoPath().isEmpty();
+    }
+
     private void validarOrdenCompra(OrdenCompra orden) throws BLException {
         if (orden == null) {
             throw new BLException("La orden de compra no puede ser nula");

@@ -5,6 +5,7 @@ import java.util.List;
 
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.DocumentoIngresoBL;
+import pe.edu.pucp.klam.bl.OrdenCompraBL;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
 import pe.edu.pucp.klam.dao.impl.DocumentoIngresoDAOImpl;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
@@ -14,6 +15,7 @@ import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
 public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
 
     private final DocumentoIngresoDAO documentoDAO = new DocumentoIngresoDAOImpl();
+    private final OrdenCompraBL ordenCompraBL = new OrdenCompraBLImpl();
 
     @Override
     public void insert(DocumentoIngreso doc) throws BLException {
@@ -34,6 +36,13 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             throw new BLException("El ID del documento de ingreso debe ser valido para actualizar");
         }
         validarDocumento(doc);
+
+        DocumentoIngreso existente = findById(doc.getIdDocumento());
+        if (existente == null) {
+            throw new BLException("No existe un documento de ingreso registrado con el ID proporcionado");
+        }
+        validarTransicion(existente.getEstadoValidacion(), doc.getEstadoValidacion());
+
         try {
             documentoDAO.update(doc);
         } catch (SQLException e) {
@@ -92,6 +101,29 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         update(doc);
     }
 
+    @Override
+    public boolean validar(DocumentoIngreso doc) throws BLException {
+        if (doc == null) {
+            throw new BLException("El documento de ingreso no puede ser nulo");
+        }
+        return doc.getEstadoValidacion() == EstadoValidacionDocumento.VALIDADO;
+    }
+
+    // PENDIENTE -> VALIDADO o RECHAZADO; RECHAZADO -> PENDIENTE (resubida del documento); VALIDADO ya no cambia
+    private void validarTransicion(EstadoValidacionDocumento actual, EstadoValidacionDocumento nuevo) throws BLException {
+        if (actual == nuevo) {
+            return;
+        }
+        boolean permitida = switch (actual) {
+            case PENDIENTE -> nuevo == EstadoValidacionDocumento.VALIDADO || nuevo == EstadoValidacionDocumento.RECHAZADO;
+            case RECHAZADO -> nuevo == EstadoValidacionDocumento.PENDIENTE;
+            case VALIDADO -> false;
+        };
+        if (!permitida) {
+            throw new BLException("El documento ya esta " + actual + " y no puede pasar a " + nuevo);
+        }
+    }
+
     private void validarDocumento(DocumentoIngreso doc) throws BLException {
         if (doc == null) {
             throw new BLException("El documento de ingreso no puede ser nulo");
@@ -115,6 +147,9 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         }
         if (doc.getTipoDocumento() != TipoDocumentoIngreso.ORDEN_COMPRA && tieneOrden) {
             throw new BLException("Solo un documento de tipo ORDEN_COMPRA puede tener una orden de compra asociada");
+        }
+        if (tieneOrden && ordenCompraBL.findById(doc.getOrdenCompra().getIdOrdenCompra()) == null) {
+            throw new BLException("No existe una orden de compra con id " + doc.getOrdenCompra().getIdOrdenCompra());
         }
     }
 }

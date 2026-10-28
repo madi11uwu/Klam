@@ -6,4 +6,5 @@ import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocume
 
 public interface DocumentoIngresoBL extends BaseBL<DocumentoIngreso,Integer> {
     void cambiarEstadoValidacion(Integer idDocumento, EstadoValidacionDocumento nuevoEstado) throws BLException;
+    boolean validar(DocumentoIngreso doc) throws BLException;
 }

@@ -44,7 +44,7 @@ public class PruebaGestionDocumentalCRUD {
         orden.setArchivoRespaldoPath("/archivos/ordenes/OC001.pdf");
         orden.setFechaRecepcion(LocalDateTime.now());
 
-        verificar("Orden de Compra es verificable si tiene path de respaldo", true, orden.verificar());
+        verificar("Orden de Compra es verificable si tiene path de respaldo", true, ordenCompraBL.verificar(orden));
 
         DocumentoIngreso doc = new DocumentoIngreso();
         doc.setIdDocumento(1001);
@@ -54,7 +54,7 @@ public class PruebaGestionDocumentalCRUD {
         doc.setFechaCarga(LocalDateTime.now());
         doc.setOrdenCompra(orden);
 
-        verificar("El documento ingresado es valido", true, doc.validar());
+        verificar("El documento ingresado es valido", true, documentoIngresoBL.validar(doc));
         verificar("El documento asigna correctamente el tipo", TipoDocumentoIngreso.ORDEN_COMPRA, doc.getTipoDocumento());
         verificar("Asocia correctamente el ID de la Orden de Compra", Integer.valueOf(1), doc.getOrdenCompra().getIdOrdenCompra());
     }
@@ -134,6 +134,13 @@ public class PruebaGestionDocumentalCRUD {
             verificar("U (Update) - Cambio de estado de validacion a VALIDADO",
                     EstadoValidacionDocumento.VALIDADO, docActualizado.getEstadoValidacion());
 
+            try {
+                documentoIngresoBL.cambiarEstadoValidacion(idDocGenerado, EstadoValidacionDocumento.PENDIENTE);
+                registrarFallo("Validacion Negocio - Rechaza pasar un documento VALIDADO a PENDIENTE", "No lanzo BLException");
+            } catch (BLException e) {
+                verificar("Validacion Negocio - Rechaza pasar un documento VALIDADO a PENDIENTE", true, true);
+            }
+
             ordenObtenida.setArchivoRespaldoPath("/archivos/ordenes/OC_BL_100_MODIFICADO.pdf");
             ordenCompraBL.update(ordenObtenida);
             OrdenCompra ordenTrasUpdate = ordenCompraBL.findById(idOrdenGenerado);
@@ -167,6 +174,30 @@ public class PruebaGestionDocumentalCRUD {
             registrarFallo("Validacion Negocio - Rechaza OrdenCompra sin lineas", "No lanzo BLException");
         } catch (BLException e) {
             verificar("Validacion Negocio - Rechaza insercion de OrdenCompra sin lineas correctamente", true, true);
+        }
+
+        // =========================================================
+        // Regla de Negocio: Rechazo de documento con orden de compra inexistente
+        // =========================================================
+        try {
+            OrdenCompra ordenInexistente = new OrdenCompra();
+            ordenInexistente.setIdOrdenCompra(999999);
+            ordenInexistente.setArchivoRespaldoPath("/archivos/ordenes/OC_INEXISTENTE.pdf");
+            ordenInexistente.setFechaRecepcion(LocalDateTime.now());
+
+            DocumentoIngreso docInvalido = new DocumentoIngreso();
+            docInvalido.setTipoDocumento(TipoDocumentoIngreso.ORDEN_COMPRA);
+            docInvalido.setArchivoPath("/archivos/docs/DOC_INVALIDO.pdf");
+            docInvalido.setFechaCarga(LocalDateTime.now());
+            docInvalido.setOrdenCompra(ordenInexistente);
+            Administrador admin = new Administrador();
+            admin.setIdUsuario(1);
+            docInvalido.setUsuarioCarga(admin);
+
+            documentoIngresoBL.insert(docInvalido);
+            registrarFallo("Validacion Negocio - Rechaza documento con orden de compra inexistente", "No lanzo BLException");
+        } catch (BLException e) {
+            verificar("Validacion Negocio - Rechaza documento con orden de compra inexistente", true, true);
         }
     }
 
