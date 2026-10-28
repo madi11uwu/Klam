@@ -1,6 +1,7 @@
 package pe.edu.pucp.klam.dao.impl;
 
 import pe.edu.pucp.klam.dao.NotificacionDAO;
+import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
@@ -51,8 +52,9 @@ public class NotificacionDAOImpl implements NotificacionDAO {
         // El SP tiene 8 parámetros
         String sql = "{call insertar_notificacion(?, ?, ?, ?, ?, ?, ?, ?)}";
 
-        try (Connection conn = DBManager.getInstance().getConnection();
-             CallableStatement cmd = conn.prepareCall(sql)) {
+        // Si hay una transaccion activa (p. ej. registrar solicitud + notificar) se une a ella
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (CallableStatement cmd = conn.prepareCall(sql)) {
 
             cmd.registerOutParameter(1, Types.INTEGER);
             cmd.setTimestamp(2, Timestamp.valueOf(notificacion.getFechaHora()));
@@ -63,8 +65,12 @@ public class NotificacionDAOImpl implements NotificacionDAO {
             // Lógica para asignar el ID al rol correcto usando instanceof
             setDestinatarioParams(cmd, notificacion.getDestinatario(), 6, 7, 8);
 
-            cmd.executeUpdate();
+            if (cmd.executeUpdate() == 0) {
+                throw new SQLException("No se pudo insertar la notificación");
+            }
             notificacion.setIdNotificacion(cmd.getInt(1));
+        } finally {
+            TransactionsManager.liberar(conn);
         }
     }
 

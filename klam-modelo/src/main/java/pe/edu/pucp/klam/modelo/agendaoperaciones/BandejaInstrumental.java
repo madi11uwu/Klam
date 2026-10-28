@@ -8,6 +8,7 @@ import java.util.Map;
 public class BandejaInstrumental implements Verificable {
     private int idBandeja;
     private String tipo;
+    private String procedimiento;   // procedimiento para el que se configura (cráneo, columna...)
     private boolean esterilizado;
     private Map<Consumible,Integer> consumibles;            // despachados a la cirugia
     private Map<Consumible,Integer> consumiblesConsumidos;  // usados realmente
@@ -33,6 +34,7 @@ public class BandejaInstrumental implements Verificable {
         }
         setIdBandeja(bandejaInstrumental.getIdBandeja());
         setTipo(bandejaInstrumental.getTipo());
+        setProcedimiento(bandejaInstrumental.getProcedimiento());
         setEsterilizado(bandejaInstrumental.isEsterilizado());
         setConsumibles(bandejaInstrumental.getConsumibles());
         setConsumiblesConsumidos(bandejaInstrumental.getConsumiblesConsumidos());
@@ -78,6 +80,14 @@ public class BandejaInstrumental implements Verificable {
 
     public void setTipo(String tipo) {
         this.tipo = tipo;
+    }
+
+    public String getProcedimiento() {
+        return procedimiento;
+    }
+
+    public void setProcedimiento(String procedimiento) {
+        this.procedimiento = procedimiento;
     }
 
     public int getIdBandeja() {

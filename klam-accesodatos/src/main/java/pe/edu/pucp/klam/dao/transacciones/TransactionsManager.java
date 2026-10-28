@@ -52,6 +52,16 @@ public final class TransactionsManager {
         }
     }
 
+    /**
+     * Revierte la transaccion solo si sigue activa (un commit fallido ya la cerro).
+     * Se usa en los bloques catch de la capa de negocio.
+     */
+    public static void rollbackSiActiva() {
+        if (activa()) {
+            rollback();
+        }
+    }
+
     public static Connection getConnection() {
         Connection conn = conexion.get();
         if (conn == null) {
@@ -62,6 +72,24 @@ public final class TransactionsManager {
 
     public static boolean activa() {
         return conexion.get() != null;
+    }
+
+    /**
+     * Conexion para las consultas y escrituras de un DAO: la de la transaccion
+     * activa si existe; si no, una conexion nueva. Debe devolverse con
+     * {@link #liberar(Connection)} (cierra solo las conexiones que no son de la
+     * transaccion, que la cierra el commit o el rollback).
+     */
+    public static Connection obtenerConexion() throws SQLException {
+        Connection conn = conexion.get();
+        return (conn != null) ? conn : DBManager.getInstance().getConnection();
+    }
+
+    /** Cierra la conexion obtenida con {@link #obtenerConexion()} si no pertenece a la transaccion. */
+    public static void liberar(Connection conn) throws SQLException {
+        if (conn != null && conn != conexion.get()) {
+            conn.close();
+        }
     }
 
     private static void cerrar(Connection conn) {

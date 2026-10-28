@@ -15,6 +15,14 @@ public class DocumentoIngreso implements Validable {
     private boolean activo;
     private UsuarioPlataforma usuarioCarga; // quien subio el documento (admin, vendedor o tecnico)
 
+    // Trazabilidad y subsanacion (RF04, RF07, RF08)
+    private Integer idSolicitud;          // solicitud a la que pertenece (puede ser null)
+    private Integer idCirugia;            // cirugia a la que pertenece (puede ser null)
+    private int version = 1;              // la resubida crea una version nueva, no sobrescribe
+    private LocalDateTime fechaValidacion;
+    private String motivoRechazo;
+    private String responsable;           // texto: los clientes no tienen usuario en la plataforma
+
     public DocumentoIngreso(){
         this.estadoValidacion = EstadoValidacionDocumento.PENDIENTE;
         this.activo = true;
@@ -39,7 +47,36 @@ public class DocumentoIngreso implements Validable {
         setOrdenCompra(documentoIngreso.getOrdenCompra());
         setActivo(documentoIngreso.isActivo());
         setUsuarioCarga(documentoIngreso.getUsuarioCarga());
+        this.idSolicitud = documentoIngreso.getIdSolicitud();
+        this.idCirugia = documentoIngreso.getIdCirugia();
+        this.version = documentoIngreso.getVersion();
+        this.fechaValidacion = documentoIngreso.getFechaValidacion();
+        this.motivoRechazo = documentoIngreso.getMotivoRechazo();
+        this.responsable = documentoIngreso.getResponsable();
     }
+
+    public Integer getIdSolicitud() { return idSolicitud; }
+    public void setIdSolicitud(Integer idSolicitud) { this.idSolicitud = idSolicitud; }
+
+    public Integer getIdCirugia() { return idCirugia; }
+    public void setIdCirugia(Integer idCirugia) { this.idCirugia = idCirugia; }
+
+    public int getVersion() { return version; }
+    public void setVersion(int version) {
+        if (version < 1) {
+            throw new IllegalArgumentException("la version debe ser mayor o igual a 1");
+        }
+        this.version = version;
+    }
+
+    public LocalDateTime getFechaValidacion() { return fechaValidacion; }
+    public void setFechaValidacion(LocalDateTime fechaValidacion) { this.fechaValidacion = fechaValidacion; }
+
+    public String getMotivoRechazo() { return motivoRechazo; }
+    public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
+
+    public String getResponsable() { return responsable; }
+    public void setResponsable(String responsable) { this.responsable = responsable; }
 
     public UsuarioPlataforma getUsuarioCarga() {
         return usuarioCarga;

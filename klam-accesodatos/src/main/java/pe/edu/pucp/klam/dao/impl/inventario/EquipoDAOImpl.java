@@ -7,39 +7,101 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.CategoriaEquipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EquipoDAOImpl implements EquipoDAO {
 
     @Override
-    public List<Equipo> listarDisponibles() {
-        List<Equipo> equipos = new ArrayList<>();
-        String sql = "{CALL SP_EQUIPO_LISTAR_DISPONIBLES()}";
+    public List<Equipo> listarDisponibles() throws SQLException {
+        String sql = "{call listar_equipos_disponibles()}";
         try (Connection conn = DBManager.getInstance().getConnection();
              CallableStatement cs = conn.prepareCall(sql);
              ResultSet rs = cs.executeQuery()) {
+            List<Equipo> equipos = new ArrayList<>();
             while (rs.next()) {
-                Equipo eq = new Equipo();
-                eq.setIdEquipo(rs.getInt("id_equipo"));
-                eq.setNombre(rs.getString("nombre"));
-                eq.setCategoria(CategoriaEquipo.valueOf(rs.getString("categoria")));
-                eq.setDisponible(rs.getBoolean("disponible"));
-                eq.setActivo(rs.getBoolean("activo"));
-                equipos.add(eq);
+                equipos.add(mapear(rs));
             }
-        } catch (SQLException ex) { ex.printStackTrace(); }
-        return equipos;
+            return equipos;
+        }
     }
 
     @Override
-    public void registrarRetorno(int idEquipo) {
-        String sql = "{CALL SP_EQUIPO_REGISTRAR_RETORNO(?)}";
-        try (Connection conn = DBManager.getInstance().getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
-            cs.setInt(1, idEquipo);
-            cs.executeUpdate();
-        } catch (SQLException ex) { ex.printStackTrace(); }
+    public void registrarRetorno(int idEquipo) throws SQLException {
+        actualizarDisponibilidad(idEquipo, true);
+    }
+
+    @Override
+    public void actualizarDisponibilidad(int idEquipo, boolean disponible) throws SQLException {
+        String sql = "{call actualizar_disponibilidad_equipo(?, ?)}";
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt("p_id_equipo", idEquipo);
+            cs.setBoolean("p_disponible", disponible);
+
+            if (cs.executeUpdate() == 0) {
+                throw new SQLException("No existe el equipo " + idEquipo);
+            }
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
+
+    @Override
+    public int insertarDespacho(int idCirugia, Integer idEquipo, Integer idBandeja,
+                                LocalDateTime fechaSalida) throws SQLException {
+        String sql = "{call insertar_despacho(?, ?, ?, ?, ?)}";
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (CallableStatement cs = conn.prepareCall(sql)) {
+            cs.registerOutParameter("p_id", Types.INTEGER);
+            cs.setInt("p_id_cirugia", idCirugia);
+            DBManager.setIntONulo(cs, "p_id_equipo", idEquipo);
+            DBManager.setIntONulo(cs, "p_id_bandeja", idBandeja);
+            cs.setTimestamp("p_fecha_salida", Timestamp.valueOf(fechaSalida));
+
+            if (cs.executeUpdate() == 0) {
+                throw new SQLException("No se pudo registrar el despacho de la cirugia " + idCirugia);
+            }
+            return cs.getInt("p_id");
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
+
+    @Override
+    public void registrarRetornoDespacho(int idDespacho, LocalDateTime fechaRetorno) throws SQLException {
+        String sql = "{call registrar_retorno_despacho(?, ?)}";
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt("p_id_despacho", idDespacho);
+            cs.setTimestamp("p_fecha_retorno", Timestamp.valueOf(fechaRetorno));
+
+            if (cs.executeUpdate() == 0) {
+                throw new SQLException("No se pudo registrar el retorno del despacho " + idDespacho);
+            }
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> buscarDespachos(Integer idDespacho, String codigo, Integer idCirugia,
+                                                     boolean soloPendientes) throws SQLException {
+        String sql = "{call buscar_despachos(?, ?, ?, ?)}";
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (CallableStatement cs = conn.prepareCall(sql)) {
+            DBManager.setIntONulo(cs, "p_id_despacho", idDespacho);
+            DBManager.setStringONulo(cs, "p_codigo", codigo);
+            DBManager.setIntONulo(cs, "p_id_cirugia", idCirugia);
+            cs.setBoolean("p_solo_pendientes", soloPendientes);
+            try (ResultSet rs = cs.executeQuery()) {
+                return DBManager.filasAMapas(rs);
+            }
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
     }
 
     @Override

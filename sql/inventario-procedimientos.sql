@@ -203,27 +203,30 @@ DROP PROCEDURE IF EXISTS eliminar_consumibles_bandeja;
 DELIMITER $$
 
 CREATE PROCEDURE insertar_bandeja(
-    OUT p_id           INT,
-    IN  p_tipo         VARCHAR(100),
-    IN  p_esterilizado TINYINT
+    OUT p_id             INT,
+    IN  p_tipo           VARCHAR(100),
+    IN  p_procedimiento  VARCHAR(100),
+    IN  p_esterilizado   TINYINT
 )
 BEGIN
-INSERT INTO bandeja_instrumental (tipo, esterilizado)
-VALUES (p_tipo, p_esterilizado);
+INSERT INTO bandeja_instrumental (tipo, procedimiento, esterilizado)
+VALUES (p_tipo, p_procedimiento, p_esterilizado);
 
 SET p_id = LAST_INSERT_ID();
 END$$
 
 CREATE PROCEDURE modificar_bandeja(
-    IN p_id           INT,
-    IN p_tipo         VARCHAR(100),
-    IN p_esterilizado TINYINT,
-    IN p_activo       TINYINT
+    IN p_id             INT,
+    IN p_tipo           VARCHAR(100),
+    IN p_procedimiento  VARCHAR(100),
+    IN p_esterilizado   TINYINT,
+    IN p_activo         TINYINT
 )
 BEGIN
 UPDATE bandeja_instrumental
-SET tipo         = p_tipo,
-    esterilizado = p_esterilizado,
+SET tipo          = p_tipo,
+    procedimiento = p_procedimiento,
+    esterilizado  = p_esterilizado,
     activo       = p_activo
 WHERE id_bandeja = p_id;
 END$$
@@ -240,7 +243,7 @@ END$$
 
 CREATE PROCEDURE listar_bandejas()
 BEGIN
-SELECT id_bandeja, tipo, esterilizado, activo
+SELECT id_bandeja, tipo, procedimiento, esterilizado, activo
 FROM bandeja_instrumental
 WHERE activo = 1;
 END$$
@@ -249,7 +252,7 @@ CREATE PROCEDURE buscar_bandeja_por_id(
     IN p_id INT
 )
 BEGIN
-SELECT id_bandeja, tipo, esterilizado, activo
+SELECT id_bandeja, tipo, procedimiento, esterilizado, activo
 FROM bandeja_instrumental
 WHERE id_bandeja = p_id;
 END$$

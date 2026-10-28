@@ -64,11 +64,11 @@ VALUES
 -- bandeja_instrumental
 
 INSERT INTO bandeja_instrumental
-(id_bandeja, tipo, esterilizado, activo)
+(id_bandeja, tipo, procedimiento, esterilizado, activo)
 VALUES
-    (1, 'Bandeja de craneotomía', 1, 1),
-    (2, 'Bandeja de microcirugía', 1, 1),
-    (3, 'Bandeja de navegación estereotáxica', 0, 1);
+    (1, 'Bandeja de craneotomía', 'Cirugía de cráneo', 1, 1),
+    (2, 'Bandeja de microcirugía', 'Cirugía de cráneo', 1, 1),
+    (3, 'Bandeja de navegación estereotáxica', 'Cirugía de cráneo', 0, 1);
 
 -- consumible
 
@@ -200,7 +200,7 @@ VALUES
 -- ============================================================
 INSERT INTO cirugia
 (id_cirugia, fecha_hora_inicio, fecha_hora_fin,
- tipo_procedimiento, doctor_nombre, motivo_cancelacion,
+ tipo_procedimiento, doctor_nombre, diagnostico, motivo_cancelacion,
  estado, id_equipo, id_bandeja,
  id_clinica_hospital, id_paciente_particular, activo)
 VALUES
@@ -209,6 +209,7 @@ VALUES
      '2026-08-15 11:30:00',
      'Craneotomía por tumor',
      'Dr. Alberto Núñez',
+     'Tumor cerebral frontal',
      NULL,
      'FINALIZADA',
      1,
@@ -222,6 +223,7 @@ VALUES
      NULL,
      'Clipaje de aneurisma',
      'Dra. Silvia Ramos',
+     'Aneurisma de la arteria comunicante anterior',
      NULL,
      'PROGRAMADA',
      2,
@@ -235,6 +237,7 @@ VALUES
      NULL,
      'Descompresión microvascular',
      'Dr. Raúl Ochoa',
+     'Neuralgia del trigémino',
      'Paciente no se presentó',
      'CANCELADA',
      NULL,

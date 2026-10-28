@@ -12,10 +12,17 @@ public class Cirugia implements Agendable, Cancelable {
     private String tipoProcedimiento;
     private String motivoCancelacion;
     private String doctorNombre;
+    private String diagnostico;
     private EstadoCirugia estado;
     private Equipo equipo;
     private BandejaInstrumental bandejaInstrumental;
     private Cliente cliente;
+
+    // Solicitud aprobada de la que nace la cirugia; null si el administrador la registro directamente
+    private Integer idSolicitudOrigen;
+
+    // true cuando el administrador cerro el registro de consumos (RF15)
+    private boolean consumoCompleto;
 
     // estado = ciclo de vida de la cirugia; activo = eliminacion logica
     private boolean activo;
@@ -35,10 +42,13 @@ public class Cirugia implements Agendable, Cancelable {
         setTipoProcedimiento(cirugia.getTipoProcedimiento());
         setMotivoCancelacion(cirugia.getMotivoCancelacion());
         setDoctorNombre(cirugia.getDoctorNombre());
+        setDiagnostico(cirugia.getDiagnostico());
         setEstado(cirugia.getEstado());
         setEquipo(cirugia.getEquipo());
         setBandejaInstrumental(cirugia.getBandejaInstrumental());
         setCliente(cirugia.getCliente());
+        setIdSolicitudOrigen(cirugia.getIdSolicitudOrigen());
+        setConsumoCompleto(cirugia.isConsumoCompleto());
         setActivo(cirugia.isActivo());
     }
 
@@ -91,6 +101,30 @@ public class Cirugia implements Agendable, Cancelable {
 
     public void setDoctorNombre(String doctorNombre) {
         this.doctorNombre = doctorNombre;
+    }
+
+    public String getDiagnostico() {
+        return diagnostico;
+    }
+
+    public void setDiagnostico(String diagnostico) {
+        this.diagnostico = diagnostico;
+    }
+
+    public Integer getIdSolicitudOrigen() {
+        return idSolicitudOrigen;
+    }
+
+    public void setIdSolicitudOrigen(Integer idSolicitudOrigen) {
+        this.idSolicitudOrigen = idSolicitudOrigen;
+    }
+
+    public boolean isConsumoCompleto() {
+        return consumoCompleto;
+    }
+
+    public void setConsumoCompleto(boolean consumoCompleto) {
+        this.consumoCompleto = consumoCompleto;
     }
 
     public EstadoCirugia getEstado() {
