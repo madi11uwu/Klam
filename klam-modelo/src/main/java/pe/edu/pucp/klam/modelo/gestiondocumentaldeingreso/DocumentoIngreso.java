@@ -1,17 +1,18 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
-import pe.edu.pucp.klam.modelo.interfaces.Validable;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 
 import java.time.LocalDateTime;
 
-public class DocumentoIngreso implements Validable {
-    private String id_documento;
+public class DocumentoIngreso {
+    private int idDocumento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
     private EstadoValidacionDocumento estadoValidacion;
     private LocalDateTime fechaCarga;
     private OrdenCompra ordenCompra;
     private boolean activo;
+    private UsuarioPlataforma usuarioCarga; // quien subio el documento (admin, vendedor o tecnico)
 
     public DocumentoIngreso(){
         this.estadoValidacion = EstadoValidacionDocumento.PENDIENTE;
@@ -29,13 +30,22 @@ public class DocumentoIngreso implements Validable {
         if(documentoIngreso==null){
             throw new IllegalArgumentException("documentoIngreso no puede ser nulo");
         }
-        setId_documento(documentoIngreso.getId_documento());
+        setIdDocumento(documentoIngreso.getIdDocumento());
         setTipoDocumento(documentoIngreso.getTipoDocumento());
         setArchivoPath(documentoIngreso.getArchivoPath());
         setEstadoValidacion(documentoIngreso.getEstadoValidacion());
         setFechaCarga(documentoIngreso.getFechaCarga());
         setOrdenCompra(documentoIngreso.getOrdenCompra());
         setActivo(documentoIngreso.isActivo());
+        setUsuarioCarga(documentoIngreso.getUsuarioCarga());
+    }
+
+    public UsuarioPlataforma getUsuarioCarga() {
+        return usuarioCarga;
+    }
+
+    public void setUsuarioCarga(UsuarioPlataforma usuarioCarga) {
+        this.usuarioCarga = usuarioCarga;
     }
     public TipoDocumentoIngreso getTipoDocumento() {
         return tipoDocumento;
@@ -48,15 +58,15 @@ public class DocumentoIngreso implements Validable {
         this.tipoDocumento = tipoDocumento;
     }
 
-    public String getId_documento() {
-        return id_documento;
+    public int getIdDocumento() {
+        return idDocumento;
     }
 
-    public void setId_documento(String id_documento) {
-        if(id_documento==null || id_documento.isEmpty()){
+    public void setIdDocumento(int idDocumento) {
+        if(idDocumento <0){
             throw new IllegalArgumentException("id_documento no puede ser nulo o vacío");
         }
-        this.id_documento = id_documento;
+        this.idDocumento = idDocumento;
     }
 
     public String getArchivoPath() {
@@ -100,10 +110,5 @@ public class DocumentoIngreso implements Validable {
             throw new IllegalArgumentException("fechaCarga no puede ser nulo");
         }
         this.fechaCarga = fechaCarga;
-    }
-
-    @Override
-    public boolean validar() {
-        return this.estadoValidacion == EstadoValidacionDocumento.VALIDADO;
     }
 }
