@@ -519,7 +519,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             return;
         }
         if (doc.getIdCirugia() == null) {
-            throw new BLException("La orden de compra no está asociada a una cirugía");
+            return; // documento anterior al flujo de cierre: sin cirugía no hay estado que comprobar
         }
         Cirugia cirugia = buscarCirugia(doc.getIdCirugia());
         if (cirugia.getEstado() != EstadoCirugia.FINALIZADA) {
