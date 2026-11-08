@@ -1,8 +1,7 @@
 package pe.edu.pucp.klam.modelo.usuariosPermisos;
 
-import pe.edu.pucp.klam.modelo.interfaces.Notificable;
 
-public abstract class UsuarioPlataforma implements Notificable {
+public abstract class UsuarioPlataforma {
 
     private int idUsuario;
     private String username;

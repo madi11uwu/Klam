@@ -1,11 +1,10 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
-import pe.edu.pucp.klam.modelo.interfaces.Validable;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 
 import java.time.LocalDateTime;
 
-public class DocumentoIngreso implements Validable {
+public class DocumentoIngreso {
     private int idDocumento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
@@ -129,7 +128,6 @@ public class DocumentoIngreso implements Validable {
         this.estadoValidacion = estadoValidacion;
     }
 
-    /** Eliminacion logica: el documento se conserva aunque se dé de baja. */
     public boolean isActivo() {
         return activo;
     }
@@ -150,8 +148,4 @@ public class DocumentoIngreso implements Validable {
         this.fechaCarga = fechaCarga;
     }
 
-    @Override
-    public boolean validar() {
-        return this.estadoValidacion == EstadoValidacionDocumento.VALIDADO;
-    }
 }

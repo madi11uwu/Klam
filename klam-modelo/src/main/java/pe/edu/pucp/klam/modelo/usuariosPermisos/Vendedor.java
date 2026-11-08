@@ -1,10 +1,9 @@
 package pe.edu.pucp.klam.modelo.usuariosPermisos;
 
-import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
 
 public class Vendedor extends UsuarioPlataforma {
 
-    private static final double PORCENTAJE_COMISION = 0.05; // 5%, ajustar según regla de negocio real
+    private static final double PORCENTAJE_COMISION = 0.035; // 5%
 
     private double comisionAcumulada;
 
@@ -33,27 +32,10 @@ public class Vendedor extends UsuarioPlataforma {
         this.comisionAcumulada = comisionAcumulada;
     }
 
-    // Depende del módulo de ventas/cirugías (aún no implementado).
-    public void consultarVentas() {
-        throw new UnsupportedOperationException("Metodo no implementado aun.");
-    }
-
     public double calcularComision(double montoBase) {
         double comision = montoBase * PORCENTAJE_COMISION;
         this.comisionAcumulada += comision;
         return comision;
     }
 
-    @Override
-    public String toString() {
-        return "Vendedor{" +
-                ", comisionAcumulada=" + comisionAcumulada +
-                ", " + super.toString() +
-                '}';
-    }
-
-    @Override
-    public void recibirNotificacion(Notificacion notificacion) {
-
-    }
 }

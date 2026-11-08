@@ -2,10 +2,8 @@ package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
 import java.time.LocalDateTime;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
-import pe.edu.pucp.klam.modelo.interfaces.Agendable;
-import pe.edu.pucp.klam.modelo.interfaces.Cancelable;
 
-public class Cirugia implements Agendable, Cancelable {
+public class Cirugia {
     private int idCirugia;
     private LocalDateTime fechaHoraInicio;
     private LocalDateTime fechaHoraFin;
@@ -170,17 +168,5 @@ public class Cirugia implements Agendable, Cancelable {
 
     public void setActivo(boolean activo) {
         this.activo = activo;
-    }
-
-    //metodos de la interfaz Agendable, Cancelable
-    @Override
-    public String getIdentificador() {
-        return String.valueOf(idCirugia);
-    }
-
-    @Override
-    public void cancelar(String motivo) {
-        this.estado = EstadoCirugia.CANCELADA;
-        this.motivoCancelacion = motivo;
     }
 }

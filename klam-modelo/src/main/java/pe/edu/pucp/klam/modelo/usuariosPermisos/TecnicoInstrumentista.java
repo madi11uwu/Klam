@@ -1,7 +1,5 @@
 package pe.edu.pucp.klam.modelo.usuariosPermisos;
 
-import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
-
 public class TecnicoInstrumentista extends UsuarioPlataforma {
 
     private String especialidad;
@@ -31,21 +29,4 @@ public class TecnicoInstrumentista extends UsuarioPlataforma {
         this.especialidad = especialidad;
     }
 
-    // Depende de la clase Cirugia (módulo de Agenda y Operaciones).
-    public void registrarIncidencia(Object cirugia, String descripcion) {
-        throw new UnsupportedOperationException("Metodo no implementado aun.");
-    }
-
-    @Override
-    public String toString() {
-        return "TecnicoInstrumentista{" +
-                ", especialidad='" + especialidad + '\'' +
-                ", " + super.toString() +
-                '}';
-    }
-
-    @Override
-    public void recibirNotificacion(Notificacion notificacion) {
-
-    }
 }
