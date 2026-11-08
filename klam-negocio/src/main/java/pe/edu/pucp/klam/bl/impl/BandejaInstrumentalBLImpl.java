@@ -461,7 +461,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
         }
         if (cirugia.getEstado() != EstadoCirugia.FINALIZADA) {
             throw new BLException("El consumo solo se registra con la cirugía FINALIZADA (estado actual: "
-                    + cirugia.getEstado().getTexto() + ")");
+                    + cirugia.getEstado().name() + ")");
         }
         if (cirugia.getBandejaInstrumental() == null) {
             throw new BLException("La cirugía " + idCirugia + " no tiene bandeja asignada");

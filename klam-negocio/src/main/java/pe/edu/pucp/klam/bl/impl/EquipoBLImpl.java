@@ -60,7 +60,7 @@ public class EquipoBLImpl implements EquipoBL {
         }
         if (cirugia.getEstado() != EstadoCirugia.PROGRAMADA && cirugia.getEstado() != EstadoCirugia.EN_PROCESO) {
             throw new BLException("Solo se despacha para cirugías programadas o en curso (estado actual: "
-                    + cirugia.getEstado().getTexto() + ")");
+                    + cirugia.getEstado().name() + ")");
         }
 
         Equipo equipo = cirugia.getEquipo();

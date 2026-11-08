@@ -8,6 +8,7 @@ import java.util.Map;
 
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CirugiaBL;
+import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
 import pe.edu.pucp.klam.bl.DocumentoIngresoBL;
 import pe.edu.pucp.klam.dao.CirugiaDAO;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
@@ -245,8 +246,8 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
 
             if (doc.getIdSolicitud() != null) {
                 Map<String, Object> solicitud = buscarSolicitud(doc.getIdSolicitud());
-                if (CirugiaBL.SOLICITUD_POR_REVISAR.equals(solicitud.get("estadoSolicitud"))) {
-                    cirugiaDAO.cambiarEstadoSolicitud(doc.getIdSolicitud(), CirugiaBL.SOLICITUD_DOCUMENTACION_INCOMPLETA,
+                if (SolicitudCirugiaBL.SOLICITUD_POR_REVISAR.equals(solicitud.get("estadoSolicitud"))) {
+                    cirugiaDAO.cambiarEstadoSolicitud(doc.getIdSolicitud(), SolicitudCirugiaBL.SOLICITUD_DOCUMENTACION_INCOMPLETA,
                             motivo.trim(), ahora);
                 }
             }
@@ -294,9 +295,9 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             if (anterior.getIdSolicitud() != null) {
                 Map<String, Object> solicitud = buscarSolicitud(anterior.getIdSolicitud());
                 String estado = (String) solicitud.get("estadoSolicitud");
-                if (CirugiaBL.SOLICITUD_DOCUMENTACION_INCOMPLETA.equals(estado)
-                        || CirugiaBL.SOLICITUD_RECHAZADA.equals(estado)) {
-                    cirugiaDAO.cambiarEstadoSolicitud(anterior.getIdSolicitud(), CirugiaBL.SOLICITUD_POR_REVISAR,
+                if (SolicitudCirugiaBL.SOLICITUD_DOCUMENTACION_INCOMPLETA.equals(estado)
+                        || SolicitudCirugiaBL.SOLICITUD_RECHAZADA.equals(estado)) {
+                    cirugiaDAO.cambiarEstadoSolicitud(anterior.getIdSolicitud(), SolicitudCirugiaBL.SOLICITUD_POR_REVISAR,
                             (String) solicitud.get("motivoRechazo"), null);
                 }
             }
@@ -363,7 +364,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         }
         if (cirugia.getEstado() != EstadoCirugia.FINALIZADA) {
             throw new BLException("La orden de compra se habilita cuando la cirugía está FINALIZADA (estado actual: "
-                    + cirugia.getEstado().getTexto() + ")");
+                    + cirugia.getEstado().name() + ")");
         }
 
         DocumentoIngreso doc = new DocumentoIngreso();
