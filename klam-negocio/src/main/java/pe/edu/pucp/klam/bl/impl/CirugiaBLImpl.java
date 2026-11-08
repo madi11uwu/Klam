@@ -612,7 +612,7 @@ public class CirugiaBLImpl implements CirugiaBL {
             boolean equipoCambio = existente == null || existente.getEquipo() == null
                     || existente.getEquipo().getIdEquipo() != equipo.getIdEquipo();
             // Si el equipo ya era de esta cirugia, que este "no disponible" (despachado) es normal
-            if (vigente && equipoCambio && !equipo.verificar()) {
+            if (vigente && equipoCambio && !equipo.isActivo()) {
                 throw new BLException("El equipo " + equipo.getNombre() + " no está disponible");
             }
             if (vigente && !equipo.isActivo()) {
@@ -638,7 +638,7 @@ public class CirugiaBLImpl implements CirugiaBL {
                 if (!bandeja.isActivo()) {
                     throw new BLException("La bandeja " + bandeja.getIdBandeja() + " está dada de baja");
                 }
-                if (!bandeja.verificar()) {
+                if (!bandeja.isEsterilizado()) {
                     throw new BLException("La bandeja " + bandeja.getTipo() + " no está esterilizada");
                 }
             }
@@ -811,7 +811,6 @@ public class CirugiaBLImpl implements CirugiaBL {
             }
         }
     }
-
     @Override
     public Map<String, Object> findSolicitudById(int idSolicitud) throws BLException {
         List<Map<String, Object>> filas = consultarSolicitudes(idSolicitud, null, null, null);
