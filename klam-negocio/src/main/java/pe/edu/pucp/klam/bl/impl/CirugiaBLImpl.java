@@ -42,12 +42,10 @@ import java.util.Set;
 public class CirugiaBLImpl implements CirugiaBL {
 
     // Longitudes máximas de los datos de cirugía y solicitud
-    static final int MAX_PROCEDIMIENTO = 100;
-    static final int MAX_DOCTOR = 100;
-    static final int MAX_DIAGNOSTICO = 300;
-    static final int MAX_MOTIVO = 200;
-    static final int MAX_PACIENTE = 150;
-    static final int MAX_OBSERVACIONES = 500;
+    private static final int MAX_PROCEDIMIENTO = 100;
+    private static final int MAX_DOCTOR = 100;
+    private static final int MAX_DIAGNOSTICO = 300;
+    private static final int MAX_MOTIVO = 200;
 
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
     private final EquipoDAO equipoDAO = new EquipoDAOImpl();
@@ -171,7 +169,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         }
     }
 
-    String tipoDe(Cliente cliente) throws BLException {
+    private String tipoDe(Cliente cliente) throws BLException {
         if (cliente == null) {
             throw new BLException("Debe indicar el cliente");
         }
@@ -438,7 +436,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         String quien = textoResponsable(responsable);
         TransactionsManager.iniciar();
         try {
-            cirugiaDAO.cancelar(id, motivo.trim());   // tambien libera la bandeja fisica
+            cirugiaDAO.cancelar(id, motivo.trim());   // también libera la bandeja fisica
 
             Map<String, String> despues = new LinkedHashMap<>(antes);
             despues.put("estado", EstadoCirugia.CANCELADA.name());
@@ -631,7 +629,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         }
     }
 
-    void textoObligatorio(String texto, String campo, int maximo) throws BLException {
+    private void textoObligatorio(String texto, String campo, int maximo) throws BLException {
         if (texto == null || texto.isBlank()) {
             throw new BLException(campo + " es obligatorio");
         }
@@ -655,7 +653,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         }
     }
 
-    void validarClienteExiste(Cliente cliente) throws BLException {
+    private void validarClienteExiste(Cliente cliente) throws BLException {
         try {
             Cliente encontrado;
             if (cliente instanceof ClinicaHospital) {
@@ -709,7 +707,7 @@ public class CirugiaBLImpl implements CirugiaBL {
                 serializar(antes), serializar(despues));
     }
 
-    // Valores guardados como lineas "campo=valor"
+    // Valores guardados como líneas "campo=valor"
     private String serializar(Map<String, String> valores) {
         if (valores == null || valores.isEmpty()) {
             return null;
@@ -742,7 +740,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         return s;
     }
 
-    // Deja en antes/despues solo los campos que cambiaron (sin los excluidos)
+    // Deja en antes/después solo los campos que cambiaron (sin los excluidos)
     private void diferencias(Map<String, String> a, Map<String, String> d, Set<String> excluir,
                              Map<String, String> antes, Map<String, String> despues) {
         for (String campo : d.keySet()) {

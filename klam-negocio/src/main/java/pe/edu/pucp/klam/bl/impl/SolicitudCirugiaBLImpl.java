@@ -29,13 +29,20 @@ import java.util.Map;
 import java.util.Set;
 
 public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
+    // Límites de los campos de solicitud definidos por el esquema de datos.
+    private static final int MAX_PROCEDIMIENTO = 100;
+    private static final int MAX_DOCTOR = 100;
+    private static final int MAX_DIAGNOSTICO = 300;
+    private static final int MAX_MOTIVO = 200;
+    private static final int MAX_PACIENTE = 150;
+    private static final int MAX_OBSERVACIONES = 500;
+
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
     private final ClinicaHospitalDAO clinicaHospitalDAO = new ClinicaHospitalDAOImpl();
     private final PacienteParticularDAO pacienteParticularDAO = new PacienteParticularDAOImpl();
     private final DocumentoIngresoDAO documentoDAO = new DocumentoIngresoDAOImpl();
     private final DocumentoIngresoBL documentoBL = new DocumentoIngresoBLImpl();
     private final NotificacionBL notificacionBL = new NotificacionBLImpl();
-    private final CirugiaBLImpl cirugiaBL = new CirugiaBLImpl();
 
     // ------------------------------------------------------------------
     // Solicitudes de cirugia (RF05, RF07, RF08)
@@ -50,7 +57,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         if (cliente == null) {
             throw new BLException("La solicitud debe tener un cliente solicitante");
         }
-        cirugiaBL.validarClienteExiste(cliente);
+        validarClienteExiste(cliente);
 
         // Clinica donde se realizara: un cliente clinica opera en su propia sede por defecto
         ClinicaHospital destino = clinicaDestino;
@@ -60,7 +67,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         if (destino == null) {
             throw new BLException("Debe indicar la clínica u hospital donde se realizará la cirugía");
         }
-        cirugiaBL.validarClienteExiste(destino);
+        validarClienteExiste(destino);
 
         // Paciente particular: DNI obligatorio de 8 digitos y nombre del paciente por defecto
         String paciente = pacienteNombre;
@@ -72,15 +79,15 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
                 paciente = particular.getNombre();
             }
         }
-        cirugiaBL.textoObligatorio(paciente, "El nombre del paciente", CirugiaBLImpl.MAX_PACIENTE);
-        cirugiaBL.textoObligatorio(datos.getTipoProcedimiento(), "El tipo de procedimiento", CirugiaBLImpl.MAX_PROCEDIMIENTO);
-        cirugiaBL.textoObligatorio(datos.getDoctorNombre(), "El nombre del médico", CirugiaBLImpl.MAX_DOCTOR);
-        cirugiaBL.textoObligatorio(datos.getDiagnostico(), "El diagnóstico", CirugiaBLImpl.MAX_DIAGNOSTICO);
+        textoObligatorio(paciente, "El nombre del paciente", MAX_PACIENTE);
+        textoObligatorio(datos.getTipoProcedimiento(), "El tipo de procedimiento", MAX_PROCEDIMIENTO);
+        textoObligatorio(datos.getDoctorNombre(), "El nombre del médico", MAX_DOCTOR);
+        textoObligatorio(datos.getDiagnostico(), "El diagnóstico", MAX_DIAGNOSTICO);
         if (datos.getFechaHoraInicio() == null) {
             throw new BLException("La fecha y hora solicitadas son obligatorias");
         }
-        if (observaciones != null && observaciones.trim().length() > CirugiaBLImpl.MAX_OBSERVACIONES) {
-            throw new BLException("Las observaciones no pueden superar los " + CirugiaBLImpl.MAX_OBSERVACIONES + " caracteres");
+        if (observaciones != null && observaciones.trim().length() > MAX_OBSERVACIONES) {
+            throw new BLException("Las observaciones no pueden superar los " + MAX_OBSERVACIONES + " caracteres");
         }
 
         int idSolicitud;
@@ -124,7 +131,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
 
     @Override
     public List<Map<String, Object>> listarSolicitudesPorCliente(Cliente cliente) throws BLException {
-        return consultarSolicitudes(null, null, cirugiaBL.tipoDe(cliente), cliente.getIdCliente());
+        return consultarSolicitudes(null, null, tipoDe(cliente), cliente.getIdCliente());
     }
 
     private List<Map<String, Object>> consultarSolicitudes(Integer id, String estado, String tipoCliente,
@@ -170,7 +177,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         }
     }
 
-    // Lista los tipos obligatorios que aun no tienen version vigente VALIDADA
+    // Lista los tipos obligatorios que aún no tienen version vigente VALIDADA
     private String faltantes(int idSolicitud, String tipoCliente) throws BLException {
         try {
             List<DocumentoIngreso> vigentes = documentoDAO.listarVigentesPorSolicitud(idSolicitud);
@@ -192,8 +199,8 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         if (motivo == null || motivo.isBlank()) {
             throw new BLException("El rechazo de una solicitud exige un motivo");
         }
-        if (motivo.trim().length() > CirugiaBLImpl.MAX_MOTIVO) {
-            throw new BLException("El motivo de rechazo no puede superar los " + CirugiaBLImpl.MAX_MOTIVO + " caracteres");
+        if (motivo.trim().length() > MAX_MOTIVO) {
+            throw new BLException("El motivo de rechazo no puede superar los " + MAX_MOTIVO + " caracteres");
         }
         Map<String, Object> solicitud = buscarSolicitud(idSolicitud);
         String estado = (String) solicitud.get("estadoSolicitud");
@@ -289,7 +296,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
 
         Cliente solicitante = clienteDeSolicitud(solicitud);
         if (nueva.getCliente() != null
-                && (!cirugiaBL.tipoDe(nueva.getCliente()).equals(cirugiaBL.tipoDe(solicitante))
+                && (!tipoDe(nueva.getCliente()).equals(tipoDe(solicitante))
                     || nueva.getCliente().getIdCliente() != solicitante.getIdCliente())) {
             throw new BLException("El cliente de la cirugía no coincide con el de la solicitud");
         }
@@ -299,7 +306,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
 
         // El registro común confirma cirugía, auditoría y notificaciones en una sola transacción.
         // La restricción uq_cirugia_solicitud_vigente protege también de solicitudes duplicadas concurrentes.
-        return cirugiaBL.registrarInterno(nueva, responsable);
+        return new CirugiaBLImpl().registrarInterno(nueva, responsable);
     }
 
     private Cliente clienteDeSolicitud(Map<String, Object> solicitud) throws BLException {
@@ -332,4 +339,43 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         return Set.of(SOLICITUD_POR_REVISAR, SOLICITUD_DOCUMENTACION_INCOMPLETA, SOLICITUD_RECHAZADA, SOLICITUD_APROBADA);
     }
 
+
+    private String tipoDe(Cliente cliente) throws BLException {
+        if (cliente == null) {
+            throw new BLException("Debe indicar el cliente");
+        }
+        if (cliente instanceof ClinicaHospital) {
+            return CirugiaBL.TIPO_CLIENTE_CLINICA;
+        }
+        if (cliente instanceof PacienteParticular) {
+            return CirugiaBL.TIPO_CLIENTE_PARTICULAR;
+        }
+        throw new BLException("Tipo de cliente no soportado");
+    }
+
+    private void validarClienteExiste(Cliente cliente) throws BLException {
+        String tipoCliente = tipoDe(cliente);
+        try {
+            Cliente encontrado = CirugiaBL.TIPO_CLIENTE_CLINICA.equals(tipoCliente)
+                    ? clinicaHospitalDAO.findById(cliente.getIdCliente())
+                    : pacienteParticularDAO.findById(cliente.getIdCliente());
+            if (encontrado == null) {
+                throw new BLException("No existe un cliente con id " + cliente.getIdCliente());
+            }
+            if (!encontrado.isActivo()) {
+                throw new BLException("El cliente " + encontrado.getNombre() + " está dado de baja");
+            }
+        } catch (SQLException e) {
+            throw new BLException("No se pudo verificar la existencia del cliente", e);
+        }
+    }
+
+    private void textoObligatorio(String texto, String campo, int maximo) throws BLException {
+        if (texto == null || texto.isBlank()) {
+            throw new BLException(campo + " es obligatorio");
+        }
+        if (texto.trim().length() > maximo) {
+            throw new BLException(campo + " no puede superar los " + maximo + " caracteres");
+        }
+    }
 }
