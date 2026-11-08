@@ -1,33 +1,43 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
-import pe.edu.pucp.klam.modelo.interfaces.Verificable;
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class Equipo implements Verificable {
-    private int id_equipo;
+public class Equipo {
+    private int idEquipo;
     private String nombre;
     private CategoriaEquipo categoria;
     private Map<String,Object> especificaciones;
     private boolean disponible;
 
+    // disponible = estado operativo; activo = eliminacion logica
+    private boolean activo;
+
     public Equipo(final Equipo equipo){
         if (equipo == null){
             throw new IllegalArgumentException("Equipo no puede ser nulo");
         }
-        setId_equipo(equipo.getId_equipo());
+        setIdEquipo(equipo.getIdEquipo());
         setNombre(equipo.getNombre());
         setCategoria(equipo.getCategoria());
         setEspecificaciones(equipo.getEspecificaciones());
         setDisponible(equipo.isDisponible());
-    }
-    public int getId_equipo() {
-        return id_equipo;
+        setActivo(equipo.isActivo());
     }
 
-    public void setId_equipo(int id_equipo) {
-        this.id_equipo = id_equipo;
+    public Equipo(int i, String equipoQuirúrgicoA) {
+        this.idEquipo =i;
+        this.nombre=equipoQuirúrgicoA;
+        this.especificaciones= new HashMap<>();
+        this.activo = true;
+    }
+
+    public int getIdEquipo() {
+        return idEquipo;
+    }
+
+    public void setIdEquipo(int idEquipo) {
+        this.idEquipo = idEquipo;
     }
 
     public Map<String, Object> getEspecificaciones() {
@@ -35,7 +45,7 @@ public class Equipo implements Verificable {
     }
 
     public void setEspecificaciones(Map<String, Object> especificaciones) {
-        this.especificaciones = new HashMap<>(especificaciones);
+        this.especificaciones = (especificaciones==null) ? new HashMap<>() : new HashMap<>(especificaciones);
     }
 
     public String getNombre() {
@@ -65,13 +75,17 @@ public class Equipo implements Verificable {
         this.disponible = disponible;
     }
 
-    public Equipo() {
-        this.especificaciones = new HashMap<>();
+    /** Eliminacion logica: el equipo se conserva aunque se dé de baja. */
+    public boolean isActivo() {
+        return activo;
     }
 
-    @Override
-    public boolean verificar() {
-        if (disponible) return true;
-        return false;
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public Equipo() {
+        this.especificaciones = new HashMap<>();
+        this.activo = true;
     }
 }

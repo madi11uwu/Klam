@@ -3,7 +3,6 @@ package pe.edu.pucp.klam.modelo.documentacionfinanzas;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 
 public abstract class LineaDocumento {
-
     private int idLinea;
     private int cantidad;
     private double precioUnitario;
