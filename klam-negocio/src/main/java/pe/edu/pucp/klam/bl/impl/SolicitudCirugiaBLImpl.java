@@ -150,7 +150,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
     }
 
     @Override
-    public void aprobarSolicitud(int idSolicitud, String responsable) throws BLException {
+    public void aprobarSolicitud(int idSolicitud) throws BLException {
         Map<String, Object> solicitud = buscarSolicitud(idSolicitud);
         String estado = (String) solicitud.get("estadoSolicitud");
         if (!SOLICITUD_POR_REVISAR.equals(estado)) {
@@ -195,7 +195,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
     }
 
     @Override
-    public void rechazarSolicitud(int idSolicitud, String motivo, String responsable) throws BLException {
+    public void rechazarSolicitud(int idSolicitud, String motivo) throws BLException {
         if (motivo == null || motivo.isBlank()) {
             throw new BLException("El rechazo de una solicitud exige un motivo");
         }
