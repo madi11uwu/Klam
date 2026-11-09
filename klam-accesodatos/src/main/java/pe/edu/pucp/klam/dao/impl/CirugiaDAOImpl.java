@@ -7,6 +7,7 @@ import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 
@@ -121,7 +122,7 @@ public class CirugiaDAOImpl implements CirugiaDAO {
         try (CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.registerOutParameter("p_id", Types.INTEGER);
             asignarDatos(cmd, cirugia);
-            DBManager.setIntONulo(cmd, "p_id_solicitud_origen", cirugia.getIdSolicitudOrigen());
+            DBManager.setIntONulo(cmd, "p_id_solicitud_origen", cirugia.getSolicitudOrigen() != null ? cirugia.getSolicitudOrigen().getIdSolicitud() : null);
 
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo insertar la cirugia");
@@ -429,7 +430,11 @@ public class CirugiaDAOImpl implements CirugiaDAO {
         cirugia.setActivo(rs.getBoolean("activo"));
 
         int idSolicitud = rs.getInt("id_solicitud_origen");
-        cirugia.setIdSolicitudOrigen(rs.wasNull() ? null : idSolicitud);
+        if (!rs.wasNull()) {
+            SolicitudCirugia solicitud = new SolicitudCirugia();
+            solicitud.setIdSolicitud(idSolicitud);
+            cirugia.setSolicitudOrigen(solicitud);
+        }
 
         mapearEquipo(rs, cirugia);
         mapearBandeja(rs, cirugia);

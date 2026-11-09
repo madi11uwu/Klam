@@ -16,6 +16,8 @@ import pe.edu.pucp.klam.dao.OrdenCompraDAO;
 import pe.edu.pucp.klam.dao.impl.compras.OrdenCompraDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocumento;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
@@ -80,8 +82,8 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         DBManager.setStringONulo(cs, "p_motivo_rechazo", doc.getMotivoRechazo());
         cs.setInt("p_version", doc.getVersion());
         DBManager.setStringONulo(cs, "p_responsable", doc.getResponsable());
-        DBManager.setIntONulo(cs, "p_id_solicitud", doc.getIdSolicitud());
-        DBManager.setIntONulo(cs, "p_id_cirugia", doc.getIdCirugia());
+        DBManager.setIntONulo(cs, "p_id_solicitud", doc.getSolicitud() != null ? doc.getSolicitud().getIdSolicitud() : null);
+        DBManager.setIntONulo(cs, "p_id_cirugia", doc.getCirugia() != null ? doc.getCirugia().getIdCirugia() : null);
 
         OrdenCompra orden = doc.getOrdenCompra();
         DBManager.setIntONulo(cs, "p_id_orden_compra",
@@ -261,9 +263,17 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         doc.setResponsable(rs.getString("responsable"));
 
         int idSolicitud = rs.getInt("id_solicitud");
-        doc.setIdSolicitud(rs.wasNull() ? null : idSolicitud);
+        if (!rs.wasNull()) {
+            SolicitudCirugia solicitud = new SolicitudCirugia();
+            solicitud.setIdSolicitud(idSolicitud);
+            doc.setSolicitud(solicitud);
+        }
         int idCirugia = rs.getInt("id_cirugia");
-        doc.setIdCirugia(rs.wasNull() ? null : idCirugia);
+        if (!rs.wasNull()) {
+            Cirugia cirugia = new Cirugia();
+            cirugia.setIdCirugia(idCirugia);
+            doc.setCirugia(cirugia);
+        }
 
         int idOrden = rs.getInt("id_orden_compra");
         if (!rs.wasNull()) {

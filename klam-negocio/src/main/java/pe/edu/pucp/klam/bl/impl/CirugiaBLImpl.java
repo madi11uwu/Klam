@@ -198,7 +198,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         d.put("doctorNombre", c.getDoctorNombre());
         d.put("diagnostico", c.getDiagnostico());
         d.put("motivoCancelacion", c.getMotivoCancelacion());
-        d.put("idSolicitudOrigen", c.getIdSolicitudOrigen());
+        d.put("idSolicitudOrigen", c.getSolicitudOrigen() != null ? c.getSolicitudOrigen().getIdSolicitud() : null);
         d.put("consumoCompleto", c.isConsumoCompleto());
         d.put("tipoCliente", tipoDe(c.getCliente()));
         d.put("idCliente", c.getCliente().getIdCliente());
@@ -212,8 +212,8 @@ public class CirugiaBLImpl implements CirugiaBL {
             // paciente y clinica salen de la solicitud de origen; sin solicitud, de la cirugia
             String pacienteNombre = null;
             String clinicaNombre = c.getCliente() instanceof ClinicaHospital ? c.getCliente().getNombre() : null;
-            if (c.getIdSolicitudOrigen() != null) {
-                List<Map<String, Object>> sol = cirugiaDAO.buscarSolicitudes(c.getIdSolicitudOrigen(), null, null, null);
+            if (c.getSolicitudOrigen() != null) {
+                List<Map<String, Object>> sol = cirugiaDAO.buscarSolicitudes(c.getSolicitudOrigen().getIdSolicitud(), null, null, null);
                 if (!sol.isEmpty()) {
                     pacienteNombre = (String) sol.get(0).get("pacienteNombre");
                     clinicaNombre = (String) sol.get(0).get("clinicaNombre");
@@ -227,8 +227,8 @@ public class CirugiaBLImpl implements CirugiaBL {
             // estado documental: version vigente de cada documento de la solicitud y de la cirugia
             List<Map<String, Object>> documentos = new ArrayList<>();
             List<DocumentoIngreso> vigentes = new ArrayList<>();
-            if (c.getIdSolicitudOrigen() != null) {
-                vigentes.addAll(documentoDAO.listarVigentesPorSolicitud(c.getIdSolicitudOrigen()));
+            if (c.getSolicitudOrigen() != null) {
+                vigentes.addAll(documentoDAO.listarVigentesPorSolicitud(c.getSolicitudOrigen().getIdSolicitud()));
             }
             vigentes.addAll(documentoDAO.listarVigentesPorCirugia(idCirugia));
             for (DocumentoIngreso doc : vigentes) {
@@ -287,7 +287,7 @@ public class CirugiaBLImpl implements CirugiaBL {
 
     @Override
     public void registrar(Cirugia cirugia, String responsable) throws BLException {
-        if (cirugia != null && cirugia.getIdSolicitudOrigen() != null) {
+        if (cirugia != null && cirugia.getSolicitudOrigen() != null) {
             throw new BLException("Para registrar una cirugía desde una solicitud use registrarCirugiaDesdeSolicitud");
         }
         registrarInterno(cirugia, responsable);
@@ -308,8 +308,8 @@ public class CirugiaBLImpl implements CirugiaBL {
 
             Map<String, String> despues = snapshot(cirugia);
             auditar(id, ACCION_CREAR, quien,
-                    cirugia.getIdSolicitudOrigen() != null
-                            ? "Cirugía registrada desde la solicitud " + cirugia.getIdSolicitudOrigen()
+                    cirugia.getSolicitudOrigen() != null
+                            ? "Cirugía registrada desde la solicitud " + cirugia.getSolicitudOrigen().getIdSolicitud()
                             : "Cirugía registrada directamente por el administrador",
                     null, despues);
             if (cirugia.getEquipo() != null) {
@@ -353,7 +353,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         validarDatos(cirugia, existente);
 
         // lo que no se edita desde la pantalla se conserva
-        cirugia.setIdSolicitudOrigen(existente.getIdSolicitudOrigen());
+        cirugia.setSolicitudOrigen(existente.getSolicitudOrigen());
         cirugia.setConsumoCompleto(existente.isConsumoCompleto());
         cirugia.setActivo(true);
 
