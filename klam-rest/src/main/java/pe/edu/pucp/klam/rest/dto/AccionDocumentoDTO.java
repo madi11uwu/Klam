@@ -5,6 +5,7 @@ public class AccionDocumentoDTO {
     private String username;
     private String password;
     private String motivo;
+    private String archivoPath;
 
     public AccionDocumentoDTO() {
     }
@@ -31,5 +32,13 @@ public class AccionDocumentoDTO {
 
     public void setMotivo(String motivo) {
         this.motivo = motivo;
+    }
+
+    public String getArchivoPath() {
+        return archivoPath;
+    }
+
+    public void setArchivoPath(String archivoPath) {
+        this.archivoPath = archivoPath;
     }
 }
