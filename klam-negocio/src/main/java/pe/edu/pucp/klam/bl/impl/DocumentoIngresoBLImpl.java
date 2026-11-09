@@ -8,7 +8,6 @@ import java.util.Map;
 
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CirugiaBL;
-import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
 import pe.edu.pucp.klam.bl.DocumentoIngresoBL;
 import pe.edu.pucp.klam.dao.CirugiaDAO;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
@@ -19,6 +18,7 @@ import pe.edu.pucp.klam.dao.impl.compras.OrdenCompraDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoSolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
@@ -43,7 +43,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         }
 
         // Un documento de una solicitud o cirugia recibe automaticamente su numero de version
-        boolean conOrigen = doc.getIdSolicitud() != null || doc.getIdCirugia() != null;
+        boolean conOrigen = doc.getCirugia() != null || doc.getSolicitud() != null;
         if (!conOrigen) {
             try {
                 documentoDAO.insert(doc);
@@ -69,12 +69,12 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     // Debe llamarse dentro de una transaccion. Solo se acepta un documento nuevo si no hay uno
     // vigente, o si el vigente fue RECHAZADO (en ese caso es una resubida).
     private void insertarConVersion(DocumentoIngreso doc) throws SQLException, BLException {
-        DocumentoIngreso vigente = buscarVigente(doc.getIdSolicitud(), doc.getIdCirugia(), doc.getTipoDocumento());
+        DocumentoIngreso vigente = buscarVigente(doc.getSolicitud() != null ? doc.getSolicitud().getIdSolicitud() : null, doc.getCirugia() != null ? doc.getCirugia().getIdCirugia() : null, doc.getTipoDocumento());
         if (vigente != null && vigente.getEstadoValidacion() != EstadoValidacionDocumento.RECHAZADO) {
             throw new BLException("Ya existe un documento " + doc.getTipoDocumento()
                     + " vigente (" + vigente.getEstadoValidacion() + "); solo se puede resubir si fue rechazado");
         }
-        doc.setVersion(documentoDAO.siguienteVersion(doc.getIdSolicitud(), doc.getIdCirugia(), doc.getTipoDocumento()));
+        doc.setVersion(documentoDAO.siguienteVersion(doc.getSolicitud() != null ? doc.getSolicitud().getIdSolicitud() : null, doc.getCirugia() != null ? doc.getCirugia().getIdCirugia() : null, doc.getTipoDocumento()));
         documentoDAO.insert(doc);
     }
 
@@ -168,7 +168,12 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     public List<DocumentoIngreso> listarPorCirugia(int idCirugia) throws BLException {
         validarId(idCirugia, "cirugía");
         try {
-            return documentoDAO.listarPorCirugia(idCirugia);
+            List<DocumentoIngreso> documentos = new ArrayList<>(documentoDAO.listarPorCirugia(idCirugia));
+            Cirugia cirugia = cirugiaDAO.findById(idCirugia);
+            if (cirugia != null && cirugia.getSolicitudOrigen() != null) {
+                documentos.addAll(documentoDAO.listarPorSolicitud(cirugia.getSolicitudOrigen().getIdSolicitud()));
+            }
+            return documentos;
         } catch (SQLException e) {
             throw new BLException("No se pudo listar los documentos de la cirugía " + idCirugia, e);
         }
@@ -188,7 +193,12 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     public List<Map<String, Object>> consultarHistorialPorCirugia(int idCirugia) throws BLException {
         validarId(idCirugia, "cirugía");
         try {
-            return documentoDAO.historialDocumental(null, idCirugia);
+            List<Map<String, Object>> historial = new ArrayList<>(documentoDAO.historialDocumental(null, idCirugia));
+            Cirugia cirugia = cirugiaDAO.findById(idCirugia);
+            if (cirugia != null && cirugia.getSolicitudOrigen() != null) {
+                historial.addAll(documentoDAO.historialDocumental(cirugia.getSolicitudOrigen().getIdSolicitud(), null));
+            }
+            return historial;
         } catch (SQLException e) {
             throw new BLException("No se pudo consultar el historial documental de la cirugía " + idCirugia, e);
         }
@@ -244,10 +254,10 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             documentoDAO.actualizarEstadoValidacion(idDocumento, EstadoValidacionDocumento.RECHAZADO.name(),
                     ahora, motivo.trim(), textoResponsable(responsable));
 
-            if (doc.getIdSolicitud() != null) {
-                Map<String, Object> solicitud = buscarSolicitud(doc.getIdSolicitud());
-                if (SolicitudCirugiaBL.SOLICITUD_POR_REVISAR.equals(solicitud.get("estadoSolicitud"))) {
-                    cirugiaDAO.cambiarEstadoSolicitud(doc.getIdSolicitud(), SolicitudCirugiaBL.SOLICITUD_DOCUMENTACION_INCOMPLETA,
+            if (doc.getSolicitud() != null) {
+                Map<String, Object> solicitud = buscarSolicitud(doc.getSolicitud().getIdSolicitud());
+                if (EstadoSolicitudCirugia.POR_REVISAR.name().equals(solicitud.get("estadoSolicitud"))) {
+                    cirugiaDAO.cambiarEstadoSolicitud(doc.getSolicitud().getIdSolicitud(), EstadoSolicitudCirugia.DOCUMENTACION_INCOMPLETA.name(),
                             motivo.trim(), ahora);
                 }
             }
@@ -279,8 +289,8 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         nuevo.setArchivoPath(nuevoArchivoPath.trim());
         nuevo.setEstadoValidacion(EstadoValidacionDocumento.PENDIENTE);
         nuevo.setFechaCarga(LocalDateTime.now());
-        nuevo.setIdSolicitud(anterior.getIdSolicitud());
-        nuevo.setIdCirugia(anterior.getIdCirugia());
+        nuevo.setSolicitud(anterior.getSolicitud());
+        nuevo.setCirugia(anterior.getCirugia());
         nuevo.setResponsable(textoResponsable(responsable));
 
         // La version anterior NO se borra ni se modifica: se inserta una version nueva
@@ -292,12 +302,12 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             insertarConVersion(nuevo);
 
             // La subsanacion devuelve la solicitud a revision
-            if (anterior.getIdSolicitud() != null) {
-                Map<String, Object> solicitud = buscarSolicitud(anterior.getIdSolicitud());
+            if (anterior.getSolicitud() != null) {
+                Map<String, Object> solicitud = buscarSolicitud(anterior.getSolicitud().getIdSolicitud());
                 String estado = (String) solicitud.get("estadoSolicitud");
-                if (SolicitudCirugiaBL.SOLICITUD_DOCUMENTACION_INCOMPLETA.equals(estado)
-                        || SolicitudCirugiaBL.SOLICITUD_RECHAZADA.equals(estado)) {
-                    cirugiaDAO.cambiarEstadoSolicitud(anterior.getIdSolicitud(), SolicitudCirugiaBL.SOLICITUD_POR_REVISAR,
+                if (EstadoSolicitudCirugia.DOCUMENTACION_INCOMPLETA.name().equals(estado)
+                        || EstadoSolicitudCirugia.RECHAZADA.name().equals(estado)) {
+                    cirugiaDAO.cambiarEstadoSolicitud(anterior.getSolicitud().getIdSolicitud(), EstadoSolicitudCirugia.POR_REVISAR.name(),
                             (String) solicitud.get("motivoRechazo"), null);
                 }
             }
@@ -372,7 +382,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         doc.setArchivoPath(archivoPath.trim());
         doc.setEstadoValidacion(EstadoValidacionDocumento.PENDIENTE);
         doc.setFechaCarga(LocalDateTime.now());
-        doc.setIdCirugia(idCirugia);
+        doc.setCirugia(cirugia);
         doc.setResponsable(textoResponsable(responsable));
 
         // Orden de compra + documento (version nueva): ambos o ninguno
@@ -431,8 +441,8 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             }
             if (cirugia.getCliente() instanceof PacienteParticular) {
                 // El comprobante de pago esta en la solicitud de origen; sin solicitud, en la cirugia
-                DocumentoIngreso comprobante = cirugia.getIdSolicitudOrigen() != null
-                        ? buscarVigente(cirugia.getIdSolicitudOrigen(), null, TipoDocumentoIngreso.COMPROBANTE_PAGO)
+                DocumentoIngreso comprobante = cirugia.getSolicitudOrigen() != null
+                        ? buscarVigente(cirugia.getSolicitudOrigen().getIdSolicitud(), null, TipoDocumentoIngreso.COMPROBANTE_PAGO)
                         : null;
                 if (comprobante == null) {
                     comprobante = buscarVigente(null, idCirugia, TipoDocumentoIngreso.COMPROBANTE_PAGO);
@@ -468,7 +478,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         if (sinUsuario && sinResponsable) {
             throw new BLException("Debe indicar el usuario o responsable que carga el documento");
         }
-        if (doc.getIdSolicitud() != null && doc.getIdCirugia() != null) {
+        if (doc.getSolicitud() != null && doc.getCirugia() != null) {
             throw new BLException("Un documento pertenece a una solicitud o a una cirugía, no a ambas");
         }
 
@@ -485,7 +495,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     // El documento debe ser la version vigente: no se valida ni rechaza una version vieja
     private void validarEsVigente(DocumentoIngreso doc) throws BLException {
         try {
-            DocumentoIngreso vigente = buscarVigente(doc.getIdSolicitud(), doc.getIdCirugia(), doc.getTipoDocumento());
+            DocumentoIngreso vigente = buscarVigente(doc.getSolicitud() != null ? doc.getSolicitud().getIdSolicitud() : null, doc.getCirugia() != null ? doc.getCirugia().getIdCirugia() : null, doc.getTipoDocumento());
             if (vigente != null && vigente.getIdDocumento() != doc.getIdDocumento()) {
                 throw new BLException("El documento " + doc.getIdDocumento() + " es una versión anterior; la vigente es la "
                         + vigente.getVersion());
@@ -519,10 +529,10 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         if (doc.getTipoDocumento() != TipoDocumentoIngreso.ORDEN_COMPRA) {
             return;
         }
-        if (doc.getIdCirugia() == null) {
+        if (doc.getCirugia() == null) {
             return; // documento anterior al flujo de cierre: sin cirugía no hay estado que comprobar
         }
-        Cirugia cirugia = buscarCirugia(doc.getIdCirugia());
+        Cirugia cirugia = buscarCirugia(doc.getCirugia().getIdCirugia());
         if (cirugia.getEstado() != EstadoCirugia.FINALIZADA) {
             throw new BLException("La orden de compra solo se valida o rechaza con la cirugía FINALIZADA");
         }

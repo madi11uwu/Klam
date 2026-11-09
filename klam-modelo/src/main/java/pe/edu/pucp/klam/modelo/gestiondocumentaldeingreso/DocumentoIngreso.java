@@ -1,5 +1,7 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 
 import java.time.LocalDateTime;
@@ -13,10 +15,9 @@ public class DocumentoIngreso {
     private OrdenCompra ordenCompra;
     private boolean activo;
     private UsuarioPlataforma usuarioCarga; // quien subio el documento (admin, vendedor o tecnico)
-
-    // Trazabilidad y subsanacion (RF04, RF07, RF08)
-    private Integer idSolicitud;          // solicitud a la que pertenece (puede ser null)
-    private Integer idCirugia;            // cirugia a la que pertenece (puede ser null)
+   // Trazabilidad y subsanacion (RF04, RF07, RF08)
+    private SolicitudCirugia solicitud;          // solicitud a la que pertenece (puede ser null)
+    private Cirugia cirugia;            // cirugia a la que pertenece (puede ser null)
     private int version = 1;              // la resubida crea una version nueva, no sobrescribe
     private LocalDateTime fechaValidacion;
     private String motivoRechazo;
@@ -46,20 +47,25 @@ public class DocumentoIngreso {
         setOrdenCompra(documentoIngreso.getOrdenCompra());
         setActivo(documentoIngreso.isActivo());
         setUsuarioCarga(documentoIngreso.getUsuarioCarga());
-        this.idSolicitud = documentoIngreso.getIdSolicitud();
-        this.idCirugia = documentoIngreso.getIdCirugia();
+        setSolicitud(documentoIngreso.getSolicitud());
+        setCirugia(documentoIngreso.getCirugia());
         this.version = documentoIngreso.getVersion();
         this.fechaValidacion = documentoIngreso.getFechaValidacion();
         this.motivoRechazo = documentoIngreso.getMotivoRechazo();
         this.responsable = documentoIngreso.getResponsable();
     }
-
-    public Integer getIdSolicitud() { return idSolicitud; }
-    public void setIdSolicitud(Integer idSolicitud) { this.idSolicitud = idSolicitud; }
-
-    public Integer getIdCirugia() { return idCirugia; }
-    public void setIdCirugia(Integer idCirugia) { this.idCirugia = idCirugia; }
-
+    public SolicitudCirugia getSolicitud() {
+        return solicitud;
+    }
+    public void setSolicitud(SolicitudCirugia solicitud) {
+        this.solicitud = solicitud;
+    }
+    public Cirugia getCirugia() {
+        return cirugia;
+    }
+    public void setCirugia(Cirugia cirugia) {
+        this.cirugia = cirugia;
+    }
     public int getVersion() { return version; }
     public void setVersion(int version) {
         if (version < 1) {
@@ -67,7 +73,6 @@ public class DocumentoIngreso {
         }
         this.version = version;
     }
-
     public LocalDateTime getFechaValidacion() { return fechaValidacion; }
     public void setFechaValidacion(LocalDateTime fechaValidacion) { this.fechaValidacion = fechaValidacion; }
 

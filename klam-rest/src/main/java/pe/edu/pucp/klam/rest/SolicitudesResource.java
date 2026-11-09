@@ -1,161 +1,120 @@
-//
-//package pe.edu.pucp.klam.rest;
-//
-//import jakarta.ws.rs.*;
-//import jakarta.ws.rs.core.MediaType;
-//import jakarta.ws.rs.core.Response;
-//
-//import pe.edu.pucp.klam.bl.BLException;
-//import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
-//import pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl;
-//import pe.edu.pucp.klam.rest.dto.RechazoSolicitudDTO;
-//
-//import java.sql.SQLException;
-//import java.util.Map;
-//
-//@Path("/solicitudes")
-//@Produces(MediaType.APPLICATION_JSON)
-//@Consumes(MediaType.APPLICATION_JSON)
-//public class SolicitudesResource {
-//
-//    private final SolicitudCirugiaBL solicitudBL;
-//    public SolicitudesResource() {
-//        solicitudBL = new SolicitudCirugiaBLImpl();
-//    }
-//
-//    @GET
-//    public Response listar(@QueryParam("estado") String estado) {
-//        try {
-//            return Response.ok(
-//                    solicitudBL.listarSolicitudes(estado)
-//            ).build();
-//        } catch (BLException ex) {
-//            return responderError(ex);
-//        }
-//    }
-//
-//    @GET
-//    @Path("/{id}")
-//    public Response buscarPorId(@PathParam("id") int id) {
-//        try {
-//            var solicitud = solicitudBL.findSolicitudById(id);
-//
-//            if (solicitud == null) {
-//                return error(
-//                        Response.Status.NOT_FOUND,
-//                        "Solicitud no encontrada"
-//                );
-//            }
-//
-//            return Response.ok(solicitud).build();
-//        } catch (BLException ex) {
-//            return responderError(ex);
-//        }
-//    }
-//
-//    @POST
-//    @Path("/{id}/aprobacion")
-//    public Response aprobar(@PathParam("id") int id) {
-//        try {
-//            if (solicitudBL.findSolicitudById(id) == null) {
-//                return error(
-//                        Response.Status.NOT_FOUND,
-//                        "Solicitud no encontrada"
-//                );
-//            }
-//
-//            solicitudBL.aprobarSolicitud(
-//                    id, RESPONSABLE_DEMO
-//            );
-//
-//            return Response.noContent().build();
-//
-//        } catch (BLException ex) {
-//            return responderError(ex);
-//        }
-//    }
-//
-//    @POST
-//    @Path("/{id}/rechazo")
-//    public Response rechazar(
-//            @PathParam("id") int id,
-//            RechazoSolicitudDTO datos) {
-//
-//        if (datos == null ||
-//                datos.getMotivo() == null ||
-//                datos.getMotivo().isBlank()) {
-//
-//            return error(
-//                    Response.Status.BAD_REQUEST,
-//                    "El motivo de rechazo es obligatorio"
-//            );
-//        }
-//
-//        try {
-//            if (solicitudBL.findSolicitudById(id) == null) {
-//                return error(
-//                        Response.Status.NOT_FOUND,
-//                        "Solicitud no encontrada"
-//                );
-//            }
-//
-//            solicitudBL.rechazarSolicitud(
-//                    id,
-//                    datos.getMotivo(),
-//                    RESPONSABLE_DEMO
-//            );
-//
-//            return Response.noContent().build();
-//
-//        } catch (BLException ex) {
-//            return responderError(ex);
-//        }
-//    }
-//
-//    @POST
-//    @Path("/{id}/reenvio")
-//    public Response reenviar(@PathParam("id") int id) {
-//        try {
-//            if (solicitudBL.findSolicitudById(id) == null) {
-//                return error(
-//                        Response.Status.NOT_FOUND,
-//                        "Solicitud no encontrada"
-//                );
-//            }
-//
-//            solicitudBL.reenviarSolicitud(id);
-//
-//            return Response.noContent().build();
-//
-//        } catch (BLException ex) {
-//            return responderError(ex);
-//        }
-//    }
-//
-//    private Response responderError(BLException ex) {
-//        Throwable causa = ex;
-//
-//        while (causa != null) {
-//            if (causa instanceof SQLException) {
-//                return error(
-//                        Response.Status.INTERNAL_SERVER_ERROR,
-//                        "Error al acceder a la base de datos"
-//                );
-//            }
-//            causa = causa.getCause();
-//        }
-//
-//        // Errores de validación y estado de negocio.
-//        return error(
-//                Response.Status.BAD_REQUEST,
-//                ex.getMessage()
-//        );
-//    }
-//
-//    private Response error(
-//            Response.Status estado, String mensaje) {
-//        return Response.status(estado)
-//                .entity(Map.of("error", mensaje))
-//                .build();
-//    }
-//}
+
+package pe.edu.pucp.klam.rest;
+
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import pe.edu.pucp.klam.bl.BLException;
+import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
+import pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl;
+import pe.edu.pucp.klam.bl.UsuarioPlataformaBL;
+import pe.edu.pucp.klam.bl.impl.UsuarioPlataformaBLImpl;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
+import pe.edu.pucp.klam.rest.dto.AccionSolicitudDTO;
+import java.util.Map;
+
+@Path("/solicitudes")
+@Produces("application/json")
+@Consumes("application/json")
+public class SolicitudesResource {
+    private final SolicitudCirugiaBL solicitudBL;
+
+    private final UsuarioPlataformaBL usuarioBL;
+    public SolicitudesResource() {
+        solicitudBL = new SolicitudCirugiaBLImpl();
+        usuarioBL = new UsuarioPlataformaBLImpl();
+    }
+
+
+    @POST
+    @Path("/{id}/aprobacion")
+    public Response aprobar(
+            @PathParam("id") int id,
+            AccionSolicitudDTO datos) {
+
+        if (datos == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "Datos obligatorios"))
+                    .build();
+        }
+
+        try {
+            UsuarioPlataforma usuario = usuarioBL.autenticar(
+                    datos.getUsername(),
+                    datos.getPassword()
+            );
+
+            if (usuario == null) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(Map.of("error", "Credenciales incorrectas"))
+                        .build();
+            }
+
+            if (!"ADMINISTRADOR".equals(usuario.getRol())) {
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity(Map.of("error", "No tiene permisos para aprobar solicitudes"))
+                        .build();
+            }
+
+            solicitudBL.aprobarSolicitud(
+                    id
+            );
+
+            return Response.noContent().build();
+
+        } catch (BLException ex) {
+              return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @POST
+    @Path("/{id}/rechazo")
+    public Response rechazar(
+            @PathParam("id") int id,
+            AccionSolicitudDTO datos) {
+
+        if (datos == null ||
+                datos.getMotivo() == null ||
+                datos.getMotivo().isBlank()) {
+
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "El motivo de rechazo es obligatorio"))
+                    .build();
+        }
+
+        try {
+            UsuarioPlataforma usuario = usuarioBL.autenticar(
+                    datos.getUsername(),
+                    datos.getPassword()
+            );
+
+            if (usuario == null) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(Map.of("error", "Credenciales incorrectas"))
+                        .build();
+            }
+
+            if (!"ADMINISTRADOR".equals(usuario.getRol())) {
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity(Map.of("error", "No tiene permisos para rechazar solicitudes"))
+                        .build();
+            }
+
+            solicitudBL.rechazarSolicitud(
+                    id,
+                    datos.getMotivo()
+            );
+
+            return Response.noContent().build();
+
+        } catch (BLException ex) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
+        }
+    }
+
+}
