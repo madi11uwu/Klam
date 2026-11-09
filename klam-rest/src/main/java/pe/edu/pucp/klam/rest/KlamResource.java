@@ -1,4 +1,4 @@
-package pe.edu.pucp.softprog.klamrest;
+package pe.edu.pucp.klam.rest;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
