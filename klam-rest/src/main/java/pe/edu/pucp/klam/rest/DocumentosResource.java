@@ -1,6 +1,8 @@
 package pe.edu.pucp.klam.rest;
 
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -10,13 +12,10 @@ import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CirugiaBL;
 import pe.edu.pucp.klam.bl.DocumentoIngresoBL;
 import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
-import pe.edu.pucp.klam.bl.UsuarioPlataformaBL;
 import pe.edu.pucp.klam.bl.impl.CirugiaBLImpl;
 import pe.edu.pucp.klam.bl.impl.DocumentoIngresoBLImpl;
 import pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl;
-import pe.edu.pucp.klam.bl.impl.UsuarioPlataformaBLImpl;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
-import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 import pe.edu.pucp.klam.rest.dto.AccionDocumentoDTO;
 
 @Path("/documentos")
@@ -27,11 +26,16 @@ public class DocumentosResource {
     private final DocumentoIngresoBL documentoBL = new DocumentoIngresoBLImpl();
     private final SolicitudCirugiaBL solicitudBL = new SolicitudCirugiaBLImpl();
     private final CirugiaBL cirugiaBL = new CirugiaBLImpl();
-    private final UsuarioPlataformaBL usuarioBL = new UsuarioPlataformaBLImpl();
+
+    @Context
+    private HttpHeaders headers;
 
     @GET
     @Path("/solicitud/{idSolicitud}")
     public Response listarPorSolicitud(@PathParam("idSolicitud") int idSolicitud) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion)) return sinPermiso();
         if (idSolicitud <= 0) {
             return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         }
@@ -48,6 +52,9 @@ public class DocumentosResource {
     @GET
     @Path("/solicitud/{idSolicitud}/historial")
     public Response consultarHistorial(@PathParam("idSolicitud") int idSolicitud) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion)) return sinPermiso();
         if (idSolicitud <= 0) {
             return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         }
@@ -64,6 +71,9 @@ public class DocumentosResource {
     @GET
     @Path("/solicitud/{idSolicitud}/verificacion")
     public Response verificarDocumentos(@PathParam("idSolicitud") int idSolicitud) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion)) return sinPermiso();
         if (idSolicitud <= 0) {
             return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         }
@@ -81,6 +91,9 @@ public class DocumentosResource {
     @GET
     @Path("/cirugia/{idCirugia}")
     public Response listarPorCirugia(@PathParam("idCirugia") int idCirugia) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion)) return sinPermiso();
         if (idCirugia <= 0) {
             return error(Response.Status.BAD_REQUEST, "El ID de la cirugía no es válido");
         }
@@ -96,31 +109,19 @@ public class DocumentosResource {
 
     @POST
     @Path("/{id}/validacion")
-    public Response validarDocumento(@PathParam("id") int id, AccionDocumentoDTO datos) {
+    public Response validarDocumento(@PathParam("id") int id) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion)) return sinPermiso();
         if (id <= 0) {
             return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
-        }
-        if (sinCredenciales(datos)) {
-            return error(Response.Status.UNAUTHORIZED, "Credenciales obligatorias");
-        }
-        UsuarioPlataforma usuario;
-        try {
-            usuario = usuarioBL.autenticar(datos.getUsername(), datos.getPassword());
-        } catch (BLException ex) {
-            return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        if (usuario == null) {
-            return error(Response.Status.UNAUTHORIZED, "Credenciales incorrectas");
-        }
-        if (!"ADMINISTRADOR".equals(usuario.getRol())) {
-            return error(Response.Status.FORBIDDEN, "No tiene permisos para validar documentos");
         }
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) {
                 return error(Response.Status.NOT_FOUND, "No existe el documento");
             }
-            documentoBL.validarDocumento(id, usuario.getUsername());
+            documentoBL.validarDocumento(id, sesion.username());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
@@ -130,25 +131,13 @@ public class DocumentosResource {
     @POST
     @Path("/{id}/rechazo")
     public Response rechazarDocumento(@PathParam("id") int id, AccionDocumentoDTO datos) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion)) return sinPermiso();
         if (id <= 0) {
             return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         }
-        if (sinCredenciales(datos)) {
-            return error(Response.Status.UNAUTHORIZED, "Credenciales obligatorias");
-        }
-        UsuarioPlataforma usuario;
-        try {
-            usuario = usuarioBL.autenticar(datos.getUsername(), datos.getPassword());
-        } catch (BLException ex) {
-            return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        if (usuario == null) {
-            return error(Response.Status.UNAUTHORIZED, "Credenciales incorrectas");
-        }
-        if (!"ADMINISTRADOR".equals(usuario.getRol())) {
-            return error(Response.Status.FORBIDDEN, "No tiene permisos para rechazar documentos");
-        }
-        if (datos.getMotivo() == null || datos.getMotivo().isBlank()
+        if (datos == null || datos.getMotivo() == null || datos.getMotivo().isBlank()
                 || datos.getMotivo().length() > 200) {
             return error(Response.Status.BAD_REQUEST, "El motivo de rechazo debe tener entre 1 y 200 caracteres");
         }
@@ -157,7 +146,7 @@ public class DocumentosResource {
             if (doc == null || !doc.isActivo()) {
                 return error(Response.Status.NOT_FOUND, "No existe el documento");
             }
-            documentoBL.rechazarDocumento(id, datos.getMotivo(), usuario.getUsername());
+            documentoBL.rechazarDocumento(id, datos.getMotivo(), sesion.username());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
@@ -168,26 +157,15 @@ public class DocumentosResource {
     @POST
     @Path("/{id}/resubida")
     public Response resubirDocumento(@PathParam("id") int id, AccionDocumentoDTO datos) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) {
+            return error(Response.Status.FORBIDDEN, "No tiene permisos para resubir documentos");
+        }
         if (id <= 0) {
             return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         }
-        if (sinCredenciales(datos)) {
-            return error(Response.Status.UNAUTHORIZED, "Credenciales obligatorias");
-        }
-        UsuarioPlataforma usuario;
-        try {
-            usuario = usuarioBL.autenticar(datos.getUsername(), datos.getPassword());
-        } catch (BLException ex) {
-            return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        if (usuario == null) {
-            return error(Response.Status.UNAUTHORIZED, "Credenciales incorrectas");
-        }
-        if (!"ADMINISTRADOR".equals(usuario.getRol())
-                && !"VENDEDOR".equals(usuario.getRol())) {
-            return error(Response.Status.FORBIDDEN, "No tiene permisos para resubir documentos");
-        }
-        if (datos.getArchivoPath() == null || datos.getArchivoPath().isBlank()
+        if (datos == null || datos.getArchivoPath() == null || datos.getArchivoPath().isBlank()
                 || datos.getArchivoPath().length() > 255) {
             return error(Response.Status.BAD_REQUEST, "La ruta del archivo debe tener entre 1 y 255 caracteres");
         }
@@ -197,7 +175,7 @@ public class DocumentosResource {
                 return error(Response.Status.NOT_FOUND, "No existe el documento");
             }
             DocumentoIngreso nuevo = documentoBL.resubirDocumento(
-                    id, datos.getArchivoPath(), usuario.getUsername());
+                    id, datos.getArchivoPath(), sesion.username());
             return Response.status(Response.Status.CREATED)
                     .entity(Map.of("idDocumento", nuevo.getIdDocumento(), "version", nuevo.getVersion()))
                     .build();
@@ -206,9 +184,20 @@ public class DocumentosResource {
         }
     }
 
-    private boolean sinCredenciales(AccionDocumentoDTO datos) {
-        return datos == null || datos.getUsername() == null || datos.getUsername().isBlank()
-                || datos.getPassword() == null || datos.getPassword().isBlank();
+    private SesionesRest.Sesion sesion() {
+        return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+    }
+
+    private boolean esAdministrador(SesionesRest.Sesion sesion) {
+        return "ADMINISTRADOR".equals(sesion.rol());
+    }
+
+    private Response noAutenticado() {
+        return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+    }
+
+    private Response sinPermiso() {
+        return error(Response.Status.FORBIDDEN, "No tiene permisos de administrador");
     }
 
     private List<Map<String, Object>> respuestaDocumentos(List<DocumentoIngreso> documentos) {
