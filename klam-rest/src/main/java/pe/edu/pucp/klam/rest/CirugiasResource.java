@@ -10,7 +10,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import pe.edu.pucp.klam.bl.BLException;
@@ -44,21 +43,27 @@ import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 // RF02: gestión de cirugías. Las reglas (cruces de horario, esterilización, estados) están en CirugiaBL.
+// BLException sin causa = regla de negocio (400); con causa = error de base de datos (500).
 @Path("/cirugias")
 @Produces("application/json")
 @Consumes("application/json")
 public class CirugiasResource {
-    private final CirugiaBL cirugiaBL = new CirugiaBLImpl();
-    private final ClinicaHospitalBL clinicaBL = new ClinicaHospitalBLImpl();
-    private final PacienteParticularBL pacienteBL = new PacienteParticularBLImpl();
-    private final EquipoBL equipoBL = new EquipoBLImpl();
-    private final BandejaInstrumentalBL bandejaBL = new BandejaInstrumentalBLImpl();
-
-    @Context
-    private HttpHeaders headers;
+    private final CirugiaBL cirugiaBL;
+    private final ClinicaHospitalBL clinicaBL;
+    private final PacienteParticularBL pacienteBL;
+    private final EquipoBL equipoBL;
+    private final BandejaInstrumentalBL bandejaBL;
 
     @Context
     private UriInfo uriInfo;
+
+    public CirugiasResource() {
+        cirugiaBL = new CirugiaBLImpl();
+        clinicaBL = new ClinicaHospitalBLImpl();
+        pacienteBL = new PacienteParticularBLImpl();
+        equipoBL = new EquipoBLImpl();
+        bandejaBL = new BandejaInstrumentalBLImpl();
+    }
 
     // GET /cirugias?desde=2026-11-01&hasta=2026-11-30&tipoCliente=CLINICA_HOSPITAL&idCliente=2&idEquipo=1&estado=PROGRAMADA
     @GET
@@ -68,11 +73,18 @@ public class CirugiasResource {
         try {
             return Response.ok(CirugiaMapper.toDTOs(cirugiaBL.buscarDetalle(
                     fecha(desde, false), fecha(hasta, true), vacioANulo(tipoCliente),
-                    idCliente, idEquipo, estado(estado)))).build();
-        } catch (IllegalArgumentException ex) {
-            return error(Response.Status.BAD_REQUEST, ex.getMessage());
-        } catch (BLException ex) {
-            return fallo(ex);
+                    idCliente, idEquipo, estado(estado))))
+                    .build();
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
         }
     }
 
@@ -82,13 +94,24 @@ public class CirugiasResource {
         try {
             Cirugia cirugia = cirugiaBL.findById(id);
             if (cirugia == null) {
-                return error(Response.Status.NOT_FOUND, "No existe la cirugía " + id);
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(Map.of("error", "No existe la cirugía " + id))
+                        .build();
             }
             CirugiaDTO dto = CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id));
             dto.setActivo(cirugia.isActivo());
-            return Response.ok(dto).build();
-        } catch (BLException ex) {
-            return fallo(ex);
+            return Response.ok(dto)
+                    .build();
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
         }
     }
 
@@ -96,9 +119,6 @@ public class CirugiasResource {
     @GET
     @Path("/opciones")
     public Response opciones(@QueryParam("procedimiento") String procedimiento) {
-        if (!esAdministrador()) {
-            return sinPermiso();
-        }
         try {
             OpcionesCirugiaDTO dto = new OpcionesCirugiaDTO();
             for (ClinicaHospital clinica : clinicaBL.findAll()) {
@@ -118,34 +138,47 @@ public class CirugiasResource {
                         equipo.getCategoria() != null ? equipo.getCategoria().name() : null));
             }
             dto.setBandejas(BandejaMapper.toDTOs(bandejaBL.listarDisponibles(vacioANulo(procedimiento))));
-            return Response.ok(dto).build();
-        } catch (BLException ex) {
-            return fallo(ex);
+            return Response.ok(dto)
+                    .build();
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
         }
     }
 
     @POST
     public Response registrar(CirugiaFormDTO datos) {
-        if (!esAdministrador()) {
-            return sinPermiso();
-        }
-        if (datos == null) {
-            return error(Response.Status.BAD_REQUEST, "Debe enviar los datos de la cirugía");
-        }
         try {
+            if (datos == null) {
+                throw new BLException("Debe enviar los datos de la cirugía");
+            }
             Cirugia cirugia = CirugiaMapper.toModelo(datos);
-            cirugiaBL.registrar(cirugia, responsable());
+            cirugiaBL.registrar(cirugia, CirugiaBL.RESPONSABLE_SISTEMA);
 
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(String.valueOf(cirugia.getIdCirugia()))
                     .build();
+
             return Response.created(uri)
                     .entity(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(cirugia.getIdCirugia())))
                     .build();
-        } catch (IllegalArgumentException ex) {
-            return error(Response.Status.BAD_REQUEST, ex.getMessage());
-        } catch (BLException ex) {
-            return fallo(ex);
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
         }
     }
 
@@ -153,27 +186,34 @@ public class CirugiasResource {
     @PUT
     @Path("/{id}")
     public Response modificar(@PathParam("id") int id, CirugiaFormDTO datos) {
-        if (!esAdministrador()) {
-            return sinPermiso();
-        }
-        if (datos == null) {
-            return error(Response.Status.BAD_REQUEST, "Debe enviar los datos de la cirugía");
-        }
         try {
+            if (datos == null) {
+                throw new BLException("Debe enviar los datos de la cirugía");
+            }
             Cirugia existente = cirugiaBL.findById(id);
             if (existente == null) {
-                return error(Response.Status.NOT_FOUND, "No existe la cirugía " + id);
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(Map.of("error", "No existe la cirugía " + id))
+                        .build();
             }
             Cirugia cirugia = CirugiaMapper.toModelo(datos);
             cirugia.setIdCirugia(id);
             cirugia.setEstado(existente.getEstado());
             cirugia.setMotivoCancelacion(existente.getMotivoCancelacion());
-            cirugiaBL.modificar(cirugia, responsable());
-            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
-        } catch (IllegalArgumentException ex) {
-            return error(Response.Status.BAD_REQUEST, ex.getMessage());
-        } catch (BLException ex) {
-            return fallo(ex);
+            cirugiaBL.modificar(cirugia, CirugiaBL.RESPONSABLE_SISTEMA);
+
+            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id)))
+                    .build();
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
         }
     }
 
@@ -181,31 +221,41 @@ public class CirugiasResource {
     @POST
     @Path("/{id}/estado")
     public Response cambiarEstado(@PathParam("id") int id, AccionCirugiaDTO datos) {
-        if (!esAdministrador()) {
-            return sinPermiso();
-        }
         try {
             EstadoCirugia nuevo = estado(datos == null ? null : datos.getEstado());
-            cirugiaBL.cambiarEstado(id, nuevo, responsable());
-            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
-        } catch (IllegalArgumentException ex) {
-            return error(Response.Status.BAD_REQUEST, ex.getMessage());
-        } catch (BLException ex) {
-            return fallo(ex);
+            cirugiaBL.cambiarEstado(id, nuevo, CirugiaBL.RESPONSABLE_SISTEMA);
+            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id)))
+                    .build();
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
         }
     }
 
     @POST
     @Path("/{id}/cancelacion")
     public Response cancelar(@PathParam("id") int id, AccionCirugiaDTO datos) {
-        if (!esAdministrador()) {
-            return sinPermiso();
-        }
         try {
-            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), responsable());
-            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
-        } catch (BLException ex) {
-            return fallo(ex);
+            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), CirugiaBL.RESPONSABLE_SISTEMA);
+            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id)))
+                    .build();
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
         }
     }
 
@@ -213,32 +263,23 @@ public class CirugiasResource {
     @DELETE
     @Path("/{id}")
     public Response eliminar(@PathParam("id") int id) {
-        if (!esAdministrador()) {
-            return sinPermiso();
-        }
         try {
-            cirugiaBL.eliminar(id, responsable());
+            cirugiaBL.eliminar(id, CirugiaBL.RESPONSABLE_SISTEMA);
             return Response.noContent().build();
-        } catch (BLException ex) {
-            return fallo(ex);
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", ex.getMessage()))
+                    .build();
         }
     }
 
-    // ---- sesión ----
-
-    // TODO token: cuando SesionesRest llegue a fix-backend, validar
-    // SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION)) y exigir rol ADMINISTRADOR.
-    private boolean esAdministrador() {
-        return true;
-    }
-
-    // TODO token: usar el username de la sesión para la bitácora (RF16)
-    private String responsable() {
-        return CirugiaBL.RESPONSABLE_SISTEMA;
-    }
-
-    // ---- conversiones de parámetros ----
-
+    // Acepta yyyy-MM-dd (día completo) o yyyy-MM-ddTHH:mm:ss
     private LocalDateTime fecha(String valor, boolean finDelDia) {
         if (valor == null || valor.isBlank()) {
             return null;
@@ -249,8 +290,9 @@ public class CirugiasResource {
                 return finDelDia ? dia.atTime(23, 59, 59) : dia.atStartOfDay();
             }
             return LocalDateTime.parse(valor.trim());
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Fecha con formato inválido: " + valor);
+        }
+        catch (DateTimeParseException ex) {
+            throw new BLException("Fecha con formato inválido: " + valor);
         }
     }
 
@@ -260,28 +302,13 @@ public class CirugiasResource {
         }
         try {
             return EstadoCirugia.valueOf(valor.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Estado de cirugía no válido: " + valor);
+        }
+        catch (IllegalArgumentException ex) {
+            throw new BLException("Estado de cirugía no válido: " + valor);
         }
     }
 
     private String vacioANulo(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
-    }
-
-    // ---- respuestas ----
-
-    private Response sinPermiso() {
-        return error(Response.Status.FORBIDDEN, "Solo el administrador puede gestionar cirugías");
-    }
-
-    // Sin causa = regla de negocio (400); con causa = error de base de datos (500)
-    private Response fallo(BLException ex) {
-        return error(ex.getCause() == null ? Response.Status.BAD_REQUEST
-                : Response.Status.INTERNAL_SERVER_ERROR, ex.getMessage());
-    }
-
-    private Response error(Response.Status estado, String mensaje) {
-        return Response.status(estado).entity(Map.of("error", mensaje == null ? "Error" : mensaje)).build();
     }
 }

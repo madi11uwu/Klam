@@ -19,7 +19,11 @@ import java.util.Map;
 @Path("/consumibles")
 @Produces("application/json")
 public class ConsumiblesResource {
-    private final ConsumibleBL consumibleBL = new ConsumibleBLImpl();
+    private final ConsumibleBL consumibleBL;
+
+    public ConsumiblesResource() {
+        consumibleBL = new ConsumibleBLImpl();
+    }
 
     @GET
     public Response listar() {
@@ -30,10 +34,16 @@ public class ConsumiblesResource {
                     dtos.add(BandejaMapper.toDTO(consumible));
                 }
             }
-            return Response.ok(dtos).build();
-        } catch (BLException ex) {
-            return Response.status(ex.getCause() == null ? Response.Status.BAD_REQUEST
-                            : Response.Status.INTERNAL_SERVER_ERROR)
+            return Response.ok(dtos)
+                    .build();
+        }
+        catch (BLException ex) {
+            if (ex.getCause() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", ex.getMessage()))
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(Map.of("error", ex.getMessage()))
                     .build();
         }
