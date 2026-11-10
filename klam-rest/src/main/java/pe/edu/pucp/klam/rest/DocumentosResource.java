@@ -2,8 +2,12 @@ package pe.edu.pucp.klam.rest;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityPart;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,11 +20,12 @@ import pe.edu.pucp.klam.bl.impl.CirugiaBLImpl;
 import pe.edu.pucp.klam.bl.impl.DocumentoIngresoBLImpl;
 import pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
+import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
 import pe.edu.pucp.klam.rest.dto.AccionDocumentoDTO;
 
 @Path("/documentos")
-@Produces("application/json")
-@Consumes("application/json")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class DocumentosResource {
 
     private final DocumentoIngresoBL documentoBL = new DocumentoIngresoBLImpl();
@@ -36,14 +41,39 @@ public class DocumentosResource {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
         if (!esAdministrador(sesion)) return sinPermiso();
-        if (idSolicitud <= 0) {
-            return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
-        }
+        if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         try {
-            if (solicitudBL.findSolicitudById(idSolicitud) == null) {
-                return error(Response.Status.NOT_FOUND, "No existe la solicitud");
-            }
+            if (solicitudBL.findSolicitudById(idSolicitud) == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
             return Response.ok(respuestaDocumentos(documentoBL.listarPorSolicitud(idSolicitud))).build();
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GET
+    @Path("/solicitud/{idSolicitud}/propios")
+    public Response listarPropios(@PathParam("idSolicitud") int idSolicitud) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
+        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
+        try {
+            return Response.ok(respuestaDocumentos(documentoBL.listarPresentadosPorUsuario(
+                    idSolicitud, sesion.idUsuario(), sesion.rol()))).build();
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GET
+    @Path("/propios")
+    public Response listarPropios() {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
+        try {
+            return Response.ok(respuestaDocumentos(documentoBL.listarPresentadosPorUsuario(
+                    null, sesion.idUsuario(), sesion.rol()))).build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -55,13 +85,9 @@ public class DocumentosResource {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
         if (!esAdministrador(sesion)) return sinPermiso();
-        if (idSolicitud <= 0) {
-            return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
-        }
+        if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         try {
-            if (solicitudBL.findSolicitudById(idSolicitud) == null) {
-                return error(Response.Status.NOT_FOUND, "No existe la solicitud");
-            }
+            if (solicitudBL.findSolicitudById(idSolicitud) == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
             return Response.ok(documentoBL.consultarHistorialPorSolicitud(idSolicitud)).build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
@@ -74,15 +100,10 @@ public class DocumentosResource {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
         if (!esAdministrador(sesion)) return sinPermiso();
-        if (idSolicitud <= 0) {
-            return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
-        }
+        if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         try {
-            if (solicitudBL.findSolicitudById(idSolicitud) == null) {
-                return error(Response.Status.NOT_FOUND, "No existe la solicitud");
-            }
-            boolean completo = documentoBL.verificarDocumentosObligatoriosValidados(idSolicitud);
-            return Response.ok(Map.of("documentacionCompleta", completo)).build();
+            if (solicitudBL.findSolicitudById(idSolicitud) == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
+            return Response.ok(Map.of("documentacionCompleta", documentoBL.verificarDocumentosObligatoriosValidados(idSolicitud))).build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -94,16 +115,82 @@ public class DocumentosResource {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
         if (!esAdministrador(sesion)) return sinPermiso();
-        if (idCirugia <= 0) {
-            return error(Response.Status.BAD_REQUEST, "El ID de la cirugía no es válido");
-        }
+        if (idCirugia <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la cirugía no es válido");
         try {
-            if (cirugiaBL.findById(idCirugia) == null) {
-                return error(Response.Status.NOT_FOUND, "No existe la cirugía");
-            }
+            if (cirugiaBL.findById(idCirugia) == null) return error(Response.Status.NOT_FOUND, "No existe la cirugía");
             return Response.ok(respuestaDocumentos(documentoBL.listarPorCirugia(idCirugia))).build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @POST
+    @Path("/solicitud/{idSolicitud}/archivo")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response registrarArchivo(@PathParam("idSolicitud") int idSolicitud,
+            @FormParam("tipoDocumento") String tipoTexto, @FormParam("archivo") EntityPart archivo) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
+        if (idSolicitud <= 0 || tipoTexto == null) return error(Response.Status.BAD_REQUEST, "Solicitud y tipo de documento obligatorios");
+        TipoDocumentoIngreso tipo;
+        try {
+            tipo = TipoDocumentoIngreso.valueOf(tipoTexto);
+        } catch (IllegalArgumentException ex) {
+            return error(Response.Status.BAD_REQUEST, "Tipo de documento no válido");
+        }
+        try {
+            var solicitud = solicitudBL.findSolicitudById(idSolicitud);
+            if (solicitud == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
+            if ("VENDEDOR".equals(sesion.rol())
+                    && (solicitud.getVendedorRegistrador() == null
+                    || solicitud.getVendedorRegistrador().getIdUsuario() != sesion.idUsuario())) {
+                return error(Response.Status.FORBIDDEN, "El vendedor solo puede adjuntar documentos a sus solicitudes");
+            }
+            String clave = ArchivoDocumentoStorage.guardar(archivo);
+            try {
+                DocumentoIngreso doc = documentoBL.registrarDocumentoSolicitud(idSolicitud, tipo, clave,
+                        sesion.idUsuario(), sesion.rol(), sesion.username());
+                return Response.status(Response.Status.CREATED)
+                        .entity(Map.of("idDocumento", doc.getIdDocumento(), "version", doc.getVersion())).build();
+            } catch (RuntimeException ex) {
+                limpiarArchivo(clave, ex);
+                throw ex;
+            }
+        } catch (IllegalArgumentException ex) {
+            return error(Response.Status.BAD_REQUEST, ex.getMessage());
+        } catch (SecurityException ex) {
+            return error(Response.Status.FORBIDDEN, ex.getMessage());
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.CONFLICT);
+        } catch (IOException ex) {
+            return error(Response.Status.INTERNAL_SERVER_ERROR, "No se pudo almacenar el archivo");
+        }
+    }
+
+    @GET
+    @Path("/{id}/archivo")
+    public Response descargarArchivo(@PathParam("id") int id) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (id <= 0) return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
+        try {
+            DocumentoIngreso doc = documentoBL.findById(id);
+            if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
+            if (!esAdministrador(sesion) && !documentoBL.esPresentadorOriginal(id, sesion.idUsuario(), sesion.rol())) {
+                return error(Response.Status.FORBIDDEN, "No puede consultar este archivo");
+            }
+            byte[] contenido = ArchivoDocumentoStorage.leer(doc.getArchivoPath());
+            return Response.ok(contenido, ArchivoDocumentoStorage.tipoContenido(doc.getArchivoPath()))
+                    .header("Content-Disposition", "attachment; filename=\"documento-" + id
+                            + ArchivoDocumentoStorage.extension(doc.getArchivoPath()) + "\"")
+                    .header("X-Content-Type-Options", "nosniff").build();
+        } catch (NoSuchFileException ex) {
+            return error(Response.Status.NOT_FOUND, "El archivo físico no está disponible");
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
+        } catch (IOException ex) {
+            return error(Response.Status.INTERNAL_SERVER_ERROR, "No se pudo leer el archivo");
         }
     }
 
@@ -113,14 +200,10 @@ public class DocumentosResource {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
         if (!esAdministrador(sesion)) return sinPermiso();
-        if (id <= 0) {
-            return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
-        }
+        if (id <= 0) return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
-            if (doc == null || !doc.isActivo()) {
-                return error(Response.Status.NOT_FOUND, "No existe el documento");
-            }
+            if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
             documentoBL.validarDocumento(id, sesion.username());
             return Response.noContent().build();
         } catch (BLException ex) {
@@ -134,53 +217,58 @@ public class DocumentosResource {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
         if (!esAdministrador(sesion)) return sinPermiso();
-        if (id <= 0) {
-            return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
-        }
+        if (id <= 0) return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         if (datos == null || datos.getMotivo() == null || datos.getMotivo().isBlank()
                 || datos.getMotivo().length() > 200) {
             return error(Response.Status.BAD_REQUEST, "El motivo de rechazo debe tener entre 1 y 200 caracteres");
         }
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
-            if (doc == null || !doc.isActivo()) {
-                return error(Response.Status.NOT_FOUND, "No existe el documento");
-            }
-            documentoBL.rechazarDocumento(id, datos.getMotivo(), sesion.username());
+            if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
+            documentoBL.rechazarDocumento(id, datos.getMotivo(), datos.isHabilitarResubida(), sesion.username());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
         }
     }
 
-    // La BL recibe una ruta; este endpoint no carga ni almacena archivos físicos.
     @POST
     @Path("/{id}/resubida")
-    public Response resubirDocumento(@PathParam("id") int id, AccionDocumentoDTO datos) {
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response resubirDocumento(@PathParam("id") int id, @FormParam("archivo") EntityPart archivo) {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) {
-            return error(Response.Status.FORBIDDEN, "No tiene permisos para resubir documentos");
-        }
-        if (id <= 0) {
-            return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
-        }
-        if (datos == null || datos.getArchivoPath() == null || datos.getArchivoPath().isBlank()
-                || datos.getArchivoPath().length() > 255) {
-            return error(Response.Status.BAD_REQUEST, "La ruta del archivo debe tener entre 1 y 255 caracteres");
-        }
+        if (id <= 0) return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         try {
             DocumentoIngreso anterior = documentoBL.findById(id);
-            if (anterior == null || !anterior.isActivo()) {
-                return error(Response.Status.NOT_FOUND, "No existe el documento");
+            if (anterior == null || !anterior.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
+            documentoBL.verificarResubida(id, sesion.idUsuario(), sesion.rol());
+            String clave = ArchivoDocumentoStorage.guardar(archivo);
+            try {
+                DocumentoIngreso nuevo = documentoBL.resubirDocumento(id, clave,
+                        sesion.idUsuario(), sesion.rol(), sesion.username());
+                return Response.status(Response.Status.CREATED)
+                        .entity(Map.of("idDocumento", nuevo.getIdDocumento(), "version", nuevo.getVersion())).build();
+            } catch (RuntimeException ex) {
+                limpiarArchivo(clave, ex);
+                throw ex;
             }
-            DocumentoIngreso nuevo = documentoBL.resubirDocumento(
-                    id, datos.getArchivoPath(), sesion.username());
-            return Response.status(Response.Status.CREATED)
-                    .entity(Map.of("idDocumento", nuevo.getIdDocumento(), "version", nuevo.getVersion()))
-                    .build();
+        } catch (SecurityException ex) {
+            return error(Response.Status.FORBIDDEN, ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            return error(Response.Status.BAD_REQUEST, ex.getMessage());
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
+        } catch (IOException ex) {
+            return error(Response.Status.INTERNAL_SERVER_ERROR, "No se pudo almacenar el archivo");
+        }
+    }
+
+    private void limpiarArchivo(String clave, RuntimeException original) {
+        try {
+            ArchivoDocumentoStorage.eliminar(clave);
+        } catch (IOException limpieza) {
+            original.addSuppressed(limpieza);
         }
     }
 
@@ -197,7 +285,7 @@ public class DocumentosResource {
     }
 
     private Response sinPermiso() {
-        return error(Response.Status.FORBIDDEN, "No tiene permisos de administrador");
+        return error(Response.Status.FORBIDDEN, "No tiene permisos para esta operación");
     }
 
     private List<Map<String, Object>> respuestaDocumentos(List<DocumentoIngreso> documentos) {
@@ -205,22 +293,21 @@ public class DocumentosResource {
         for (DocumentoIngreso doc : documentos) {
             Map<String, Object> datos = new LinkedHashMap<>();
             datos.put("idDocumento", doc.getIdDocumento());
+            datos.put("idSolicitud", doc.getSolicitud() == null ? null : doc.getSolicitud().getIdSolicitud());
             datos.put("tipoDocumento", doc.getTipoDocumento());
             datos.put("estadoValidacion", doc.getEstadoValidacion());
             datos.put("version", doc.getVersion());
-            datos.put("fechaCarga", doc.getFechaCarga() != null
-                    ? doc.getFechaCarga().toString() : null);
-            datos.put("fechaValidacion", doc.getFechaValidacion() != null
-                    ? doc.getFechaValidacion().toString() : null);
+            datos.put("fechaCarga", doc.getFechaCarga() != null ? doc.getFechaCarga().toString() : null);
+            datos.put("fechaValidacion", doc.getFechaValidacion() != null ? doc.getFechaValidacion().toString() : null);
             datos.put("motivoRechazo", doc.getMotivoRechazo());
+            datos.put("habilitarResubida", doc.isHabilitarResubida());
             resultado.add(datos);
         }
         return resultado;
     }
 
     private Response fallo(BLException ex, Response.Status estadoNegocio) {
-        return error(ex.getCause() == null ? estadoNegocio : Response.Status.INTERNAL_SERVER_ERROR,
-                ex.getMessage());
+        return error(ex.getCause() == null ? estadoNegocio : Response.Status.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     private Response error(Response.Status estado, String mensaje) {

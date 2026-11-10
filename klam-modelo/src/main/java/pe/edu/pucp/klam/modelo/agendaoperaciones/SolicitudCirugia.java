@@ -3,12 +3,14 @@ package pe.edu.pucp.klam.modelo.agendaoperaciones;
 import java.time.LocalDateTime;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 
 public class SolicitudCirugia {
 
     private int idSolicitud;
     private Cliente cliente;
     private ClinicaHospital clinicaDestino;
+    private Vendedor vendedorRegistrador;
     private String pacienteNombre;
     private String tipoProcedimiento;
     private String doctorNombre;
@@ -33,6 +35,7 @@ public class SolicitudCirugia {
         this.idSolicitud = solicitud.idSolicitud;
         this.cliente = solicitud.cliente;
         this.clinicaDestino = solicitud.clinicaDestino;
+        this.vendedorRegistrador = solicitud.vendedorRegistrador;
         this.pacienteNombre = solicitud.pacienteNombre;
         this.tipoProcedimiento = solicitud.tipoProcedimiento;
         this.doctorNombre = solicitud.doctorNombre;
@@ -67,6 +70,14 @@ public class SolicitudCirugia {
 
     public void setClinicaDestino(ClinicaHospital clinicaDestino) {
         this.clinicaDestino = clinicaDestino;
+    }
+
+    public Vendedor getVendedorRegistrador() {
+        return vendedorRegistrador;
+    }
+
+    public void setVendedorRegistrador(Vendedor vendedorRegistrador) {
+        this.vendedorRegistrador = vendedorRegistrador;
     }
 
     public String getPacienteNombre() {

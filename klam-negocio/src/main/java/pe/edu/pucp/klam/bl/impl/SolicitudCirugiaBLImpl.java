@@ -17,12 +17,14 @@ import pe.edu.pucp.klam.dao.ClinicaHospitalDAO;
 import pe.edu.pucp.klam.dao.PacienteParticularDAO;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
 import pe.edu.pucp.klam.dao.SolicitudCirugiaDAO;
+import pe.edu.pucp.klam.dao.VendedorDAO;
 
 import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.impl.ClinicaHospitalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.DocumentoIngresoDAOImpl;
 import pe.edu.pucp.klam.dao.impl.PacienteParticularDAOImpl;
 import pe.edu.pucp.klam.dao.impl.SolicitudCirugiaDAOImpl;
+import pe.edu.pucp.klam.dao.impl.VendedorDAOImpl;
 
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 
@@ -33,6 +35,7 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocumento;
@@ -49,6 +52,9 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
 
     private final SolicitudCirugiaDAO solicitudDAO =
             new SolicitudCirugiaDAOImpl();
+
+    private final VendedorDAO vendedorDAO =
+            new VendedorDAOImpl();
 
     private final CirugiaDAO cirugiaDAO =
             new CirugiaDAOImpl();
@@ -84,7 +90,13 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
                     "La solicitud debe tener un cliente solicitante");
         }
 
-        validarClienteExiste(cliente);
+        cliente = validarClienteExiste(cliente);
+        solicitud.setCliente(cliente);
+
+        Vendedor vendedor = solicitud.getVendedorRegistrador();
+        if (vendedor != null) {
+            validarVendedorExiste(vendedor);
+        }
 
         ClinicaHospital destino = solicitud.getClinicaDestino();
 
@@ -98,7 +110,8 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
                     "Debe indicar la clínica u hospital de destino");
         }
 
-        validarClienteExiste(destino);
+        destino = (ClinicaHospital) validarClienteExiste(destino);
+        solicitud.setClinicaDestino(destino);
 
         String paciente = solicitud.getPacienteNombre();
 
@@ -247,6 +260,17 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         } catch (SQLException e) {
             throw new BLException(
                     "No se pudieron listar las solicitudes del cliente", e);
+        }
+    }
+
+    @Override
+    public List<SolicitudCirugia> listarSolicitudesPorVendedor(
+            Vendedor vendedor) throws BLException {
+        validarVendedorExiste(vendedor);
+        try {
+            return solicitudDAO.listarPorVendedor(vendedor);
+        } catch (SQLException e) {
+            throw new BLException("No se pudieron listar las solicitudes del vendedor", e);
         }
     }
 
@@ -549,7 +573,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
                 "Tipo de cliente no soportado");
     }
 
-    private void validarClienteExiste(
+    private Cliente validarClienteExiste(
             Cliente cliente) throws BLException {
 
         try {
@@ -571,9 +595,25 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
                         "El cliente está inactivo");
             }
 
+            return encontrado;
+
         } catch (SQLException e) {
             throw new BLException(
                     "No se pudo verificar el cliente", e);
+        }
+    }
+
+    private void validarVendedorExiste(Vendedor vendedor) throws BLException {
+        if (vendedor == null || vendedor.getIdUsuario() <= 0) {
+            throw new BLException("El vendedor registrador no es válido");
+        }
+        try {
+            Vendedor encontrado = vendedorDAO.findById(vendedor.getIdUsuario());
+            if (encontrado == null || !encontrado.isActivo()) {
+                throw new BLException("El vendedor registrador no existe o está inactivo");
+            }
+        } catch (SQLException e) {
+            throw new BLException("No se pudo verificar el vendedor registrador", e);
         }
     }
 

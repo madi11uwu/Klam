@@ -6,6 +6,7 @@ import java.util.List;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 
 public interface SolicitudCirugiaBL {
 
@@ -23,6 +24,10 @@ public interface SolicitudCirugiaBL {
 
     List<SolicitudCirugia> listarSolicitudesPorCliente(
             Cliente cliente
+    ) throws BLException;
+
+    List<SolicitudCirugia> listarSolicitudesPorVendedor(
+            Vendedor vendedor
     ) throws BLException;
 
     void aprobarSolicitud(

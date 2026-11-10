@@ -14,18 +14,20 @@ public class DocumentoIngreso {
     private LocalDateTime fechaCarga;
     private OrdenCompra ordenCompra;
     private boolean activo;
-    private UsuarioPlataforma usuarioCarga; // quien subio el documento (admin, vendedor o tecnico)
+    private UsuarioPlataforma usuarioCarga;
    // Trazabilidad y subsanacion (RF04, RF07, RF08)
     private SolicitudCirugia solicitud;          // solicitud a la que pertenece (puede ser null)
     private Cirugia cirugia;            // cirugia a la que pertenece (puede ser null)
     private int version = 1;              // la resubida crea una version nueva, no sobrescribe
     private LocalDateTime fechaValidacion;
     private String motivoRechazo;
+    private boolean habilitarResubida;
     private String responsable;           // texto: los clientes no tienen usuario en la plataforma
 
     public DocumentoIngreso(){
         this.estadoValidacion = EstadoValidacionDocumento.PENDIENTE;
         this.activo = true;
+        this.habilitarResubida = false;
     }
     public OrdenCompra getOrdenCompra() {
         return ordenCompra!=null? new OrdenCompra(ordenCompra):null;
@@ -52,6 +54,7 @@ public class DocumentoIngreso {
         this.version = documentoIngreso.getVersion();
         this.fechaValidacion = documentoIngreso.getFechaValidacion();
         this.motivoRechazo = documentoIngreso.getMotivoRechazo();
+        this.habilitarResubida = documentoIngreso.isHabilitarResubida();
         this.responsable = documentoIngreso.getResponsable();
     }
     public SolicitudCirugia getSolicitud() {
@@ -78,6 +81,11 @@ public class DocumentoIngreso {
 
     public String getMotivoRechazo() { return motivoRechazo; }
     public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
+
+    public boolean isHabilitarResubida() { return habilitarResubida; }
+    public void setHabilitarResubida(boolean habilitarResubida) {
+        this.habilitarResubida = habilitarResubida;
+    }
 
     public String getResponsable() { return responsable; }
     public void setResponsable(String responsable) { this.responsable = responsable; }

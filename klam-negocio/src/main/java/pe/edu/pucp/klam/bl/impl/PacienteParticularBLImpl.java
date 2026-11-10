@@ -36,12 +36,25 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
         try {
             PacienteParticular existente = pacienteParticularDAO.findByDNI(pacienteParticular.getDni());
             if (existente != null && (!modificacion
-                    || existente.getId_cliente() != pacienteParticular.getId_cliente())) {
+                    || existente.getIdCliente() != pacienteParticular.getIdCliente())) {
                 throw new BLException(
                         "Ya existe un registro con el DNI " + pacienteParticular.getDni());
             }
         } catch (SQLException e) {
             throw new BLException("No se pudo verificar la unicidad del DNI", e);
+        }
+    }
+
+    @Override
+    public PacienteParticular findByDNI(String dni) throws BLException {
+        if (dni == null || !dni.matches("[0-9]{8}")) {
+            throw new BLException("El DNI debe tener exactamente 8 dígitos");
+        }
+        try {
+            PacienteParticular paciente = pacienteParticularDAO.findByDNI(dni);
+            return paciente != null && paciente.isActivo() ? paciente : null;
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el paciente por DNI", e);
         }
     }
 
@@ -78,7 +91,7 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
     @Override
     public void update(PacienteParticular cliente) throws BLException {
         validarDatos(cliente);
-        validarExiste(cliente.getId_cliente());
+        validarExiste(cliente.getIdCliente());
         validarDocumentoUnico(cliente, true);
         try {
             pacienteParticularDAO.update(cliente);

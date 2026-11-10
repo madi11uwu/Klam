@@ -18,6 +18,7 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 
 public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
 
@@ -31,7 +32,7 @@ public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
                     "Datos obligatorios de la solicitud incompletos");
         }
 
-        String sql = "{call insertar_solicitud_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{call insertar_solicitud_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
 
         try (CallableStatement cmd = conn.prepareCall(sql)) {
@@ -46,6 +47,10 @@ public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
             DBManager.setIntONulo(cmd, "p_id_paciente_solicitante",
                     cliente instanceof PacienteParticular
                             ? cliente.getIdCliente() : null);
+
+            Vendedor vendedor = solicitud.getVendedorRegistrador();
+            DBManager.setIntONulo(cmd, "p_id_vendedor_registrador",
+                    vendedor != null ? vendedor.getIdUsuario() : null);
 
             cmd.setInt("p_id_clinica_hospital",
                     solicitud.getClinicaDestino().getIdCliente());
@@ -87,14 +92,14 @@ public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
         }
 
         List<SolicitudCirugia> encontrados =
-                buscar(id, null, null, null);
+                buscar(id, null, null, null, null);
 
         return encontrados.isEmpty() ? null : encontrados.get(0);
     }
 
     @Override
     public List<SolicitudCirugia> findAll() throws SQLException {
-        return buscar(null, null, null, null);
+        return buscar(null, null, null, null, null);
     }
 
     @Override
@@ -103,7 +108,7 @@ public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
 
         return buscar(null,
                 estado != null ? estado.name() : null,
-                null, null);
+                null, null, null);
     }
 
     @Override
@@ -125,16 +130,25 @@ public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
                     "Tipo de cliente no soportado");
         }
 
-        return buscar(null, null, tipo, cliente.getIdCliente());
+        return buscar(null, null, tipo, cliente.getIdCliente(), null);
+    }
+
+    @Override
+    public List<SolicitudCirugia> listarPorVendedor(Vendedor vendedor) throws SQLException {
+        if (vendedor == null || vendedor.getIdUsuario() <= 0) {
+            throw new IllegalArgumentException("Vendedor inválido");
+        }
+        return buscar(null, null, null, null, vendedor.getIdUsuario());
     }
 
     private List<SolicitudCirugia> buscar(
             Integer id,
             String estado,
             String tipoCliente,
-            Integer idCliente) throws SQLException {
+            Integer idCliente,
+            Integer idVendedorRegistrador) throws SQLException {
 
-        String sql = "{call buscar_solicitudes(?, ?, ?, ?)}";
+        String sql = "{call buscar_solicitudes(?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
 
         try (CallableStatement cmd = conn.prepareCall(sql)) {
@@ -143,6 +157,7 @@ public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
             DBManager.setStringONulo(cmd, "p_estado", estado);
             DBManager.setStringONulo(cmd, "p_tipo_cliente", tipoCliente);
             DBManager.setIntONulo(cmd, "p_id_cliente", idCliente);
+            DBManager.setIntONulo(cmd, "p_id_vendedor_registrador", idVendedorRegistrador);
 
             try (ResultSet rs = cmd.executeQuery()) {
                 List<SolicitudCirugia> lista = new ArrayList<>();
@@ -164,6 +179,13 @@ public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
         SolicitudCirugia solicitud = new SolicitudCirugia();
 
         solicitud.setIdSolicitud(rs.getInt("id_solicitud"));
+
+        int idVendedor = rs.getInt("id_vendedor_registrador");
+        if (!rs.wasNull()) {
+            Vendedor vendedor = new Vendedor();
+            vendedor.setIdUsuario(idVendedor);
+            solicitud.setVendedorRegistrador(vendedor);
+        }
 
         int idClinica = rs.getInt("id_clinica_solicitante");
         boolean esClinica = !rs.wasNull();
