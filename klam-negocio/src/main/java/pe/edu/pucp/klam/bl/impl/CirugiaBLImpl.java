@@ -11,16 +11,19 @@ import pe.edu.pucp.klam.dao.CotizacionDAO;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
 import pe.edu.pucp.klam.dao.EquipoDAO;
 import pe.edu.pucp.klam.dao.PacienteParticularDAO;
+import pe.edu.pucp.klam.dao.SolicitudCirugiaDAO;
 import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.impl.ClinicaHospitalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.CotizacionDAOImpl;
 import pe.edu.pucp.klam.dao.impl.DocumentoIngresoDAOImpl;
 import pe.edu.pucp.klam.dao.impl.PacienteParticularDAOImpl;
+import pe.edu.pucp.klam.dao.impl.SolicitudCirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.impl.inventario.BandejaInstrumentalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.inventario.EquipoDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
@@ -48,6 +51,7 @@ public class CirugiaBLImpl implements CirugiaBL {
     private static final int MAX_MOTIVO = 200;
 
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
+    private final SolicitudCirugiaDAO solicitudDAO = new SolicitudCirugiaDAOImpl();
     private final EquipoDAO equipoDAO = new EquipoDAOImpl();
     private final BandejaInstrumentalDAO bandejaDAO = new BandejaInstrumentalDAOImpl();
     private final ClinicaHospitalDAO clinicaHospitalDAO = new ClinicaHospitalDAOImpl();
@@ -213,10 +217,10 @@ public class CirugiaBLImpl implements CirugiaBL {
             String pacienteNombre = null;
             String clinicaNombre = c.getCliente() instanceof ClinicaHospital ? c.getCliente().getNombre() : null;
             if (c.getSolicitudOrigen() != null) {
-                List<Map<String, Object>> sol = cirugiaDAO.buscarSolicitudes(c.getSolicitudOrigen().getIdSolicitud(), null, null, null);
-                if (!sol.isEmpty()) {
-                    pacienteNombre = (String) sol.get(0).get("pacienteNombre");
-                    clinicaNombre = (String) sol.get(0).get("clinicaNombre");
+                SolicitudCirugia solicitud = solicitudDAO.findById(c.getSolicitudOrigen().getIdSolicitud());
+                if (solicitud != null) {
+                    pacienteNombre = solicitud.getPacienteNombre();
+                    clinicaNombre = solicitud.getClinicaDestino().getNombre();
                 }
             } else if (c.getCliente() instanceof PacienteParticular) {
                 pacienteNombre = c.getCliente().getNombre();

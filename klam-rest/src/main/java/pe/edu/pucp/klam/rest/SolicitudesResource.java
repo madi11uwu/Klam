@@ -5,11 +5,18 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
 import pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
+import pe.edu.pucp.klam.modelo.clientes.Cliente;
+import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
+import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 import pe.edu.pucp.klam.rest.dto.AccionSolicitudDTO;
+import pe.edu.pucp.klam.rest.dto.RegistrarSolicitudDTO;
 import pe.edu.pucp.klam.rest.dto.SolicitudCirugiaDTO;
 
 @Path("/solicitudes")
@@ -21,6 +28,73 @@ public class SolicitudesResource {
 
     @Context
     private HttpHeaders headers;
+
+    @POST
+    public Response registrar(RegistrarSolicitudDTO datos) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esVendedor(sesion)) return sinPermisoVendedor();
+        if (datos == null || datos.getIdCliente() <= 0) {
+            return error(Response.Status.BAD_REQUEST, "El cliente solicitante es obligatorio");
+        }
+
+        Cliente cliente;
+        if ("PARTICULAR".equals(datos.getTipoCliente())) {
+            PacienteParticular particular = new PacienteParticular();
+            particular.setIdCliente(datos.getIdCliente());
+            cliente = particular;
+        } else if ("CLINICA".equals(datos.getTipoCliente())) {
+            ClinicaHospital clinica = new ClinicaHospital();
+            clinica.setIdCliente(datos.getIdCliente());
+            cliente = clinica;
+        } else {
+            return error(Response.Status.BAD_REQUEST, "Tipo de cliente no soportado");
+        }
+
+        SolicitudCirugia solicitud = new SolicitudCirugia();
+        solicitud.setCliente(cliente);
+        if (datos.getIdClinicaDestino() > 0) {
+            ClinicaHospital destino = new ClinicaHospital();
+            destino.setIdCliente(datos.getIdClinicaDestino());
+            solicitud.setClinicaDestino(destino);
+        }
+        Vendedor vendedor = new Vendedor();
+        vendedor.setIdUsuario(sesion.idUsuario());
+        solicitud.setVendedorRegistrador(vendedor);
+        solicitud.setPacienteNombre(datos.getPacienteNombre());
+        solicitud.setDiagnostico(datos.getDiagnostico());
+        solicitud.setTipoProcedimiento(datos.getTipoProcedimiento());
+        solicitud.setDoctorNombre(datos.getDoctorNombre());
+        solicitud.setObservaciones(datos.getObservaciones());
+        try {
+            if (datos.getFechaHoraSolicitada() != null) {
+                solicitud.setFechaHoraSolicitada(LocalDateTime.parse(datos.getFechaHoraSolicitada()));
+            }
+            solicitudBL.registrarSolicitud(solicitud);
+            return Response.status(Response.Status.CREATED)
+                    .entity(new SolicitudCirugiaDTO(solicitud)).build();
+        } catch (DateTimeParseException ex) {
+            return error(Response.Status.BAD_REQUEST, "La fecha y hora solicitadas no son válidas");
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.BAD_REQUEST);
+        }
+    }
+
+    @GET
+    @Path("/mias")
+    public Response listarPropias() {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esVendedor(sesion)) return sinPermisoVendedor();
+        Vendedor vendedor = new Vendedor();
+        vendedor.setIdUsuario(sesion.idUsuario());
+        try {
+            return Response.ok(solicitudBL.listarSolicitudesPorVendedor(vendedor).stream()
+                    .map(SolicitudCirugiaDTO::new).toList()).build();
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.BAD_REQUEST);
+        }
+    }
 
     @GET
     public Response listar(@QueryParam("estado") String estado) {
@@ -119,12 +193,20 @@ public class SolicitudesResource {
         return "ADMINISTRADOR".equals(sesion.rol());
     }
 
+    private boolean esVendedor(SesionesRest.Sesion sesion) {
+        return "VENDEDOR".equals(sesion.rol());
+    }
+
     private Response noAutenticado() {
         return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
     }
 
     private Response sinPermiso() {
         return error(Response.Status.FORBIDDEN, "No tiene permisos de administrador");
+    }
+
+    private Response sinPermisoVendedor() {
+        return error(Response.Status.FORBIDDEN, "No tiene permisos de vendedor");
     }
 
     private Response fallo(BLException ex, Response.Status estadoNegocio) {

@@ -26,7 +26,7 @@ public interface DocumentoIngresoDAO extends DAO<DocumentoIngreso, Integer> {
 
     /** Marca el documento como VALIDADO o RECHAZADO (el rechazo exige motivo). */
     void actualizarEstadoValidacion(int idDocumento, String estado, LocalDateTime fechaValidacion,
-                                    String motivoRechazo, String responsable) throws SQLException;
+                                    String motivoRechazo, String responsable, boolean habilitarResubida) throws SQLException;
 
     /**
      * Historial documental (pantalla "Historial documental"): una fila por version con

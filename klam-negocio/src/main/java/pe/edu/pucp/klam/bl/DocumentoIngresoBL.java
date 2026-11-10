@@ -21,14 +21,34 @@ public interface DocumentoIngresoBL extends BaseBL<DocumentoIngreso,Integer> {
     List<Map<String, Object>> consultarHistorialPorSolicitud(int idSolicitud) throws BLException;
     List<Map<String, Object>> consultarHistorialPorCirugia(int idCirugia) throws BLException;
 
+    /** Registro inicial por un administrador autenticado, sin atribuir la carga al titular. */
+    DocumentoIngreso registrarDocumentoSolicitud(int idSolicitud, TipoDocumentoIngreso tipo,
+            String archivoPath, int idUsuarioAutenticado, String rolAutenticado,
+            String responsable) throws BLException;
+
+    /** Consulta solo documentos cuya primera versión pertenece al usuario autenticado. */
+    List<DocumentoIngreso> listarPresentadosPorUsuario(Integer idSolicitud, int idUsuarioAutenticado,
+            String rolAutenticado) throws BLException;
+
+    /** Identidad de quien presentó la primera versión, comprobada por ID y rol. */
+    boolean esPresentadorOriginal(int idDocumento, int idUsuarioAutenticado,
+            String rolAutenticado) throws BLException;
+
+    /** Verifica estado, versión, autorización e identidad antes de recibir una nueva versión. */
+    DocumentoIngreso verificarResubida(int idDocumento, int idUsuarioAutenticado,
+            String rolAutenticado) throws BLException;
+
     // ---- Validacion y subsanacion ----
     void validarDocumento(int idDocumento, String responsable) throws BLException;
 
     /** El motivo es obligatorio. Si el documento es de una solicitud, esta pasa a DOCUMENTACION_INCOMPLETA. */
     void rechazarDocumento(int idDocumento, String motivo, String responsable) throws BLException;
+    void rechazarDocumento(int idDocumento, String motivo, boolean habilitarResubida,
+                           String responsable) throws BLException;
 
     /** Sube una nueva version de un documento RECHAZADO; la anterior se conserva. */
     DocumentoIngreso resubirDocumento(int idDocumentoRechazado, String nuevoArchivoPath,
+                                      int idUsuarioAutenticado, String rolAutenticado,
                                       String responsable) throws BLException;
 
     // ---- Documentos obligatorios de una solicitud ----

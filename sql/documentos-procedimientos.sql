@@ -142,11 +142,11 @@ CREATE PROCEDURE insertar_documento_ingreso(
 )
 BEGIN
     INSERT INTO documento_ingreso (tipo_documento, archivo_path, estado_validacion, fecha_carga,
-                                   fecha_validacion, motivo_rechazo, version, responsable,
+                                   fecha_validacion, motivo_rechazo, habilitar_resubida, version, responsable,
                                    id_solicitud, id_cirugia, id_orden_compra,
                                    id_administrador, id_vendedor, id_tecnico, activo)
     VALUES (p_tipo_documento, p_archivo_path, p_estado_validacion, p_fecha_carga,
-            p_fecha_validacion, p_motivo_rechazo, p_version, p_responsable,
+            p_fecha_validacion, p_motivo_rechazo, 0, p_version, p_responsable,
             p_id_solicitud, p_id_cirugia, p_id_orden_compra,
             p_id_administrador, p_id_vendedor, p_id_tecnico, p_activo);
 
@@ -204,7 +204,7 @@ END$$
 CREATE PROCEDURE listar_documentos_ingreso()
 BEGIN
     SELECT id_documento, tipo_documento, archivo_path, estado_validacion,
-           fecha_carga, fecha_validacion, motivo_rechazo, version, responsable,
+           fecha_carga, fecha_validacion, motivo_rechazo, habilitar_resubida, version, responsable,
            id_solicitud, id_cirugia, id_orden_compra, id_administrador,
            id_vendedor, id_tecnico, activo
       FROM documento_ingreso
@@ -216,7 +216,7 @@ CREATE PROCEDURE buscar_documento_ingreso_por_id(
 )
 BEGIN
     SELECT id_documento, tipo_documento, archivo_path, estado_validacion,
-           fecha_carga, fecha_validacion, motivo_rechazo, version, responsable,
+           fecha_carga, fecha_validacion, motivo_rechazo, habilitar_resubida, version, responsable,
            id_solicitud, id_cirugia, id_orden_compra, id_administrador,
            id_vendedor, id_tecnico, activo
       FROM documento_ingreso
@@ -229,9 +229,17 @@ CREATE PROCEDURE actualizar_estado_validacion_documento(
     IN p_estado_validacion VARCHAR(20),
     IN p_fecha_validacion DATETIME,
     IN p_motivo_rechazo VARCHAR(200),
-    IN p_responsable VARCHAR(150)
+    IN p_responsable VARCHAR(150),
+    IN p_habilitar_resubida TINYINT
 )
 BEGIN
+    IF p_habilitar_resubida IS NULL OR p_habilitar_resubida NOT IN (0, 1) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La autorizacion de resubida debe ser 0 o 1';
+    END IF;
+    IF p_habilitar_resubida = 1 AND (p_estado_validacion IS NULL OR p_estado_validacion <> 'RECHAZADO') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Solo se autoriza resubida al rechazar';
+    END IF;
+
     IF p_estado_validacion = 'RECHAZADO'
        AND (p_motivo_rechazo IS NULL OR CHAR_LENGTH(TRIM(p_motivo_rechazo)) = 0) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El rechazo de un documento exige un motivo';
@@ -241,7 +249,8 @@ BEGIN
        SET estado_validacion = p_estado_validacion,
            fecha_validacion = p_fecha_validacion,
            motivo_rechazo = p_motivo_rechazo,
-           responsable = COALESCE(p_responsable, responsable)
+           responsable = COALESCE(p_responsable, responsable),
+           habilitar_resubida = p_habilitar_resubida
      WHERE id_documento = p_id
        AND activo = 1;
 END$$
@@ -256,7 +265,7 @@ CREATE PROCEDURE listar_documentos_origen(
 )
 BEGIN
     SELECT id_documento, tipo_documento, archivo_path, estado_validacion,
-           fecha_carga, fecha_validacion, motivo_rechazo, version, responsable,
+           fecha_carga, fecha_validacion, motivo_rechazo, habilitar_resubida, version, responsable,
            id_solicitud, id_cirugia, id_orden_compra, id_administrador,
            id_vendedor, id_tecnico, activo
       FROM documento_ingreso d

@@ -6,6 +6,7 @@ import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 // Datos de presentación: evita serializar el grafo del modelo y sus relaciones.
 public class SolicitudCirugiaDTO {
     private final int idSolicitud;
+    private final Integer idVendedorRegistrador;
     private final int idCliente;
     private final String cliente;
     private final String tipoCliente;
@@ -24,6 +25,8 @@ public class SolicitudCirugiaDTO {
 
     public SolicitudCirugiaDTO(SolicitudCirugia solicitud) {
         idSolicitud = solicitud.getIdSolicitud();
+        idVendedorRegistrador = solicitud.getVendedorRegistrador() == null
+                ? null : solicitud.getVendedorRegistrador().getIdUsuario();
         idCliente = solicitud.getCliente().getIdCliente();
         cliente = solicitud.getCliente().getNombre();
         tipoCliente = solicitud.getCliente() instanceof ClinicaHospital ? "CLINICA" : "PARTICULAR";
@@ -45,6 +48,7 @@ public class SolicitudCirugiaDTO {
     }
 
     public int getIdSolicitud() { return idSolicitud; }
+    public Integer getIdVendedorRegistrador() { return idVendedorRegistrador; }
     public int getIdCliente() { return idCliente; }
     public String getCliente() { return cliente; }
     public String getTipoCliente() { return tipoCliente; }

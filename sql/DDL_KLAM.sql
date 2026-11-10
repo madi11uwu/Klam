@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS `solicitud_cirugia` (
        `id_solicitud` INT NOT NULL AUTO_INCREMENT,
        `id_clinica_solicitante` INT NULL,
        `id_paciente_solicitante` INT NULL,
+       `id_vendedor_registrador` INT NULL,
        `id_clinica_hospital` INT NOT NULL,
        `paciente_nombre` VARCHAR(150) NOT NULL,
        `diagnostico` VARCHAR(300) NOT NULL,
@@ -152,6 +153,7 @@ NOT NULL DEFAULT 'POR_REVISAR',
        KEY `idx_solicitud_estado` (`estado_solicitud`),
        KEY `idx_solicitud_clinica_solicitante` (`id_clinica_solicitante`),
        KEY `idx_solicitud_paciente_solicitante` (`id_paciente_solicitante`),
+       KEY `idx_solicitud_vendedor_registrador` (`id_vendedor_registrador`),
        KEY `idx_solicitud_destino` (`id_clinica_hospital`),
        KEY `idx_solicitud_fecha` (`fecha_hora_solicitada`),
        CONSTRAINT `fk_solicitud_clinica_solicitante`
@@ -159,6 +161,9 @@ NOT NULL DEFAULT 'POR_REVISAR',
                ON DELETE RESTRICT ON UPDATE RESTRICT,
        CONSTRAINT `fk_solicitud_paciente_solicitante`
            FOREIGN KEY (`id_paciente_solicitante`) REFERENCES `paciente_particular` (`id_cliente`)
+               ON DELETE RESTRICT ON UPDATE RESTRICT,
+       CONSTRAINT `fk_solicitud_vendedor_registrador`
+           FOREIGN KEY (`id_vendedor_registrador`) REFERENCES `vendedor` (`id_usuario`)
                ON DELETE RESTRICT ON UPDATE RESTRICT,
        CONSTRAINT `fk_solicitud_clinica_destino`
            FOREIGN KEY (`id_clinica_hospital`) REFERENCES `clinica_hospital` (`id_cliente`)
@@ -271,6 +276,7 @@ NOT NULL DEFAULT 'PENDIENTE',
                  `fecha_carga` DATETIME NOT NULL,
                  `fecha_validacion` DATETIME NULL,
                  `motivo_rechazo` VARCHAR(200) NULL,
+                 `habilitar_resubida` TINYINT(1) NOT NULL DEFAULT 0,
                  `version` INT NOT NULL DEFAULT 1,
                  `responsable` VARCHAR(150) NULL,
                  `id_solicitud` INT NULL,

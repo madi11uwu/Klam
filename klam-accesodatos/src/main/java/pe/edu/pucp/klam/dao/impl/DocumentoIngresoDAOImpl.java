@@ -196,15 +196,16 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
 
     @Override
     public void actualizarEstadoValidacion(int idDocumento, String estado, LocalDateTime fechaValidacion,
-                                           String motivoRechazo, String responsable) throws SQLException {
+                                           String motivoRechazo, String responsable, boolean habilitarResubida) throws SQLException {
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cs = conn.prepareCall(
-                "{CALL actualizar_estado_validacion_documento(?, ?, ?, ?, ?)}")) {
+                "{CALL actualizar_estado_validacion_documento(?, ?, ?, ?, ?, ?)}")) {
             cs.setInt("p_id", idDocumento);
             cs.setString("p_estado_validacion", estado);
             DBManager.setFechaONula(cs, "p_fecha_validacion", fechaValidacion);
             DBManager.setStringONulo(cs, "p_motivo_rechazo", motivoRechazo);
             DBManager.setStringONulo(cs, "p_responsable", responsable);
+            cs.setBoolean("p_habilitar_resubida", habilitarResubida);
 
             if (cs.executeUpdate() == 0) {
                 throw new SQLException("No se pudo actualizar el estado del documento " + idDocumento);
@@ -229,6 +230,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
                 fila.put("responsable", rs.getString("responsable"));
                 fila.put("estado", rs.getString("estado_validacion"));
                 fila.put("motivoRechazo", rs.getString("motivo_rechazo"));
+                fila.put("habilitarResubida", rs.getBoolean("habilitar_resubida"));
                 Timestamp validacion = rs.getTimestamp("fecha_validacion");
                 fila.put("fechaValidacion", validacion != null ? validacion.toLocalDateTime() : null);
                 fila.put("referencia", rs.getString("archivo_path"));
@@ -259,6 +261,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         Timestamp validacion = rs.getTimestamp("fecha_validacion");
         doc.setFechaValidacion(validacion != null ? validacion.toLocalDateTime() : null);
         doc.setMotivoRechazo(rs.getString("motivo_rechazo"));
+        doc.setHabilitarResubida(rs.getBoolean("habilitar_resubida"));
         doc.setVersion(rs.getInt("version"));
         doc.setResponsable(rs.getString("responsable"));
 

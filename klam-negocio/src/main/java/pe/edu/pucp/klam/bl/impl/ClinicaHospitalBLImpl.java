@@ -28,7 +28,7 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
                 clinicaHospital.getEmailContacto(), clinicaHospital.getTelefono());
         validarLongitud(clinicaHospital.getPeriodoCredito(), 30, "El periodo de crédito");
         if (clinicaHospital.getRuc() == null
-                || clinicaHospital.getRuc().length()!=11) {
+                || !clinicaHospital.getRuc().matches("[0-9]{11}")) {
             throw new BLException("El RUC debe tener exactamente 11 dígitos");
         }
     }
@@ -44,6 +44,29 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
         } catch (SQLException e) {
             throw new BLException("No se pudo verificar la unicidad del RUC", e);
         }
+    }
+
+    @Override
+    public ClinicaHospital findByRUC(String ruc) throws BLException {
+        if (ruc == null || !ruc.matches("[0-9]{11}")) {
+            throw new BLException("El RUC debe tener exactamente 11 dígitos");
+        }
+        try {
+            ClinicaHospital clinica = clinicaHospitalDAO.findByRUC(ruc);
+            return clinica != null && clinica.isActivo() ? clinica : null;
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar la clínica por RUC", e);
+        }
+    }
+
+    @Override
+    public List<ClinicaHospital> findByNombre(String nombre) throws BLException {
+        if (nombre == null || nombre.isBlank()) {
+            throw new BLException("El nombre de la clínica es obligatorio");
+        }
+        String filtro = nombre.trim().toLowerCase(java.util.Locale.ROOT);
+        return findAll().stream().filter(c -> c.getNombre() != null
+                && c.getNombre().toLowerCase(java.util.Locale.ROOT).contains(filtro)).toList();
     }
 
     @Override

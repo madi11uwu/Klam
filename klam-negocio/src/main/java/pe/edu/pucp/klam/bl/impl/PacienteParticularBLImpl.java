@@ -46,6 +46,19 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
     }
 
     @Override
+    public PacienteParticular findByDNI(String dni) throws BLException {
+        if (dni == null || !dni.matches("[0-9]{8}")) {
+            throw new BLException("El DNI debe tener exactamente 8 dígitos");
+        }
+        try {
+            PacienteParticular paciente = pacienteParticularDAO.findByDNI(dni);
+            return paciente != null && paciente.isActivo() ? paciente : null;
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el paciente por DNI", e);
+        }
+    }
+
+    @Override
     public List<PacienteParticular> findAll() throws BLException {
         try {
             return pacienteParticularDAO.findAll();
