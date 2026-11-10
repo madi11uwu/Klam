@@ -8,7 +8,7 @@ import pe.edu.pucp.klam.bl.UsuarioPlataformaBL;
 import pe.edu.pucp.klam.bl.impl.UsuarioPlataformaBLImpl;
 import pe.edu.pucp.klam.rest.dto.CambioPasswordDTO;
 
-/** Cuenta del usuario que inició sesión (cualquier rol). */
+/** Cuenta del usuario que inició sesión (cualquier rol). La sesión es la de SesionesRest (token de /login). */
 @Path("/cuenta")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -19,14 +19,16 @@ public class CuentaResource {
     /** Cambia la contraseña de quien tiene la sesión; la BL exige la actual y valida el formato de la nueva. */
     @PUT
     @Path("/password")
-    @RequiereRol
     public Response cambiarPassword(@HeaderParam("Authorization") String authorization, CambioPasswordDTO dto) {
+        SesionesRest.Sesion sesion = SesionesRest.validar(authorization);
+        if (sesion == null) {
+            return Errores.error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        }
         if (dto == null) {
             return Errores.error(Response.Status.BAD_REQUEST, "El cuerpo de la solicitud es obligatorio");
         }
-        String username = SesionesActivas.desdeEncabezado(authorization).username();
         try {
-            usuarioBL.cambiarPassword(username, dto.getPasswordActual(), dto.getPasswordNueva());
+            usuarioBL.cambiarPassword(sesion.username(), dto.getPasswordActual(), dto.getPasswordNueva());
             return Response.noContent().build();
         } catch (BLException ex) {
             return Errores.desde(ex);

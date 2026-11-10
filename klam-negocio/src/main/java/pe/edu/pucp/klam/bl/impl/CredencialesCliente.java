@@ -1,6 +1,7 @@
 package pe.edu.pucp.klam.bl.impl;
 
 import pe.edu.pucp.klam.bl.BLException;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 
 /** RF01: todo cliente nuevo se registra con usuario y contraseña. */
 final class CredencialesCliente {
@@ -9,6 +10,20 @@ final class CredencialesCliente {
     private static final int MAX_USERNAME = 50;
 
     private CredencialesCliente() {
+    }
+
+    /**
+     * Alta sin usuario ni contraseña (p. ej. un vendedor registra un paciente): se asignan credenciales iniciales,
+     * así todo cliente puede ingresar a la plataforma. Usuario = DNI o RUC; contraseña inicial = "Klam" + DNI o RUC.
+     * El cliente debe cambiarla desde "Cambiar contraseña".
+     */
+    static void asignarInicialesSiFaltan(UsuarioPlataforma cliente, String documento) {
+        boolean sinUsuario = cliente.getUsername() == null || cliente.getUsername().isBlank();
+        boolean sinPassword = cliente.getPasswordHash() == null || cliente.getPasswordHash().isBlank();
+        if (sinUsuario && sinPassword && documento != null && !documento.isBlank()) {
+            cliente.setUsername(documento.trim());
+            cliente.setPasswordHash("Klam" + documento.trim());
+        }
     }
 
     static void validarFormato(String username, String password) throws BLException {
