@@ -9,6 +9,8 @@ import jakarta.ws.rs.core.Response;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CirugiaBL;
 import pe.edu.pucp.klam.bl.impl.CirugiaBLImpl;
+import pe.edu.pucp.klam.rest.dto.CirugiaResumenDTO;
+import pe.edu.pucp.klam.rest.mapper.CirugiaMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ public class CirugiasResource {
                 return RespuestaRest.badRequest("Indique el tipo de cliente");
             }
 
-            // La BL valida el tipo y el id; la respuesta solo incluye estados de historial.
+            // La BL valida tipo e id; aqui solo se conservan los estados del historial.
             List<Map<String, Object>> filas = cirugiaBL.buscarDetalle(null, null, tipo, idCliente, null, null);
             List<Map<String, Object>> historial = new ArrayList<>();
             for (Map<String, Object> fila : filas) {
@@ -47,7 +49,8 @@ public class CirugiasResource {
                     historial.add(fila);
                 }
             }
-            return RespuestaRest.ok(RespuestaRest.normalizarTodas(historial));
+            List<CirugiaResumenDTO> respuesta = CirugiaMapper.aResumenes(historial);
+            return RespuestaRest.ok(respuesta);
         } catch (BLException ex) {
             return RespuestaRest.badRequest(ex.getMessage());
         }
