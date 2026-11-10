@@ -43,7 +43,6 @@ public final class BandejaMapper {
     }
 
     // Detalle de BandejaInstrumentalBL.consultarDetalle -> DTO
-    @SuppressWarnings("unchecked")
     public static BandejaDTO toDTO(Map<String, Object> detalle) {
         BandejaDTO dto = new BandejaDTO();
         dto.setIdBandeja(((Number) detalle.get("idBandeja")).intValue());
@@ -52,8 +51,9 @@ public final class BandejaMapper {
         dto.setEsterilizado(Boolean.TRUE.equals(detalle.get("esterilizado")));
         dto.setActivo(Boolean.TRUE.equals(detalle.get("activo")));
         Object idCirugia = detalle.get("idCirugia");
-        dto.setIdCirugia(idCirugia instanceof Number n ? n.intValue() : null);
-        for (Map<String, Object> fila : (List<Map<String, Object>>) detalle.get("consumibles")) {
+        dto.setIdCirugia(idCirugia == null ? null : ((Number) idCirugia).intValue());
+        List<Map<String, Object>> filas = (List<Map<String, Object>>) detalle.get("consumibles");
+        for (Map<String, Object> fila : filas) {
             ConsumibleBandejaDTO c = new ConsumibleBandejaDTO();
             c.setIdConsumible(((Number) fila.get("idConsumible")).intValue());
             c.setNombreComercial((String) fila.get("nombreComercial"));
