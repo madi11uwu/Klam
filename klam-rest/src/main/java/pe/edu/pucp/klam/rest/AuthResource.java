@@ -1,6 +1,8 @@
 package pe.edu.pucp.klam.rest;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -42,7 +44,8 @@ public class AuthResource {
             return Response.ok(Map.of(
                     "id", usuario.getIdUsuario(),
                     "userName", usuario.getUsername(),
-                    "rol", usuario.getRol()
+                    "rol", usuario.getRol(),
+                    "token", SesionesActivas.crear(usuario)
             )).build();
 
         } catch (BLException ex) {
@@ -50,5 +53,12 @@ public class AuthResource {
                     .entity(Map.of("error", "Error al autenticar usuario"))
                     .build();
         }
+    }
+
+    /** Cierra la sesión: invalida el token en el servidor. */
+    @DELETE
+    public Response logout(@HeaderParam("Authorization") String authorization) {
+        SesionesActivas.cerrar(authorization);
+        return Response.noContent().build();
     }
 }

@@ -111,8 +111,11 @@ CREATE TABLE IF NOT EXISTS `clinica_hospital` (
                 `ruc` CHAR(11) NOT NULL,
                 `tiene_consignacion` TINYINT(1) NOT NULL DEFAULT 0,
                 `periodo_credito` VARCHAR(30) NULL,
+                `username` VARCHAR(50) NULL,
+                `password_hash` VARCHAR(255) NULL,
                 PRIMARY KEY (`id_cliente`),
-                UNIQUE KEY `uq_clinica_ruc` (`ruc`)
+                UNIQUE KEY `uq_clinica_ruc` (`ruc`),
+                UNIQUE KEY `uq_clinica_username` (`username`)
 );
 
 CREATE TABLE IF NOT EXISTS `paciente_particular` (
@@ -124,8 +127,11 @@ CREATE TABLE IF NOT EXISTS `paciente_particular` (
                    `activo` TINYINT(1) NOT NULL DEFAULT 1,
                    `dni` CHAR(8) NOT NULL,
                    `pago_confirmado` TINYINT(1) NOT NULL DEFAULT 0,
+                   `username` VARCHAR(50) NULL,
+                   `password_hash` VARCHAR(255) NULL,
                    PRIMARY KEY (`id_cliente`),
-                   UNIQUE KEY `uq_paciente_dni` (`dni`)
+                   UNIQUE KEY `uq_paciente_dni` (`dni`),
+                   UNIQUE KEY `uq_paciente_username` (`username`)
 );
 
 -- Solicitud de cirugia (RF05, RF07, RF08). No tiene clase Java propia: se maneja
