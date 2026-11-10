@@ -10,10 +10,14 @@ public class PacienteParticular extends Cliente {
         setPagoConfirmado(paciente.isPagoConfirmado());
     }
 
-    public PacienteParticular() {super();}
+    public PacienteParticular() {
+        super();
+        setRol("PACIENTE_PARTICULAR");
+    }
 
     public PacienteParticular(int i, String juanPerez, String s, String mail, String number, String number1, boolean b) {
         super(i,juanPerez,s,mail,number);
+        setRol("PACIENTE_PARTICULAR");
         this.dni=number1;
         this.pagoConfirmado=b;
     }

@@ -103,7 +103,7 @@ public class PacienteParticularDAOImpl extends ClienteDAOImpl<PacienteParticular
 
             String sql =
                     "{call insertar_paciente_particular(" +
-                            "?, ?, ?, ?, ?, ?, ?, ?)}";
+                            "?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
             try (
                     Connection conn =
@@ -147,6 +147,9 @@ public class PacienteParticularDAOImpl extends ClienteDAOImpl<PacienteParticular
                         "p_pago_confirmado",
                         paciente.isPagoConfirmado()
                 );
+
+                cmd.setString("p_username", nullSiVacio(paciente.getUsername()));
+                cmd.setString("p_password_hash", nullSiVacio(paciente.getPasswordHash()));
 
                 cmd.registerOutParameter(
                         "p_id",
@@ -280,5 +283,37 @@ public class PacienteParticularDAOImpl extends ClienteDAOImpl<PacienteParticular
             );
             return paciente;
         }
-}
 
+    @Override
+    public PacienteParticular findByUsername(String username) throws SQLException {
+        if (username == null) {
+            throw new IllegalArgumentException("El username no puede ser nulo");
+        }
+        String sql = "{call buscar_paciente_particular_por_username(?)}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall(sql)) {
+            cmd.setString("p_username", username);
+            try (ResultSet rs = cmd.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+                PacienteParticular cliente = mapear(rs, new PacienteParticular());
+                cliente.setUsername(rs.getString("username"));
+                cliente.setPasswordHash(rs.getString("password_hash"));
+                return cliente;
+            }
+        }
+    }
+
+    @Override
+    public void asignarCredenciales(int id, String username, String passwordHash) throws SQLException {
+        String sql = "{call asignar_credenciales_paciente_particular(?, ?, ?)}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall(sql)) {
+            cmd.setInt("p_id", id);
+            cmd.setString("p_username", nullSiVacio(username));
+            cmd.setString("p_password_hash", passwordHash);
+            cmd.executeUpdate();
+        }
+    }
+}
