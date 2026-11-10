@@ -46,6 +46,20 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
         }
     }
 
+    /** Usuario y contraseña obligatorios; el usuario no puede repetirse entre clínicas ni pacientes. */
+    private void validarCredenciales(ClinicaHospital cliente) throws BLException {
+        CredencialesCliente.validarFormato(cliente.getUsername(), cliente.getPasswordHash());
+        String username = cliente.getUsername().trim();
+        try {
+            if (clinicaHospitalDAO.findByUsername(username) != null
+                    || new pe.edu.pucp.klam.dao.impl.PacienteParticularDAOImpl().findByUsername(username) != null) {
+                throw new BLException("Ya existe un usuario con el nombre " + username);
+            }
+        } catch (SQLException e) {
+            throw new BLException("No se pudo verificar la unicidad del usuario", e);
+        }
+    }
+
     @Override
     public List<ClinicaHospital> findAll() throws BLException {
         try {
@@ -69,6 +83,7 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
     public void insert(ClinicaHospital cliente) throws BLException {
         validarDatos(cliente);
         validarDocumentoUnico(cliente, false);
+        validarCredenciales(cliente);
         try {
             clinicaHospitalDAO.insert(cliente);
         } catch (SQLException e) {
@@ -133,6 +148,27 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
     public void validarId(Integer id) throws BLException {
         if (id == null || id <= 0) {
             throw new BLException("El id debe ser un número positivo");
+        }
+    }
+
+    @Override
+    public ClinicaHospital findByUsername(String username) throws BLException {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
+        try {
+            return clinicaHospitalDAO.findByUsername(username.trim());
+        } catch (SQLException e) {
+            throw new BLException("No se pudo buscar el usuario", e);
+        }
+    }
+
+    @Override
+    public void guardarPasswordHash(int id, String username, String passwordHash) throws BLException {
+        try {
+            clinicaHospitalDAO.asignarCredenciales(id, username, passwordHash);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo actualizar la contraseña", e);
         }
     }
 }

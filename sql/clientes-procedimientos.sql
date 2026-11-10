@@ -30,14 +30,16 @@ CREATE PROCEDURE insertar_clinica_hospital(
     IN  p_ruc CHAR(11),
     IN  p_tiene_consignacion TINYINT,
     IN  p_periodo_credito VARCHAR(30),
-    IN  p_activo TINYINT
+    IN  p_activo TINYINT,
+    IN  p_username VARCHAR(50),
+    IN  p_password_hash VARCHAR(255)
 )
 BEGIN
     -- id_cliente no es AUTO_INCREMENT: se genera el siguiente id
     SELECT COALESCE(MAX(id_cliente), 0) + 1 INTO p_id FROM clinica_hospital;
 
-    INSERT INTO clinica_hospital (id_cliente, nombre, direccion, email_contacto, telefono, ruc, tiene_consignacion, periodo_credito, activo)
-    VALUES (p_id, p_nombre, p_direccion, p_email_contacto, p_telefono, p_ruc, p_tiene_consignacion, p_periodo_credito, p_activo);
+    INSERT INTO clinica_hospital (id_cliente, nombre, direccion, email_contacto, telefono, ruc, tiene_consignacion, periodo_credito, activo, username, password_hash)
+    VALUES (p_id, p_nombre, p_direccion, p_email_contacto, p_telefono, p_ruc, p_tiene_consignacion, p_periodo_credito, p_activo, p_username, p_password_hash);
 END$$
 
 CREATE PROCEDURE modificar_clinica_hospital(
@@ -116,14 +118,16 @@ CREATE PROCEDURE insertar_paciente_particular(
     IN  p_telefono VARCHAR(20),
     IN  p_dni CHAR(8),
     IN  p_pago_confirmado TINYINT,
-    IN  p_activo TINYINT
+    IN  p_activo TINYINT,
+    IN  p_username VARCHAR(50),
+    IN  p_password_hash VARCHAR(255)
 )
 BEGIN
     -- id_cliente no es AUTO_INCREMENT: se genera el siguiente id
     SELECT COALESCE(MAX(id_cliente), 0) + 1 INTO p_id FROM paciente_particular;
 
-    INSERT INTO paciente_particular (id_cliente, nombre, direccion, email_contacto, telefono, dni, pago_confirmado, activo)
-    VALUES (p_id, p_nombre, p_direccion, p_email_contacto, p_telefono, p_dni, p_pago_confirmado, p_activo);
+    INSERT INTO paciente_particular (id_cliente, nombre, direccion, email_contacto, telefono, dni, pago_confirmado, activo, username, password_hash)
+    VALUES (p_id, p_nombre, p_direccion, p_email_contacto, p_telefono, p_dni, p_pago_confirmado, p_activo, p_username, p_password_hash);
 END$$
 
 CREATE PROCEDURE modificar_paciente_particular(

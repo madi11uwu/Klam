@@ -98,7 +98,7 @@ public class ClinicaHospitalDAOImpl extends ClienteDAOImpl<ClinicaHospital> impl
             );
         }
 
-        String sql ="{call insertar_clinica_hospital(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql ="{call insertar_clinica_hospital(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (
                 Connection conn =DBManager.getInstance().getConnection();
@@ -121,6 +121,8 @@ public class ClinicaHospitalDAOImpl extends ClienteDAOImpl<ClinicaHospital> impl
             cmd.setString("p_ruc",clinica.getRuc());
             cmd.setBoolean("p_tiene_consignacion",clinica.isTieneConsignacion());
             cmd.setString("p_periodo_credito",clinica.getPeriodoCredito());
+            cmd.setString("p_username", nullSiVacio(clinica.getUsername()));
+            cmd.setString("p_password_hash", nullSiVacio(clinica.getPasswordHash()));
             cmd.registerOutParameter("p_id", Types.INTEGER);
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException(
@@ -255,5 +257,38 @@ public class ClinicaHospitalDAOImpl extends ClienteDAOImpl<ClinicaHospital> impl
         );
 
         return clinica;
+    }
+
+    @Override
+    public ClinicaHospital findByUsername(String username) throws SQLException {
+        if (username == null) {
+            throw new IllegalArgumentException("El username no puede ser nulo");
+        }
+        String sql = "{call buscar_clinica_hospital_por_username(?)}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall(sql)) {
+            cmd.setString("p_username", username);
+            try (ResultSet rs = cmd.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+                ClinicaHospital cliente = mapear(rs, new ClinicaHospital());
+                cliente.setUsername(rs.getString("username"));
+                cliente.setPasswordHash(rs.getString("password_hash"));
+                return cliente;
+            }
+        }
+    }
+
+    @Override
+    public void asignarCredenciales(int id, String username, String passwordHash) throws SQLException {
+        String sql = "{call asignar_credenciales_clinica_hospital(?, ?, ?)}";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall(sql)) {
+            cmd.setInt("p_id", id);
+            cmd.setString("p_username", nullSiVacio(username));
+            cmd.setString("p_password_hash", passwordHash);
+            cmd.executeUpdate();
+        }
     }
 }
