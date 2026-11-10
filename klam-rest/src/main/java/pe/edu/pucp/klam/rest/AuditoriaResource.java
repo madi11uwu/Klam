@@ -10,6 +10,9 @@ import jakarta.ws.rs.core.Response;
 import pe.edu.pucp.klam.bl.AuditoriaCirugiaBL;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.impl.AuditoriaCirugiaBLImpl;
+import pe.edu.pucp.klam.rest.dto.AuditoriaCirugiaDTO;
+import pe.edu.pucp.klam.rest.dto.AuditoriaCirugiaDetalleDTO;
+import pe.edu.pucp.klam.rest.mapper.AuditoriaCirugiaMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +41,8 @@ public class AuditoriaResource {
                     fin,
                     RespuestaRest.vacioANull(accion),
                     RespuestaRest.vacioANull(responsable));
-            return RespuestaRest.ok(RespuestaRest.normalizarTodas(filas));
+            List<AuditoriaCirugiaDTO> respuesta = AuditoriaCirugiaMapper.aDTOs(filas);
+            return RespuestaRest.ok(respuesta);
         } catch (BLException ex) {
             return RespuestaRest.badRequest(ex.getMessage());
         }
@@ -56,9 +60,9 @@ public class AuditoriaResource {
             if (entrada == null) {
                 return RespuestaRest.notFound("Entrada de bitácora no encontrada");
             }
-            Map<String, Object> salida = RespuestaRest.normalizar(entrada);
-            salida.put("cambios", auditoriaBL.obtenerDetalleBitacora(id));
-            return RespuestaRest.ok(salida);
+            List<Map<String, Object>> cambios = auditoriaBL.obtenerDetalleBitacora(id);
+            AuditoriaCirugiaDetalleDTO respuesta = AuditoriaCirugiaMapper.aDetalle(entrada, cambios);
+            return RespuestaRest.ok(respuesta);
         } catch (BLException ex) {
             return RespuestaRest.badRequest(ex.getMessage());
         }

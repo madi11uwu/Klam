@@ -1,28 +1,17 @@
-
 package pe.edu.pucp.klam.rest;
 
 import jakarta.ws.rs.core.Response;
 import pe.edu.pucp.klam.bl.BLException;
+import pe.edu.pucp.klam.rest.dto.ErrorDTO;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
-/**
- * Utilidades compartidas por los recursos REST del Rol 2: respuestas HTTP
- * estandarizadas, parseo de parametros opcionales y formato ISO-8601.
- */
+/** Respuestas HTTP estandarizadas y parseo de parametros opcionales de los recursos REST. */
 public final class RespuestaRest {
 
     private static final String MENSAJE_GENERICO = "Error interno del servidor";
-    private static final DateTimeFormatter FORMATO_ISO =
-            DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss");
 
     private RespuestaRest() {
     }
@@ -39,10 +28,9 @@ public final class RespuestaRest {
         return error(Response.Status.NOT_FOUND, mensaje);
     }
 
-    /** Cuerpo de error uniforme: {"error": "mensaje"}. */
     public static Response error(Response.Status estado, String mensaje) {
         String texto = (mensaje == null || mensaje.isBlank()) ? MENSAJE_GENERICO : mensaje;
-        return Response.status(estado).entity(Map.of("error", texto)).build();
+        return Response.status(estado).entity(new ErrorDTO(texto)).build();
     }
 
     /** Texto vacio o nulo equivale a null (sin filtrar). */
@@ -88,37 +76,5 @@ public final class RespuestaRest {
             throw new BLException("Formato de " + campo
                     + " no válido (use AAAA-MM-DD o AAAA-MM-DDTHH:mm:ss)", e);
         }
-    }
-
-    /** Fecha-hora en ISO-8601 con segundos (AAAA-MM-DDTHH:mm:ss). */
-    public static String aIso(LocalDateTime fechaHora) {
-        return fechaHora == null ? null : fechaHora.format(FORMATO_ISO);
-    }
-
-    /** Copia de una fila JDBC con las fechas convertidas a texto ISO-8601. */
-    public static Map<String, Object> normalizar(Map<String, Object> fila) {
-        Map<String, Object> salida = new LinkedHashMap<>();
-        for (Map.Entry<String, Object> entrada : fila.entrySet()) {
-            salida.put(entrada.getKey(), aTexto(entrada.getValue()));
-        }
-        return salida;
-    }
-
-    public static List<Map<String, Object>> normalizarTodas(List<Map<String, Object>> filas) {
-        List<Map<String, Object>> salida = new ArrayList<>(filas.size());
-        for (Map<String, Object> fila : filas) {
-            salida.add(normalizar(fila));
-        }
-        return salida;
-    }
-
-    private static Object aTexto(Object valor) {
-        if (valor instanceof Timestamp ts) {
-            return aIso(ts.toLocalDateTime());
-        }
-        if (valor instanceof LocalDateTime ldt) {
-            return aIso(ldt);
-        }
-        return valor;
     }
 }
