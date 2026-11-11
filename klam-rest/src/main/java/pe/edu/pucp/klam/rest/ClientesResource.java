@@ -6,6 +6,9 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Locale;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.ClinicaHospitalBL;
 import pe.edu.pucp.klam.bl.PacienteParticularBL;
@@ -13,6 +16,8 @@ import pe.edu.pucp.klam.bl.impl.ClinicaHospitalBLImpl;
 import pe.edu.pucp.klam.bl.impl.PacienteParticularBLImpl;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
+import pe.edu.pucp.klam.modelo.clientes.Cliente;
+import pe.edu.pucp.klam.rest.mapper.ClienteMapper;
 import pe.edu.pucp.klam.bl.UsuarioPlataformaBL;
 import pe.edu.pucp.klam.bl.impl.UsuarioPlataformaBLImpl;
 
@@ -23,6 +28,36 @@ public class ClientesResource {
     private final PacienteParticularBL pacientes = new PacienteParticularBLImpl();
     private final ClinicaHospitalBL clinicas = new ClinicaHospitalBLImpl();
     @Context private HttpHeaders headers;
+
+    @GET
+    public Response listar(@QueryParam("tipoCliente") String tipoCliente) {
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        String rol = sesion.rol();
+        if (!"ADMINISTRADOR".equals(rol) && !"VENDEDOR".equals(rol))
+            return error(Response.Status.FORBIDDEN, "No tiene permisos para consultar clientes");
+        String tipo = tipoCliente == null || tipoCliente.isBlank()
+                ? null : tipoCliente.trim().toUpperCase(Locale.ROOT);
+        if (tipo != null && !ClienteMapper.TIPO_CLINICA.equals(tipo)
+                && !ClienteMapper.TIPO_PARTICULAR.equals(tipo))
+            return error(Response.Status.BAD_REQUEST, "Tipo de cliente no válido: " + tipoCliente);
+        try {
+            Comparator<Cliente> porNombre = Comparator.comparing(
+                    c -> c.getNombre() == null ? "" : c.getNombre(), String.CASE_INSENSITIVE_ORDER);
+            List<Cliente> clientes = new ArrayList<>();
+            if (tipo == null || ClienteMapper.TIPO_CLINICA.equals(tipo)) {
+                List<Cliente> lista = new ArrayList<>(clinicas.findAll());
+                lista.sort(porNombre);
+                clientes.addAll(lista);
+            }
+            if (tipo == null || ClienteMapper.TIPO_PARTICULAR.equals(tipo)) {
+                List<Cliente> lista = new ArrayList<>(pacientes.findAll());
+                lista.sort(porNombre);
+                clientes.addAll(lista);
+            }
+            return Response.ok(ClienteMapper.toDTOs(clientes)).build();
+        } catch (BLException e) { return fallo(e); }
+    }
 
     @GET @Path("/particulares")
     public Response buscarParticular(@QueryParam("dni") String dni) {
