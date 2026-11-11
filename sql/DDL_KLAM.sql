@@ -111,11 +111,8 @@ CREATE TABLE IF NOT EXISTS `clinica_hospital` (
                 `ruc` CHAR(11) NOT NULL,
                 `tiene_consignacion` TINYINT(1) NOT NULL DEFAULT 0,
                 `periodo_credito` VARCHAR(30) NULL,
-                `username` VARCHAR(50) NULL,
-                `password_hash` VARCHAR(255) NULL,
                 PRIMARY KEY (`id_cliente`),
-                UNIQUE KEY `uq_clinica_ruc` (`ruc`),
-                UNIQUE KEY `uq_clinica_username` (`username`)
+                UNIQUE KEY `uq_clinica_ruc` (`ruc`)
 );
 
 CREATE TABLE IF NOT EXISTS `paciente_particular` (
@@ -127,16 +124,36 @@ CREATE TABLE IF NOT EXISTS `paciente_particular` (
                    `activo` TINYINT(1) NOT NULL DEFAULT 1,
                    `dni` CHAR(8) NOT NULL,
                    `pago_confirmado` TINYINT(1) NOT NULL DEFAULT 0,
-                   `username` VARCHAR(50) NULL,
-                   `password_hash` VARCHAR(255) NULL,
                    PRIMARY KEY (`id_cliente`),
-                   UNIQUE KEY `uq_paciente_dni` (`dni`),
-                   UNIQUE KEY `uq_paciente_username` (`username`)
+                   UNIQUE KEY `uq_paciente_dni` (`dni`)
 );
 
--- Solicitud de cirugia (RF05, RF07, RF08). No tiene clase Java propia: se maneja
--- desde CirugiaBL/CirugiaDAO. El solicitante es una clinica/hospital O un paciente
--- particular (los ids de ambas tablas se solapan, por eso hay dos columnas).
+-- Cuenta de acceso independiente del registro comercial del cliente (RF05).
+CREATE TABLE IF NOT EXISTS `cuenta_usuario` (
+    `id_usuario` INT NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(50) NOT NULL,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(120) NULL,
+    `nombres` VARCHAR(150) NULL,
+    `apellidos` VARCHAR(100) NULL,
+    `activo` TINYINT(1) NOT NULL DEFAULT 1,
+    `id_paciente` INT NULL,
+    `id_clinica` INT NULL,
+    PRIMARY KEY (`id_usuario`),
+    UNIQUE KEY `uq_cuenta_username` (`username`),
+    KEY `idx_cuenta_paciente` (`id_paciente`),
+    KEY `idx_cuenta_clinica` (`id_clinica`),
+    CONSTRAINT `fk_cuenta_paciente` FOREIGN KEY (`id_paciente`)
+        REFERENCES `paciente_particular` (`id_cliente`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_cuenta_clinica` FOREIGN KEY (`id_clinica`)
+        REFERENCES `clinica_hospital` (`id_cliente`) ON DELETE RESTRICT,
+    CONSTRAINT `chk_cuenta_un_cliente` CHECK
+        ((`id_paciente` IS NOT NULL AND `id_clinica` IS NULL)
+         OR (`id_paciente` IS NULL AND `id_clinica` IS NOT NULL))
+);
+
+-- Solicitud de cirugía (RF05, RF07, RF08). El solicitante es una clínica/hospital
+-- o un paciente particular; la cirugía y el vendedor registrador son relaciones distintas.
 CREATE TABLE IF NOT EXISTS `solicitud_cirugia` (
        `id_solicitud` INT NOT NULL AUTO_INCREMENT,
        `id_clinica_solicitante` INT NULL,

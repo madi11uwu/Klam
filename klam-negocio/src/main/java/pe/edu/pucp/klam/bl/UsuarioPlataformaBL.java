@@ -13,4 +13,6 @@ public interface UsuarioPlataformaBL {
      * política (8 a 64 caracteres, al menos una letra y un número, sin espacios) y que sea distinta.
      */
     void cambiarPassword(String username, String passwordActual, String passwordNueva) throws BLException;
+
+    int habilitarCuentaCliente(String tipo, int idCliente, String username, String password) throws BLException;
 }

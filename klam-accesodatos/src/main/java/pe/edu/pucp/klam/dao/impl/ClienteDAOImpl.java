@@ -15,9 +15,4 @@ public abstract class ClienteDAOImpl<T extends Cliente> {
         cliente.setActivo(rs.getBoolean("activo"));
         return cliente;
     }
-
-    /** Un username vacío se guarda como NULL (la columna es UNIQUE y admite varios NULL). */
-    protected static String nullSiVacio(String valor) {
-        return valor == null || valor.isBlank() ? null : valor.trim();
-    }
 }

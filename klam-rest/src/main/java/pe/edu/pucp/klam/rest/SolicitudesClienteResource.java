@@ -89,15 +89,18 @@ public class SolicitudesClienteResource {
         if (sesion == null) {
             return Errores.error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
         }
-        boolean esCliente = "CLINICA_HOSPITAL".equals(sesion.rol()) || "PACIENTE_PARTICULAR".equals(sesion.rol());
+        boolean esCliente = sesion.idCliente() != null && sesion.idCliente() > 0
+                && sesion.rol().equals(sesion.tipoCliente())
+                && ("CLINICA_HOSPITAL".equals(sesion.rol())
+                    || "PACIENTE_PARTICULAR".equals(sesion.rol()));
         return esCliente ? null
                 : Errores.error(Response.Status.FORBIDDEN, "Esta opción es solo para clientes");
     }
 
-    /** El id de la sesión es el id del cliente (los ids de clínica y paciente se distinguen por el rol). */
+    /** La cuenta autenticada conserva una vinculación comprobada con el cliente comercial. */
     private static Cliente clienteDe(SesionesRest.Sesion sesion) {
         Cliente cliente = "CLINICA_HOSPITAL".equals(sesion.rol()) ? new ClinicaHospital() : new PacienteParticular();
-        cliente.setIdCliente(sesion.idUsuario());
+        cliente.setIdCliente(sesion.idCliente());
         return cliente;
     }
 }

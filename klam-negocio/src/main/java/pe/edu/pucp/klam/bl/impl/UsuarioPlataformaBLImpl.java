@@ -1,6 +1,11 @@
 package pe.edu.pucp.klam.bl.impl;
 
 import pe.edu.pucp.klam.bl.*;
+import java.sql.SQLException;
+import pe.edu.pucp.klam.dao.CuentaUsuarioDAO;
+import pe.edu.pucp.klam.dao.impl.CuentaUsuarioDAOImpl;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario;
+import pe.edu.pucp.klam.modelo.clientes.Cliente;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
@@ -17,10 +22,7 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
 
     private final TecnicoInstrumentistaBL tecnicoBL =
             new TecnicoInstrumentistaBLImpl();
-    private final ClinicaHospitalBL clinicaBL =
-            new ClinicaHospitalBLImpl();
-    private final PacienteParticularBL pacienteBL =
-            new PacienteParticularBLImpl();
+    private final CuentaUsuarioDAO cuentaDAO = new CuentaUsuarioDAOImpl();
     @Override
     public UsuarioPlataforma autenticar(
             String username,
@@ -44,15 +46,23 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
             usuario = tecnicoBL.findByUsername(username);
         }
 
-        // Los clientes también son usuarios de la plataforma (RF01)
         if (usuario == null) {
-            usuario = clinicaBL.findByUsername(username);
+            try {
+                usuario = cuentaDAO.findByUsername(username);
+            } catch (SQLException ex) {
+                throw new BLException("No se pudo consultar la cuenta", ex);
+            }
         }
 
-        if (usuario == null) {
-            usuario = pacienteBL.findByUsername(username);
+        if (usuario instanceof CuentaUsuario cuenta) {
+            Cliente vinculado = cuenta.getCliente();
+            Cliente cliente = vinculado instanceof PacienteParticular
+                    ? new PacienteParticularBLImpl().findById(vinculado.getIdCliente())
+                    : vinculado instanceof ClinicaHospital
+                      ? new ClinicaHospitalBLImpl().findById(vinculado.getIdCliente()) : null;
+            if (cliente == null || !cliente.isActivo()) return null;
+            cuenta.setCliente(cliente);
         }
-
         if (usuario == null || !usuario.isActivo()) {
             return null;
         }
@@ -84,12 +94,56 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
         } else if (usuario instanceof TecnicoInstrumentista t) {
             t.setPasswordHash(passwordNueva);
             tecnicoBL.update(t);
-        } else if (usuario instanceof ClinicaHospital c) {
-            clinicaBL.guardarPasswordHash(c.getIdCliente(), c.getUsername(), passwordNueva);
-        } else if (usuario instanceof PacienteParticular p) {
-            pacienteBL.guardarPasswordHash(p.getIdCliente(), p.getUsername(), passwordNueva);
+        } else if (usuario instanceof CuentaUsuario cuenta) {
+            try {
+                cuentaDAO.cambiarPassword(cuenta.getIdUsuario(), passwordNueva);
+            } catch (SQLException ex) {
+                throw new BLException("No se pudo actualizar la cuenta", ex);
+            }
         } else {
             throw new BLException("Tipo de usuario no soportado");
+        }
+    }
+    @Override
+    public int habilitarCuentaCliente(String tipo, int idCliente, String username, String password)
+            throws BLException {
+        if (idCliente <= 0 || username == null || username.isBlank() || username.trim().length() > 50) {
+            throw new BLException("Cliente y nombre de usuario obligatorios");
+        }
+        Contrasenas.validarFormato(password);
+        String nombreUsuario = username.trim();
+        if (administradorBL.findByUsername(nombreUsuario) != null
+                || vendedorBL.findByUsername(nombreUsuario) != null
+                || tecnicoBL.findByUsername(nombreUsuario) != null) {
+            throw new BLException("El nombre de usuario ya está registrado");
+        }
+        try {
+            if (cuentaDAO.findByUsername(nombreUsuario) != null) {
+                throw new BLException("El nombre de usuario ya está registrado");
+            }
+            Cliente cliente;
+            if ("PACIENTE_PARTICULAR".equals(tipo)) {
+                cliente = new PacienteParticularBLImpl().findById(idCliente);
+            } else if ("CLINICA_HOSPITAL".equals(tipo)) {
+                cliente = new ClinicaHospitalBLImpl().findById(idCliente);
+            } else {
+                throw new BLException("Tipo de cliente inválido");
+            }
+            if (cliente == null || !cliente.isActivo()) {
+                throw new BLException("El cliente no existe o está inactivo");
+            }
+            CuentaUsuario cuenta = new CuentaUsuario();
+            cuenta.setCliente(cliente);
+            cuenta.setUsername(nombreUsuario);
+            cuenta.setPasswordHash(password);
+            cuenta.setEmail(cliente.getEmailContacto());
+            cuenta.setNombres(cliente.getNombre());
+            cuenta.setApellidos("");
+            cuenta.setActivo(true);
+            cuentaDAO.insert(cuenta);
+            return cuenta.getIdUsuario();
+        } catch (SQLException ex) {
+            throw new BLException("No se pudo habilitar la cuenta del cliente", ex);
         }
     }
 }

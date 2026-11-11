@@ -16,11 +16,9 @@ public class ClinicaHospital extends Cliente {
     }
     public ClinicaHospital () {
         super();
-        setRol("CLINICA_HOSPITAL");
     }
     public ClinicaHospital(int id, String clinicaDelgado, String s1, String mail, String number, String number1, boolean b, String s2) {
         super(id,clinicaDelgado,s1,mail,number);
-        setRol("CLINICA_HOSPITAL");
         this.ruc=number1;
         this.periodoCredito=s2;
         this.tieneConsignacion=b;

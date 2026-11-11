@@ -1,63 +1,25 @@
--- =========================================================
--- CREDENCIALES (RF01): todo cliente es un usuario de la plataforma + cuentas de demostración del personal
--- Ejecutar DESPUES de DDL_KLAM.sql / clientes-procedimientos.sql / DML_KLAM.sql.
--- =========================================================
-USE `klam`;
-
--- Solo si la base YA existía sin estas columnas (con DDL_KLAM.sql actualizado no hace falta).
--- MySQL no admite ADD COLUMN IF NOT EXISTS: ejecutar una sola vez.
--- ALTER TABLE clinica_hospital   ADD COLUMN username VARCHAR(50) NULL, ADD COLUMN password_hash VARCHAR(255) NULL, ADD UNIQUE KEY uq_clinica_username (username);
--- ALTER TABLE paciente_particular ADD COLUMN username VARCHAR(50) NULL, ADD COLUMN password_hash VARCHAR(255) NULL, ADD UNIQUE KEY uq_paciente_username (username);
-
-DROP PROCEDURE IF EXISTS buscar_clinica_hospital_por_username;
-DROP PROCEDURE IF EXISTS buscar_paciente_particular_por_username;
-DROP PROCEDURE IF EXISTS asignar_credenciales_clinica_hospital;
-DROP PROCEDURE IF EXISTS asignar_credenciales_paciente_particular;
-
-DELIMITER $$
-
--- Mismas columnas que buscar_*_por_id, más username y password_hash
-CREATE PROCEDURE buscar_clinica_hospital_por_username(IN p_username VARCHAR(50))
-BEGIN
-    SELECT id_cliente, nombre, direccion, email_contacto,
-           telefono, ruc, tiene_consignacion, periodo_credito,
-           activo, username, password_hash
-      FROM clinica_hospital
-     WHERE username = p_username;
-END$$
-
-CREATE PROCEDURE buscar_paciente_particular_por_username(IN p_username VARCHAR(50))
-BEGIN
-    SELECT id_cliente, nombre, direccion, email_contacto,
-           telefono, dni, pago_confirmado,
-           activo, username, password_hash
-      FROM paciente_particular
-     WHERE username = p_username;
-END$$
-
-CREATE PROCEDURE asignar_credenciales_clinica_hospital(
-    IN p_id INT, IN p_username VARCHAR(50), IN p_password_hash VARCHAR(255))
-BEGIN
-    UPDATE clinica_hospital SET username = p_username, password_hash = p_password_hash
-     WHERE id_cliente = p_id;
-END$$
-
-CREATE PROCEDURE asignar_credenciales_paciente_particular(
-    IN p_id INT, IN p_username VARCHAR(50), IN p_password_hash VARCHAR(255))
-BEGIN
-    UPDATE paciente_particular SET username = p_username, password_hash = p_password_hash
-     WHERE id_cliente = p_id;
-END$$
-
-DELIMITER ;
-
--- Usuarios de demostración (contraseña = texto plano, igual que administrador/vendedor/técnico hoy)
-UPDATE paciente_particular SET username = 'juan.perez',   password_hash = 'cliente123' WHERE id_cliente = 1;
-UPDATE clinica_hospital    SET username = 'sanfelipe',    password_hash = 'cliente123' WHERE id_cliente = 2;
-UPDATE clinica_hospital    SET username = 'dosdemayo',    password_hash = 'cliente123' WHERE id_cliente = 3;
-
--- Cuentas de demostración del personal: el DML trae contraseñas de relleno ("2y10$examplehash...") con las
--- que no se puede ingresar. Todas las contraseñas del sistema se guardan en texto plano (columna password_hash).
-UPDATE administrador          SET password_hash = 'admin12345'    WHERE username = 'admin.rojas';
-UPDATE vendedor               SET password_hash = 'vendedor123'   WHERE username IN ('vend.torres', 'vend.quispe');
-UPDATE tecnico_instrumentista SET password_hash = 'tecnico123'    WHERE username IN ('tec.fernandez', 'tec.salazar');
+-- Migración incremental RF05: cuentas de acceso separadas de los clientes comerciales.
+-- Ejecutar una sola vez después de verificar que DDL_KLAM.sql base ya existe.
+-- No asigna cuentas a clientes anteriores ni cambia contraseñas del personal.
+CREATE TABLE IF NOT EXISTS `cuenta_usuario` (
+    `id_usuario` INT NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(50) NOT NULL,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(120) NULL,
+    `nombres` VARCHAR(150) NULL,
+    `apellidos` VARCHAR(100) NULL,
+    `activo` TINYINT(1) NOT NULL DEFAULT 1,
+    `id_paciente` INT NULL,
+    `id_clinica` INT NULL,
+    PRIMARY KEY (`id_usuario`),
+    UNIQUE KEY `uq_cuenta_username` (`username`),
+    KEY `idx_cuenta_paciente` (`id_paciente`),
+    KEY `idx_cuenta_clinica` (`id_clinica`),
+    CONSTRAINT `fk_cuenta_paciente` FOREIGN KEY (`id_paciente`)
+        REFERENCES `paciente_particular` (`id_cliente`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_cuenta_clinica` FOREIGN KEY (`id_clinica`)
+        REFERENCES `clinica_hospital` (`id_cliente`) ON DELETE RESTRICT,
+    CONSTRAINT `chk_cuenta_un_cliente` CHECK
+        ((`id_paciente` IS NOT NULL AND `id_clinica` IS NULL)
+         OR (`id_paciente` IS NULL AND `id_clinica` IS NOT NULL))
+);
