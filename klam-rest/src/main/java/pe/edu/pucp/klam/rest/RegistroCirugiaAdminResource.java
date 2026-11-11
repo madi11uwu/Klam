@@ -20,8 +20,7 @@ import java.util.Map;
 
 /**
  * RF09: el ADMINISTRADOR registra una cirugía (POST /admin/cirugias).
- * Solo administrador (verificado en el servidor con la sesión de /login) y el responsable de la auditoría es
- * ese administrador. Ruta propia: el CRUD completo de cirugías (RF02) vive en /cirugias.
+ * El rol lo controla Blazor; el responsable de la auditoría llega como ?responsable=usuario. Ruta propia: el CRUD completo de cirugías (RF02) vive en /cirugias.
  */
 @Path("/admin/cirugias")
 @Produces(MediaType.APPLICATION_JSON)
@@ -31,14 +30,7 @@ public class RegistroCirugiaAdminResource {
     private final CirugiaBL cirugiaBL = new CirugiaBLImpl();
 
     @POST
-    public Response registrar(@HeaderParam("Authorization") String authorization, RegistroCirugiaAdminDTO datos) {
-        SesionesRest.Sesion sesion = SesionesRest.validar(authorization);
-        if (sesion == null) {
-            return Errores.error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
-        }
-        if (!"ADMINISTRADOR".equals(sesion.rol())) {
-            return Errores.error(Response.Status.FORBIDDEN, "No tiene permisos de administrador");
-        }
+    public Response registrar(@QueryParam("responsable") String responsable, RegistroCirugiaAdminDTO datos) {
         if (datos == null) {
             return Errores.error(Response.Status.BAD_REQUEST, "El cuerpo de la cirugía es obligatorio");
         }
@@ -57,7 +49,7 @@ public class RegistroCirugiaAdminResource {
                 equipo.setIdEquipo(datos.getIdEquipo());
                 cirugia.setEquipo(equipo);
             }
-            cirugiaBL.registrar(cirugia, sesion.username());
+            cirugiaBL.registrar(cirugia, responsable);
             return Response.created(URI.create("/cirugias/" + cirugia.getIdCirugia()))
                     .entity(Map.of("idCirugia", cirugia.getIdCirugia(), "estado", cirugia.getEstado().name()))
                     .build();

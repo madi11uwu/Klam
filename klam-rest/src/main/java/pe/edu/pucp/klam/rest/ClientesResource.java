@@ -1,10 +1,9 @@
 package pe.edu.pucp.klam.rest;
 
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,15 +26,9 @@ import pe.edu.pucp.klam.bl.impl.UsuarioPlataformaBLImpl;
 public class ClientesResource {
     private final PacienteParticularBL pacientes = new PacienteParticularBLImpl();
     private final ClinicaHospitalBL clinicas = new ClinicaHospitalBLImpl();
-    @Context private HttpHeaders headers;
 
     @GET
     public Response listar(@QueryParam("tipoCliente") String tipoCliente) {
-        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
-        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
-        String rol = sesion.rol();
-        if (!"ADMINISTRADOR".equals(rol) && !"VENDEDOR".equals(rol))
-            return error(Response.Status.FORBIDDEN, "No tiene permisos para consultar clientes");
         String tipo = tipoCliente == null || tipoCliente.isBlank()
                 ? null : tipoCliente.trim().toUpperCase(Locale.ROOT);
         if (tipo != null && !ClienteMapper.TIPO_CLINICA.equals(tipo)
@@ -61,7 +54,6 @@ public class ClientesResource {
 
     @GET @Path("/particulares")
     public Response buscarParticular(@QueryParam("dni") String dni) {
-        Response acceso = acceso(); if (acceso != null) return acceso;
         try {
             PacienteParticular p = pacientes.findByDNI(dni);
             return p == null ? Response.ok(List.of()).build() : Response.ok(List.of(particular(p))).build();
@@ -70,7 +62,6 @@ public class ClientesResource {
 
     @POST @Path("/particulares")
     public Response registrarParticular(PacienteParticular datos) {
-        Response acceso = acceso(); if (acceso != null) return acceso;
         if (datos == null) return error(Response.Status.BAD_REQUEST, "Datos del paciente obligatorios");
         try {
             if (pacientes.findByDNI(datos.getDni()) != null) return error(Response.Status.CONFLICT, "Ya existe el DNI");
@@ -85,7 +76,6 @@ public class ClientesResource {
 
     @GET @Path("/clinicas")
     public Response buscarClinicas(@QueryParam("ruc") String ruc, @QueryParam("nombre") String nombre) {
-        Response acceso = acceso(); if (acceso != null) return acceso;
         if ((ruc == null) == (nombre == null)) return error(Response.Status.BAD_REQUEST, "Indique RUC o nombre");
         try {
             if (ruc != null) {
@@ -98,7 +88,6 @@ public class ClientesResource {
 
     @POST @Path("/clinicas")
     public Response registrarClinica(ClinicaHospital datos) {
-        Response acceso = acceso(); if (acceso != null) return acceso;
         if (datos == null) return error(Response.Status.BAD_REQUEST, "Datos de la clínica obligatorios");
         try {
             if (clinicas.findByRUC(datos.getRuc()) != null) return error(Response.Status.CONFLICT, "Ya existe el RUC");
@@ -112,11 +101,6 @@ public class ClientesResource {
         } catch (BLException e) { return fallo(e); }
     }
 
-    private Response acceso() {
-        SesionesRest.Sesion s = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
-        if (s == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
-        return "VENDEDOR".equals(s.rol()) ? null : error(Response.Status.FORBIDDEN, "No tiene permisos de vendedor");
-    }
     private Response fallo(BLException e) {
         return error(e.getCause() == null ? Response.Status.BAD_REQUEST : Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
     }
@@ -124,20 +108,26 @@ public class ClientesResource {
         return Response.status(status).entity(Map.of("error", message)).build();
     }
     private Map<String,Object> particular(PacienteParticular p) {
-        return Map.of("idCliente",p.getIdCliente(),"nombre",p.getNombre(),"dni",p.getDni());
+        // HashMap: Map.of no acepta valores nulos (un paciente sin DNI tumbaba la respuesta)
+        Map<String,Object> datos = new HashMap<>();
+        datos.put("idCliente", p.getIdCliente());
+        datos.put("nombre", p.getNombre());
+        datos.put("dni", p.getDni());
+        return datos;
     }
     private Map<String,Object> clinica(ClinicaHospital c) {
-        return Map.of("idCliente",c.getIdCliente(),"nombre",c.getNombre(),"ruc",c.getRuc());
+        Map<String,Object> datos = new HashMap<>();
+        datos.put("idCliente", c.getIdCliente());
+        datos.put("nombre", c.getNombre());
+        datos.put("ruc", c.getRuc());
+        return datos;
     }
     /** Habilita acceso sin volver a registrar al cliente comercial. */
     @POST @Path("/{tipo}/{id}/cuenta")
     public Response habilitarCuenta(@PathParam("tipo") String tipo, @PathParam("id") int id,
                                    Map<String, String> datos) {
-        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
-        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
-        if (!"ADMINISTRADOR".equals(sesion.rol()))
-            return error(Response.Status.FORBIDDEN, "Solo el administrador puede habilitar cuentas");
-        if (datos == null) return error(Response.Status.BAD_REQUEST, "Datos de cuenta obligatorios");
+        if (datos == null || datos.get("userName") == null)
+            return error(Response.Status.BAD_REQUEST, "Datos de cuenta obligatorios");
         try {
             UsuarioPlataformaBL usuarios = new UsuarioPlataformaBLImpl();
             int idCuenta = usuarios.habilitarCuentaCliente(tipo, id,

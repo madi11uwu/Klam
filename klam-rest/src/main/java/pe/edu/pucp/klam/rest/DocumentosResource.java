@@ -1,9 +1,7 @@
 package pe.edu.pucp.klam.rest;
 
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityPart;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -23,6 +21,7 @@ import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
 import pe.edu.pucp.klam.rest.dto.AccionDocumentoDTO;
 
+// Quien opera (idUsuario, rol, responsable) llega desde la sesión de Blazor como parámetros de consulta.
 @Path("/documentos")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -32,15 +31,9 @@ public class DocumentosResource {
     private final SolicitudCirugiaBL solicitudBL = new SolicitudCirugiaBLImpl();
     private final CirugiaBL cirugiaBL = new CirugiaBLImpl();
 
-    @Context
-    private HttpHeaders headers;
-
     @GET
     @Path("/solicitud/{idSolicitud}")
     public Response listarPorSolicitud(@PathParam("idSolicitud") int idSolicitud) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion)) return sinPermiso();
         if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         try {
             if (solicitudBL.findSolicitudById(idSolicitud) == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
@@ -52,14 +45,14 @@ public class DocumentosResource {
 
     @GET
     @Path("/solicitud/{idSolicitud}/propios")
-    public Response listarPropios(@PathParam("idSolicitud") int idSolicitud) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
+    public Response listarPropios(@PathParam("idSolicitud") int idSolicitud,
+                                  @QueryParam("idUsuario") int idUsuario, @QueryParam("rol") String rol) {
         if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
-        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
         try {
             return Response.ok(respuestaDocumentos(documentoBL.listarPresentadosPorUsuario(
-                    idSolicitud, sesion.idUsuario(), sesion.rol()))).build();
+                    idSolicitud, idUsuario, rol))).build();
+        } catch (SecurityException ex) {
+            return error(Response.Status.FORBIDDEN, ex.getMessage());
         } catch (BLException ex) {
             return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -67,13 +60,12 @@ public class DocumentosResource {
 
     @GET
     @Path("/propios")
-    public Response listarPropios() {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
+    public Response listarPropios(@QueryParam("idUsuario") int idUsuario, @QueryParam("rol") String rol) {
         try {
             return Response.ok(respuestaDocumentos(documentoBL.listarPresentadosPorUsuario(
-                    null, sesion.idUsuario(), sesion.rol()))).build();
+                    null, idUsuario, rol))).build();
+        } catch (SecurityException ex) {
+            return error(Response.Status.FORBIDDEN, ex.getMessage());
         } catch (BLException ex) {
             return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -82,9 +74,6 @@ public class DocumentosResource {
     @GET
     @Path("/solicitud/{idSolicitud}/historial")
     public Response consultarHistorial(@PathParam("idSolicitud") int idSolicitud) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion)) return sinPermiso();
         if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         try {
             if (solicitudBL.findSolicitudById(idSolicitud) == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
@@ -97,9 +86,6 @@ public class DocumentosResource {
     @GET
     @Path("/solicitud/{idSolicitud}/verificacion")
     public Response verificarDocumentos(@PathParam("idSolicitud") int idSolicitud) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion)) return sinPermiso();
         if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
         try {
             if (solicitudBL.findSolicitudById(idSolicitud) == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
@@ -112,9 +98,6 @@ public class DocumentosResource {
     @GET
     @Path("/cirugia/{idCirugia}")
     public Response listarPorCirugia(@PathParam("idCirugia") int idCirugia) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion)) return sinPermiso();
         if (idCirugia <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la cirugía no es válido");
         try {
             if (cirugiaBL.findById(idCirugia) == null) return error(Response.Status.NOT_FOUND, "No existe la cirugía");
@@ -128,10 +111,9 @@ public class DocumentosResource {
     @Path("/solicitud/{idSolicitud}/archivo")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response registrarArchivo(@PathParam("idSolicitud") int idSolicitud,
-            @FormParam("tipoDocumento") String tipoTexto, @FormParam("archivo") EntityPart archivo) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
+            @FormParam("tipoDocumento") String tipoTexto, @FormParam("archivo") EntityPart archivo,
+            @QueryParam("idUsuario") int idUsuario, @QueryParam("rol") String rol,
+            @QueryParam("responsable") String responsable) {
         if (idSolicitud <= 0 || tipoTexto == null) return error(Response.Status.BAD_REQUEST, "Solicitud y tipo de documento obligatorios");
         TipoDocumentoIngreso tipo;
         try {
@@ -142,15 +124,15 @@ public class DocumentosResource {
         try {
             var solicitud = solicitudBL.findSolicitudById(idSolicitud);
             if (solicitud == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
-            if ("VENDEDOR".equals(sesion.rol())
+            if ("VENDEDOR".equals(rol)
                     && (solicitud.getVendedorRegistrador() == null
-                    || solicitud.getVendedorRegistrador().getIdUsuario() != sesion.idUsuario())) {
+                    || solicitud.getVendedorRegistrador().getIdUsuario() != idUsuario)) {
                 return error(Response.Status.FORBIDDEN, "El vendedor solo puede adjuntar documentos a sus solicitudes");
             }
             String clave = ArchivoDocumentoStorage.guardar(archivo);
             try {
                 DocumentoIngreso doc = documentoBL.registrarDocumentoSolicitud(idSolicitud, tipo, clave,
-                        sesion.idUsuario(), sesion.rol(), sesion.username());
+                        idUsuario, rol, responsable);
                 return Response.status(Response.Status.CREATED)
                         .entity(Map.of("idDocumento", doc.getIdDocumento(), "version", doc.getVersion())).build();
             } catch (RuntimeException ex) {
@@ -170,14 +152,13 @@ public class DocumentosResource {
 
     @GET
     @Path("/{id}/archivo")
-    public Response descargarArchivo(@PathParam("id") int id) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
+    public Response descargarArchivo(@PathParam("id") int id,
+                                     @QueryParam("idUsuario") int idUsuario, @QueryParam("rol") String rol) {
         if (id <= 0) return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            if (!esAdministrador(sesion) && !documentoBL.esPresentadorOriginal(id, sesion.idUsuario(), sesion.rol())) {
+            if (!"ADMINISTRADOR".equals(rol) && !documentoBL.esPresentadorOriginal(id, idUsuario, rol)) {
                 return error(Response.Status.FORBIDDEN, "No puede consultar este archivo");
             }
             byte[] contenido = ArchivoDocumentoStorage.leer(doc.getArchivoPath());
@@ -196,15 +177,12 @@ public class DocumentosResource {
 
     @POST
     @Path("/{id}/validacion")
-    public Response validarDocumento(@PathParam("id") int id) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion)) return sinPermiso();
+    public Response validarDocumento(@PathParam("id") int id, @QueryParam("responsable") String responsable) {
         if (id <= 0) return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            documentoBL.validarDocumento(id, sesion.username());
+            documentoBL.validarDocumento(id, responsable);
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
@@ -213,10 +191,8 @@ public class DocumentosResource {
 
     @POST
     @Path("/{id}/rechazo")
-    public Response rechazarDocumento(@PathParam("id") int id, AccionDocumentoDTO datos) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion)) return sinPermiso();
+    public Response rechazarDocumento(@PathParam("id") int id, @QueryParam("responsable") String responsable,
+                                      AccionDocumentoDTO datos) {
         if (id <= 0) return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         if (datos == null || datos.getMotivo() == null || datos.getMotivo().isBlank()
                 || datos.getMotivo().length() > 200) {
@@ -225,7 +201,7 @@ public class DocumentosResource {
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            documentoBL.rechazarDocumento(id, datos.getMotivo(), datos.isHabilitarResubida(), sesion.username());
+            documentoBL.rechazarDocumento(id, datos.getMotivo(), datos.isHabilitarResubida(), responsable);
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
@@ -235,18 +211,18 @@ public class DocumentosResource {
     @POST
     @Path("/{id}/resubida")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response resubirDocumento(@PathParam("id") int id, @FormParam("archivo") EntityPart archivo) {
-        SesionesRest.Sesion sesion = sesion();
-        if (sesion == null) return noAutenticado();
+    public Response resubirDocumento(@PathParam("id") int id, @FormParam("archivo") EntityPart archivo,
+                                     @QueryParam("idUsuario") int idUsuario, @QueryParam("rol") String rol,
+                                     @QueryParam("responsable") String responsable) {
         if (id <= 0) return error(Response.Status.BAD_REQUEST, "El ID del documento no es válido");
         try {
             DocumentoIngreso anterior = documentoBL.findById(id);
             if (anterior == null || !anterior.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            documentoBL.verificarResubida(id, sesion.idUsuario(), sesion.rol());
+            documentoBL.verificarResubida(id, idUsuario, rol);
             String clave = ArchivoDocumentoStorage.guardar(archivo);
             try {
                 DocumentoIngreso nuevo = documentoBL.resubirDocumento(id, clave,
-                        sesion.idUsuario(), sesion.rol(), sesion.username());
+                        idUsuario, rol, responsable);
                 return Response.status(Response.Status.CREATED)
                         .entity(Map.of("idDocumento", nuevo.getIdDocumento(), "version", nuevo.getVersion())).build();
             } catch (RuntimeException ex) {
@@ -270,22 +246,6 @@ public class DocumentosResource {
         } catch (IOException limpieza) {
             original.addSuppressed(limpieza);
         }
-    }
-
-    private SesionesRest.Sesion sesion() {
-        return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
-    }
-
-    private boolean esAdministrador(SesionesRest.Sesion sesion) {
-        return "ADMINISTRADOR".equals(sesion.rol());
-    }
-
-    private Response noAutenticado() {
-        return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
-    }
-
-    private Response sinPermiso() {
-        return error(Response.Status.FORBIDDEN, "No tiene permisos para esta operación");
     }
 
     private List<Map<String, Object>> respuestaDocumentos(List<DocumentoIngreso> documentos) {

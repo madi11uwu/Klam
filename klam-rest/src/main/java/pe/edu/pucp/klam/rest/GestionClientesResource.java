@@ -35,11 +35,7 @@ public class GestionClientesResource {
     private final PacienteParticularBL pacienteBL = new PacienteParticularBLImpl();
 
     @GET
-    public Response listar(@HeaderParam("Authorization") String authorization, @QueryParam("tipo") String tipo) {
-        Response rechazo = soloAdministrador(authorization);
-        if (rechazo != null) {
-            return rechazo;
-        }
+    public Response listar(@QueryParam("tipo") String tipo) {
         boolean todos = tipo == null || tipo.isBlank();
         if (!todos && !CirugiaBL.TIPO_CLIENTE_CLINICA.equals(tipo) && !CirugiaBL.TIPO_CLIENTE_PARTICULAR.equals(tipo)) {
             return Errores.error(Response.Status.BAD_REQUEST, "Tipo de cliente inválido");
@@ -80,11 +76,7 @@ public class GestionClientesResource {
     }
 
     @POST
-    public Response registrar(@HeaderParam("Authorization") String authorization, ClienteRegistroDTO dto) {
-        Response rechazo = soloAdministrador(authorization);
-        if (rechazo != null) {
-            return rechazo;
-        }
+    public Response registrar(ClienteRegistroDTO dto) {
         if (dto == null) {
             return Errores.error(Response.Status.BAD_REQUEST, "El cuerpo del cliente es obligatorio");
         }
@@ -124,12 +116,7 @@ public class GestionClientesResource {
 
     @GET
     @Path("/{tipo}/{id}")
-    public Response detalle(@HeaderParam("Authorization") String authorization,
-                            @PathParam("tipo") String tipo, @PathParam("id") int id) {
-        Response rechazo = soloAdministrador(authorization);
-        if (rechazo != null) {
-            return rechazo;
-        }
+    public Response detalle(@PathParam("tipo") String tipo, @PathParam("id") int id) {
         try {
             ClienteRegistroDTO d = new ClienteRegistroDTO();
             d.setTipoCliente(tipo);
@@ -171,12 +158,7 @@ public class GestionClientesResource {
 
     @PUT
     @Path("/{tipo}/{id}")
-    public Response modificar(@HeaderParam("Authorization") String authorization,
-                              @PathParam("tipo") String tipo, @PathParam("id") int id, ClienteRegistroDTO dto) {
-        Response rechazo = soloAdministrador(authorization);
-        if (rechazo != null) {
-            return rechazo;
-        }
+    public Response modificar(  @PathParam("tipo") String tipo, @PathParam("id") int id, ClienteRegistroDTO dto) {
         if (dto == null) {
             return Errores.error(Response.Status.BAD_REQUEST, "El cuerpo del cliente es obligatorio");
         }
@@ -221,12 +203,4 @@ public class GestionClientesResource {
         c.setPagoConfirmado(dto.isPagoConfirmado());
     }
 
-    private static Response soloAdministrador(String authorization) {
-        SesionesRest.Sesion sesion = SesionesRest.validar(authorization);
-        if (sesion == null) {
-            return Errores.error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
-        }
-        return "ADMINISTRADOR".equals(sesion.rol()) ? null
-                : Errores.error(Response.Status.FORBIDDEN, "No tiene permisos de administrador");
-    }
 }

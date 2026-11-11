@@ -4,6 +4,7 @@ public class RegistrarSolicitudDTO {
     private String tipoCliente;
     private int idCliente;
     private int idClinicaDestino;
+    private int idVendedor;
     private String pacienteNombre;
     private String diagnostico;
     private String tipoProcedimiento;
@@ -17,6 +18,8 @@ public class RegistrarSolicitudDTO {
     public void setIdCliente(int idCliente) { this.idCliente = idCliente; }
     public int getIdClinicaDestino() { return idClinicaDestino; }
     public void setIdClinicaDestino(int idClinicaDestino) { this.idClinicaDestino = idClinicaDestino; }
+    public int getIdVendedor() { return idVendedor; }
+    public void setIdVendedor(int idVendedor) { this.idVendedor = idVendedor; }
     public String getPacienteNombre() { return pacienteNombre; }
     public void setPacienteNombre(String pacienteNombre) { this.pacienteNombre = pacienteNombre; }
     public String getDiagnostico() { return diagnostico; }

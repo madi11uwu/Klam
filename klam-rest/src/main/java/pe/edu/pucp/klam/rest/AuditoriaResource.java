@@ -7,8 +7,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import pe.edu.pucp.klam.bl.AuditoriaCirugiaBL;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.impl.AuditoriaCirugiaBLImpl;
@@ -24,13 +22,6 @@ import java.util.Map;
 @Path("/auditoria/cirugias")
 @Produces(MediaType.APPLICATION_JSON)
 public class AuditoriaResource {
-    @Context private HttpHeaders headers;
-    private Response acceso() {
-        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
-        if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).build();
-        return "ADMINISTRADOR".equals(sesion.rol()) ? null : Response.status(Response.Status.FORBIDDEN).build();
-    }
-
     private final AuditoriaCirugiaBL auditoriaBL = new AuditoriaCirugiaBLImpl();
 
     @GET
@@ -39,8 +30,6 @@ public class AuditoriaResource {
                            @QueryParam("hasta") String hasta,
                            @QueryParam("accion") String accion,
                            @QueryParam("responsable") String responsable) {
-        Response acceso = acceso();
-        if (acceso != null) return acceso;
         try {
             Integer idCirugia = RespuestaRest.enteroOpcional(idCirugiaTexto, "idCirugia");
             LocalDateTime inicio = RespuestaRest.fechaDesde(desde, "desde");
@@ -61,8 +50,6 @@ public class AuditoriaResource {
     @GET
     @Path("/{id}")
     public Response obtener(@PathParam("id") String idTexto) {
-        Response acceso = acceso();
-        if (acceso != null) return acceso;
         try {
             Integer id = RespuestaRest.enteroOpcional(idTexto, "id");
             if (id == null) {

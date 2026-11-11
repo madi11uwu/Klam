@@ -11,8 +11,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.BandejaInstrumentalBL;
@@ -65,6 +63,7 @@ import java.util.Set;
  * DELETE /api/v1/cirugias/{id}            -> eliminación lógica
  *
  * Las reglas (cruces de horario, esterilización, estados) están en CirugiaBL.
+ * Las escrituras reciben ?responsable=usuario (bitácora RF16); sin él la BL registra "SISTEMA".
  * BLException sin causa = regla de negocio (400); con causa = error de base de datos (500).
  */
 @Path("/cirugias")
@@ -72,42 +71,28 @@ import java.util.Set;
 @Consumes("application/json")
 public class CirugiasResource {
     private static final Set<String> ESTADOS_HISTORIAL = Set.of("FINALIZADA", "CANCELADA");
-    @Context private HttpHeaders headers;
-    private Response acceso(String rol) {
-        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
-        if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
-        if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
-        return null;
-    }
-
-    private String responsableAutenticado() {
-        return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION)).username();
-    }
-
+    /** RF10: cirugías culminadas y canceladas de un cliente (el cliente de la sesión o el que elige el administrador). */
     @GET
     @Path("/historial")
     public Response historialPorCliente(@QueryParam("tipoCliente") String tipoCliente,
-                                        @QueryParam("idCliente") String idClienteTexto) {
-        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
-        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
-        String tipo;
-        int id;
-        if ("ADMINISTRADOR".equals(sesion.rol())) {
-            try { id = Integer.parseInt(idClienteTexto); }
-            catch (NumberFormatException ex) { return error(Response.Status.BAD_REQUEST, "Indique el cliente"); }
-            tipo = tipoCliente;
-        } else if ("PACIENTE_PARTICULAR".equals(sesion.rol()) || "CLINICA_HOSPITAL".equals(sesion.rol())) {
-            if (sesion.idCliente() == null) return error(Response.Status.FORBIDDEN, "Cuenta sin cliente asociado");
-            id = sesion.idCliente();
-            tipo = sesion.tipoCliente();
-        } else return error(Response.Status.FORBIDDEN, "Acceso denegado");
+                                        @QueryParam("idCliente") Integer idCliente) {
         try {
-            List<Map<String, Object>> filas = cirugiaBL.buscarDetalle(null, null, tipo, id, null, null);
+            if (vacioANulo(tipoCliente) == null || idCliente == null) {
+                throw new BLException("Indique el cliente");
+            }
+            List<Map<String, Object>> filas = cirugiaBL.buscarDetalle(null, null,
+                    tipoCliente.trim().toUpperCase(Locale.ROOT), idCliente, null, null);
             List<Map<String, Object>> historial = new ArrayList<>();
-            for (Map<String, Object> fila : filas)
-                if (ESTADOS_HISTORIAL.contains(String.valueOf(fila.get("estado")))) historial.add(fila);
+            for (Map<String, Object> fila : filas) {
+                if (ESTADOS_HISTORIAL.contains(String.valueOf(fila.get("estado")))) {
+                    historial.add(fila);
+                }
+            }
             return Response.ok(CirugiaConsultaMapper.toResumenDTOs(historial)).build();
-        } catch (BLException ex) { return errorBL(ex); }
+        }
+        catch (BLException ex) {
+            return errorBL(ex);
+        }
     }
 
     private final CirugiaBL cirugiaBL;
@@ -146,8 +131,6 @@ public class CirugiasResource {
                            @QueryParam("idCliente") Integer idCliente,
                            @QueryParam("idEquipo") Integer idEquipo,
                            @QueryParam("estado") String estado) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
         try {
             LocalDateTime inicio = parsearFecha(desde, false);
             LocalDateTime fin = parsearFecha(hasta, true);
@@ -172,8 +155,6 @@ public class CirugiasResource {
     @Path("/calendario")
     public Response calendario(@QueryParam("anio") Integer anio,
                                @QueryParam("mes") Integer mes) {
-        Response acceso = acceso(null);
-        if (acceso != null) return acceso;
         LocalDate hoy = LocalDate.now();
         int a = anio != null ? anio : hoy.getYear();
         int m = mes != null ? mes : hoy.getMonthValue();
@@ -191,8 +172,6 @@ public class CirugiasResource {
     @GET
     @Path("/{id: \\d+}")
     public Response detalle(@PathParam("id") int id) {
-        Response acceso = acceso(null);
-        if (acceso != null) return acceso;
         try {
             // findById devuelve la cirugía con equipo, bandeja y cliente ya cargados; no filtra por
             // 'activo', así que una cirugía eliminada lógicamente se trata como inexistente.
@@ -214,8 +193,6 @@ public class CirugiasResource {
     @GET
     @Path("/opciones")
     public Response opciones(@QueryParam("procedimiento") String procedimiento) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
         try {
             OpcionesCirugiaDTO dto = new OpcionesCirugiaDTO();
             for (ClinicaHospital clinica : clinicaBL.findAll()) {
@@ -242,15 +219,13 @@ public class CirugiasResource {
     }
 
     @POST
-    public Response registrar(CirugiaFormDTO datos) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
+    public Response registrar(@QueryParam("responsable") String responsable, CirugiaFormDTO datos) {
         try {
             if (datos == null) {
                 throw new BLException("Debe enviar los datos de la cirugía");
             }
             Cirugia cirugia = CirugiaMapper.toModelo(datos);
-            cirugiaBL.registrar(cirugia, responsableAutenticado());
+            cirugiaBL.registrar(cirugia, responsable);
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(String.valueOf(cirugia.getIdCirugia()))
                     .build();
@@ -265,9 +240,8 @@ public class CirugiasResource {
     /** Modifica los datos; el estado no se cambia aquí (para eso están /estado y /cancelacion). */
     @PUT
     @Path("/{id: \\d+}")
-    public Response modificar(@PathParam("id") int id, CirugiaFormDTO datos) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
+    public Response modificar(@PathParam("id") int id, @QueryParam("responsable") String responsable,
+                              CirugiaFormDTO datos) {
         try {
             if (datos == null) {
                 throw new BLException("Debe enviar los datos de la cirugía");
@@ -280,7 +254,7 @@ public class CirugiasResource {
             cirugia.setIdCirugia(id);
             cirugia.setEstado(existente.getEstado());
             cirugia.setMotivoCancelacion(existente.getMotivoCancelacion());
-            cirugiaBL.modificar(cirugia, responsableAutenticado());
+            cirugiaBL.modificar(cirugia, responsable);
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (BLException ex) {
             return errorBL(ex);
@@ -290,15 +264,14 @@ public class CirugiasResource {
     /** PROGRAMADA -> EN_PROCESO -> FINALIZADA. */
     @POST
     @Path("/{id: \\d+}/estado")
-    public Response cambiarEstado(@PathParam("id") int id, AccionCirugiaDTO datos) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
+    public Response cambiarEstado(@PathParam("id") int id, @QueryParam("responsable") String responsable,
+                                  AccionCirugiaDTO datos) {
         try {
             EstadoCirugia nuevo = CirugiaConsultaMapper.parsearEstado(datos == null ? null : datos.getEstado());
             if (nuevo == null) {
                 throw new BLException("Debe indicar el nuevo estado");
             }
-            cirugiaBL.cambiarEstado(id, nuevo, responsableAutenticado());
+            cirugiaBL.cambiarEstado(id, nuevo, responsable);
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (IllegalArgumentException ex) {
             return error(Response.Status.BAD_REQUEST, ex.getMessage());
@@ -309,11 +282,10 @@ public class CirugiasResource {
 
     @POST
     @Path("/{id: \\d+}/cancelacion")
-    public Response cancelar(@PathParam("id") int id, AccionCirugiaDTO datos) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
+    public Response cancelar(@PathParam("id") int id, @QueryParam("responsable") String responsable,
+                             AccionCirugiaDTO datos) {
         try {
-            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), responsableAutenticado());
+            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), responsable);
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (BLException ex) {
             return errorBL(ex);
@@ -323,11 +295,9 @@ public class CirugiasResource {
     /** Eliminación lógica (activo = 0). */
     @DELETE
     @Path("/{id: \\d+}")
-    public Response eliminar(@PathParam("id") int id) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
+    public Response eliminar(@PathParam("id") int id, @QueryParam("responsable") String responsable) {
         try {
-            cirugiaBL.eliminar(id, responsableAutenticado());
+            cirugiaBL.eliminar(id, responsable);
             return Response.noContent().build();
         } catch (BLException ex) {
             return errorBL(ex);

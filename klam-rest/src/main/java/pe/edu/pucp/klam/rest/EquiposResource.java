@@ -5,8 +5,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.Context;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.EquipoBL;
 import pe.edu.pucp.klam.bl.impl.EquipoBLImpl;
@@ -31,14 +29,6 @@ import java.util.Map;
 @Path("/equipos")
 @Produces("application/json")
 public class EquiposResource {
-    @Context private HttpHeaders headers;
-    private Response acceso(String rol) {
-        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
-        if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
-        if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
-        return null;
-    }
-
     private final EquipoBL equipoBL;
 
     public EquiposResource() {
@@ -53,8 +43,6 @@ public class EquiposResource {
     @GET
     public Response listar(@QueryParam("categoria") String categoria,
                            @QueryParam("soloDisponibles") Boolean soloDisponibles) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
         try {
             CategoriaEquipo filtro = null;
             if (categoria != null && !categoria.isBlank()) {
