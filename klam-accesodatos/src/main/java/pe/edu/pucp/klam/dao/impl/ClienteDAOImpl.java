@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 public abstract class ClienteDAOImpl<T extends Cliente> {
     protected T mapear(ResultSet rs, T cliente) throws SQLException {
-        cliente.setId_cliente(rs.getInt("id_cliente"));
+        cliente.setIdCliente(rs.getInt("id_cliente"));
         cliente.setNombre(rs.getString("nombre"));
         cliente.setDireccion(rs.getString("direccion"));
         cliente.setEmailContacto(rs.getString("email_contacto"));

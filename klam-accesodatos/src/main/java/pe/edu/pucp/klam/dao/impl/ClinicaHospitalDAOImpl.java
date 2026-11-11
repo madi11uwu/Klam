@@ -127,7 +127,7 @@ public class ClinicaHospitalDAOImpl extends ClienteDAOImpl<ClinicaHospital> impl
                         "No se pudo insertar la clínica"
                 );
             }
-            clinica.setId_cliente(cmd.getInt("p_id"));
+            clinica.setIdCliente(cmd.getInt("p_id"));
         }
     }
 
@@ -195,7 +195,7 @@ public class ClinicaHospitalDAOImpl extends ClienteDAOImpl<ClinicaHospital> impl
 
             cmd.setInt(
                     "p_id",
-                    clinica.getId_cliente()
+                    clinica.getIdCliente()
             );
 
             if (cmd.executeUpdate() == 0) {

@@ -34,4 +34,32 @@ class SesionesRestTest {
 
         assertNull(SesionesRest.validar("Bearer " + credencial.token()));
     }
+    @Test
+    void tokenClienteConservaElVinculoSinConfundirCuentaConCliente() throws Exception {
+        var paciente = new pe.edu.pucp.klam.modelo.clientes.PacienteParticular();
+        paciente.setIdCliente(42);
+        var cuenta = new pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario();
+        cuenta.setIdUsuario(17);
+        cuenta.setUsername("paciente.laboratorio");
+        cuenta.setRol("PACIENTE_PARTICULAR");
+        cuenta.setCliente(paciente);
+        var credencial = SesionesRest.emitir(cuenta);
+        var sesion = SesionesRest.validar("Bearer " + credencial.token());
+        assertEquals(17, sesion.idUsuario());
+        assertEquals(42, sesion.idCliente());
+        assertEquals("PACIENTE_PARTICULAR", sesion.tipoCliente());
+        var metodo = SolicitudesClienteResource.class.getDeclaredMethod("clienteDe", SesionesRest.Sesion.class);
+        metodo.setAccessible(true);
+        var clienteEnSolicitud = (pe.edu.pucp.klam.modelo.clientes.Cliente) metodo.invoke(null, sesion);
+        assertEquals(42, clienteEnSolicitud.getIdCliente());
+        SesionesRest.revocar("Bearer " + credencial.token());
+
+        var administrador = new Administrador();
+        administrador.setIdUsuario(42);
+        administrador.setUsername("admin.laboratorio");
+        var tokenAdmin = SesionesRest.emitir(administrador);
+        var sesionAdmin = SesionesRest.validar("Bearer " + tokenAdmin.token());
+        assertNull(sesionAdmin.idCliente());
+        SesionesRest.revocar("Bearer " + tokenAdmin.token());
+    }
 }

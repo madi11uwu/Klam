@@ -9,6 +9,8 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.concurrent.ConcurrentHashMap;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario;
+import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 
 // Token opaco de 256 bits; el servidor conserva solo su resumen durante ocho horas.
 final class SesionesRest {
@@ -28,8 +30,16 @@ final class SesionesRest {
         ALEATORIO.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         Instant vence = Instant.now().plus(duracion);
+        Integer idCliente = null;
+        String tipoCliente = null;
+        if (usuario instanceof CuentaUsuario cuenta && cuenta.getCliente() != null) {
+            idCliente = cuenta.getCliente().getIdCliente();
+            tipoCliente = cuenta.getCliente() instanceof ClinicaHospital
+                    ? "CLINICA_HOSPITAL" : "PACIENTE_PARTICULAR";
+        }
         SESIONES.put(resumen(token), new Sesion(
-                usuario.getIdUsuario(), usuario.getUsername(), usuario.getRol(), vence));
+                usuario.getIdUsuario(), usuario.getUsername(), usuario.getRol(), vence,
+                idCliente, tipoCliente));
         return new Credencial(token, vence);
     }
 
@@ -71,6 +81,7 @@ final class SesionesRest {
     record Credencial(String token, Instant vence) {
     }
 
-    record Sesion(int idUsuario, String username, String rol, Instant vence) {
+    record Sesion(int idUsuario, String username, String rol, Instant vence,
+                  Integer idCliente, String tipoCliente) {
     }
 }
