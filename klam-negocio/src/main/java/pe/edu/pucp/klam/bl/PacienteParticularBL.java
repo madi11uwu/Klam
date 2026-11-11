@@ -5,9 +5,9 @@ import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 public interface PacienteParticularBL extends BaseBL<PacienteParticular, Integer> {
     PacienteParticular findByDNI(String dni) throws BLException;
 
-    /** Login de clientes: null si no existe. */
-    pe.edu.pucp.klam.modelo.clientes.PacienteParticular findByUsername(String username) throws BLException;
-
-    /** Guarda la contraseña del cliente; no valida formato: lo hace UsuarioPlataformaBL. */
-    void guardarPasswordHash(int id, String username, String passwordHash) throws BLException;
+    /**
+     * Registra el cliente CON su cuenta de acceso (RF01): si no se puede crear la cuenta, el cliente no se registra.
+     * {@link #insert(PacienteParticular)} hace lo mismo con credenciales iniciales (usuario = documento, contraseña = Klam + documento).
+     */
+    void insert(PacienteParticular cliente, String username, String password) throws BLException;
 }

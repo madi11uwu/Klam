@@ -9,9 +9,9 @@ public interface ClinicaHospitalBL extends BaseBL<ClinicaHospital, Integer> {
     void validarLongitud(String valor, int maximo, String campo) throws BLException;
     void validarId(Integer ID) throws BLException;
 
-    /** Login de clientes: null si no existe. */
-    ClinicaHospital findByUsername(String username) throws BLException;
-
-    /** Guarda la contraseña del cliente; no valida formato: lo hace UsuarioPlataformaBL. */
-    void guardarPasswordHash(int id, String username, String passwordHash) throws BLException;
+    /**
+     * Registra el cliente CON su cuenta de acceso (RF01): si no se puede crear la cuenta, el cliente no se registra.
+     * {@link #insert(ClinicaHospital)} hace lo mismo con credenciales iniciales (usuario = documento, contraseña = Klam + documento).
+     */
+    void insert(ClinicaHospital cliente, String username, String password) throws BLException;
 }

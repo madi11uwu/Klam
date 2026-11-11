@@ -45,20 +45,6 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
         }
     }
 
-    /** Usuario y contraseña obligatorios; el usuario no puede repetirse entre clínicas ni pacientes. */
-    private void validarCredenciales(PacienteParticular cliente) throws BLException {
-        CredencialesCliente.validarFormato(cliente.getUsername(), cliente.getPasswordHash());
-        String username = cliente.getUsername().trim();
-        try {
-            if (pacienteParticularDAO.findByUsername(username) != null
-                    || new pe.edu.pucp.klam.dao.impl.ClinicaHospitalDAOImpl().findByUsername(username) != null) {
-                throw new BLException("Ya existe un usuario con el nombre " + username);
-            }
-        } catch (SQLException e) {
-            throw new BLException("No se pudo verificar la unicidad del usuario", e);
-        }
-    }
-
     @Override
     public PacienteParticular findByDNI(String dni) throws BLException {
         if (dni == null || !dni.matches("[0-9]{8}")) {
@@ -93,14 +79,37 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
 
     @Override
     public void insert(PacienteParticular cliente) throws BLException {
+        // Sin credenciales indicadas (p. ej. alta del vendedor): cuenta inicial con el documento del cliente.
+        validarDatos(cliente);
+        String documento = CuentaInicialCliente.usuarioInicial(cliente.getDni());
+        insert(cliente, documento, CuentaInicialCliente.passwordInicial(documento));
+    }
+
+    @Override
+    public void insert(PacienteParticular cliente, String username, String password) throws BLException {
         validarDatos(cliente);
         validarDocumentoUnico(cliente, false);
-        CredencialesCliente.asignarInicialesSiFaltan(cliente, cliente.getDni());
-        validarCredenciales(cliente);
+        // Antes de guardar: sin credenciales válidas no se registra el cliente.
+        CuentaInicialCliente.validar(username, password);
         try {
             pacienteParticularDAO.insert(cliente);
         } catch (SQLException e) {
             throw new BLException("No se pudo registrar " + "el paciente particular", e);
+        }
+        try {
+            CuentaInicialCliente.crear("PACIENTE_PARTICULAR", cliente.getIdCliente(), username, password);
+        } catch (BLException e) {
+            deshacerAlta(cliente.getIdCliente());
+            throw new BLException("No se registró el cliente: no se pudo crear su cuenta de acceso. " + e.getMessage(), e);
+        }
+    }
+
+    /** Compensación: un cliente sin cuenta no debe quedar activo. */
+    private void deshacerAlta(int id) {
+        try {
+            delete(id);
+        } catch (BLException ignorada) {
+            // el error principal ya se informa al llamador
         }
     }
 
@@ -161,27 +170,6 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
     public void validarId(Integer id) throws BLException {
         if (id == null || id <= 0) {
             throw new BLException("El id debe ser un número positivo");
-        }
-    }
-
-    @Override
-    public PacienteParticular findByUsername(String username) throws BLException {
-        if (username == null || username.isBlank()) {
-            return null;
-        }
-        try {
-            return pacienteParticularDAO.findByUsername(username.trim());
-        } catch (SQLException e) {
-            throw new BLException("No se pudo buscar el usuario", e);
-        }
-    }
-
-    @Override
-    public void guardarPasswordHash(int id, String username, String passwordHash) throws BLException {
-        try {
-            pacienteParticularDAO.asignarCredenciales(id, username, passwordHash);
-        } catch (SQLException e) {
-            throw new BLException("No se pudo actualizar la contraseña", e);
         }
     }
 }

@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Gestión de clientes por el ADMINISTRADOR (alta con usuario y contraseña, detalle y modificación).
+ * Gestión comercial de clientes por el ADMINISTRADOR, independiente de sus cuentas de acceso.
  * Ruta propia para no chocar con /clientes (búsqueda y alta del vendedor, RF08).
- *   GET  /gestion-clientes[?tipo=]       -> lista (cualquier usuario con sesión; alimenta selectores)
+ *   GET  /gestion-clientes[?tipo=]       -> lista (solo administrador)
  *   POST /gestion-clientes               -> alta (solo administrador)
  *   GET  /gestion-clientes/{tipo}/{id}   -> detalle (solo administrador)
  *   PUT  /gestion-clientes/{tipo}/{id}   -> modifica datos (solo administrador; usuario y contraseña no se tocan)
@@ -36,8 +36,9 @@ public class GestionClientesResource {
 
     @GET
     public Response listar(@HeaderParam("Authorization") String authorization, @QueryParam("tipo") String tipo) {
-        if (SesionesRest.validar(authorization) == null) {
-            return Errores.error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        Response rechazo = soloAdministrador(authorization);
+        if (rechazo != null) {
+            return rechazo;
         }
         boolean todos = tipo == null || tipo.isBlank();
         if (!todos && !CirugiaBL.TIPO_CLIENTE_CLINICA.equals(tipo) && !CirugiaBL.TIPO_CLIENTE_PARTICULAR.equals(tipo)) {
@@ -87,14 +88,17 @@ public class GestionClientesResource {
         if (dto == null) {
             return Errores.error(Response.Status.BAD_REQUEST, "El cuerpo del cliente es obligatorio");
         }
+        // RF01: el cliente no puede registrarse sin sus credenciales.
+        if (dto.getUsername() == null || dto.getUsername().isBlank()
+                || dto.getPassword() == null || dto.getPassword().isBlank()) {
+            return Errores.error(Response.Status.BAD_REQUEST, "El usuario y la contraseña del cliente son obligatorios");
+        }
         try {
             ClienteResumenDTO creado = new ClienteResumenDTO();
             if (CirugiaBL.TIPO_CLIENTE_CLINICA.equals(dto.getTipoCliente())) {
                 ClinicaHospital c = new ClinicaHospital();
                 copiarClinica(dto, c);
-                c.setUsername(dto.getUsername());
-                c.setPasswordHash(dto.getPassword());
-                clinicaBL.insert(c);
+                clinicaBL.insert(c, dto.getUsername(), dto.getPassword());
                 creado.setIdCliente(c.getIdCliente());
                 creado.setNombre(c.getNombre());
                 creado.setEmailContacto(c.getEmailContacto());
@@ -104,9 +108,7 @@ public class GestionClientesResource {
             } else if (CirugiaBL.TIPO_CLIENTE_PARTICULAR.equals(dto.getTipoCliente())) {
                 PacienteParticular c = new PacienteParticular();
                 copiarPaciente(dto, c);
-                c.setUsername(dto.getUsername());
-                c.setPasswordHash(dto.getPassword());
-                pacienteBL.insert(c);
+                pacienteBL.insert(c, dto.getUsername(), dto.getPassword());
                 creado.setIdCliente(c.getIdCliente());
                 creado.setNombre(c.getNombre());
                 creado.setEmailContacto(c.getEmailContacto());
