@@ -360,6 +360,16 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
 
             solicitudDAO.cambiarEstado(solicitud);
 
+            // Si la registró un vendedor, le llega el aviso con el motivo (misma transacción que el rechazo).
+            Vendedor registrador = solicitud.getVendedorRegistrador();
+            if (registrador != null) {
+                notificacionBL.notificarVendedor(
+                        registrador.getIdUsuario(),
+                        "Solicitud " + idSolicitud + " rechazada",
+                        "Se rechazó la solicitud " + idSolicitud + " (" + solicitud.getTipoProcedimiento()
+                                + "). Motivo: " + motivo.trim());
+            }
+
             TransactionsManager.commit();
 
         } catch (SQLException e) {

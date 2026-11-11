@@ -9,4 +9,7 @@ public interface NotificacionBL extends BaseBL<Notificacion, Integer> {
     List <Notificacion> listarNoLeidas() throws BLException;
     void notificarAdministradores(String titulo, String mensaje) throws BLException;
     void notificarTecnicos(String titulo, String mensaje) throws BLException;
+
+    /** Avisa a un vendedor concreto (p. ej. cuando se rechaza una solicitud o un documento que él registró). */
+    void notificarVendedor(Integer idVendedor, String titulo, String mensaje) throws BLException;
 }

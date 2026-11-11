@@ -39,6 +39,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     private final OrdenCompraDAO ordenCompraDAO = new OrdenCompraDAOImpl();
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
     private final SolicitudCirugiaDAO solicitudDAO = new SolicitudCirugiaDAOImpl();
+    private final pe.edu.pucp.klam.bl.NotificacionBL notificacionBL = new NotificacionBLImpl();
 
     // ------------------------------------------------------------------
     // CRUD existente
@@ -426,6 +427,16 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
                     solicitud.setMotivoRechazo(motivo.trim());
                     solicitud.setFechaRespuesta(ahora);
                     solicitudDAO.cambiarEstado(solicitud);
+                }
+                // Aviso al vendedor que registró la solicitud, con el motivo (misma transacción que el rechazo).
+                pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor registrador = solicitud.getVendedorRegistrador();
+                if (registrador != null) {
+                    notificacionBL.notificarVendedor(
+                            registrador.getIdUsuario(),
+                            "Documento rechazado en la solicitud " + solicitud.getIdSolicitud(),
+                            "Se rechazó el documento " + doc.getTipoDocumento() + " de la solicitud "
+                                    + solicitud.getIdSolicitud() + ". Motivo: " + motivo.trim()
+                                    + (habilitarResubida ? " Ya puede volver a subirlo." : ""));
                 }
             }
             TransactionsManager.commit();

@@ -5,13 +5,16 @@ import pe.edu.pucp.klam.bl.NotificacionBL;
 import pe.edu.pucp.klam.dao.AdministradorDAO;
 import pe.edu.pucp.klam.dao.NotificacionDAO;
 import pe.edu.pucp.klam.dao.TecnicoInstrumentistaDAO;
+import pe.edu.pucp.klam.dao.VendedorDAO;
 import pe.edu.pucp.klam.dao.impl.AdministradorDAOImpl;
 import pe.edu.pucp.klam.dao.impl.NotificacionDAOImpl;
 import pe.edu.pucp.klam.dao.impl.TecnicoInstrumentistaDAOImpl;
+import pe.edu.pucp.klam.dao.impl.VendedorDAOImpl;
 import pe.edu.pucp.klam.modelo.comunicaciones.Notificacion;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Administrador;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.TecnicoInstrumentista;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
+import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ public class NotificacionBLImpl implements NotificacionBL {
     private final NotificacionDAO notificacionDAO = new NotificacionDAOImpl();
     private final AdministradorDAO administradorDAO = new AdministradorDAOImpl();
     private final TecnicoInstrumentistaDAO tecnicoDAO = new TecnicoInstrumentistaDAOImpl();
+    private final VendedorDAO vendedorDAO = new VendedorDAOImpl();
 
     @Override
     public List findAll() throws BLException {
@@ -153,6 +157,21 @@ public class NotificacionBLImpl implements NotificacionBL {
             notificarA(new ArrayList<UsuarioPlataforma>(tecnicos), titulo, mensaje);
         } catch (SQLException e) {
             throw new BLException("No se pudo notificar a los técnicos instrumentistas", e);
+        }
+    }
+
+    @Override
+    public void notificarVendedor(Integer idVendedor, String titulo, String mensaje) throws BLException {
+        if (idVendedor == null || idVendedor <= 0) {
+            return;   // la solicitud no la registró un vendedor (p. ej. la hizo el propio cliente)
+        }
+        try {
+            Vendedor vendedor = vendedorDAO.findById(idVendedor);
+            if (vendedor != null) {
+                notificarA(new ArrayList<UsuarioPlataforma>(List.of(vendedor)), titulo, mensaje);
+            }
+        } catch (SQLException e) {
+            throw new BLException("No se pudo notificar al vendedor", e);
         }
     }
 
