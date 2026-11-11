@@ -295,6 +295,16 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         return origen + ":" + doc.getTipoDocumento();
     }
 
+    // El cliente de la sesión es dueño de la solicitud del documento (mismo tipo e id de cliente).
+    private boolean esClienteDuenio(DocumentoIngreso doc, String rol,
+                                    pe.edu.pucp.klam.modelo.clientes.Cliente clienteSesion) throws BLException {
+        if (clienteSesion == null || !esRolCliente(rol) || doc.getSolicitud() == null) return false;
+        SolicitudCirugia solicitud = buscarSolicitud(doc.getSolicitud().getIdSolicitud());
+        var cliente = solicitud.getCliente();
+        return cliente != null && cliente.getIdCliente() == clienteSesion.getIdCliente()
+                && cliente.getClass() == clienteSesion.getClass();
+    }
+
     private static boolean esRolCliente(String rol) {
         return "CLINICA_HOSPITAL".equals(rol) || "PACIENTE_PARTICULAR".equals(rol);
     }
@@ -327,6 +337,12 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     @Override
     public DocumentoIngreso verificarResubida(int idDocumento, int idUsuarioAutenticado,
             String rolAutenticado) throws BLException {
+        return verificarResubida(idDocumento, idUsuarioAutenticado, rolAutenticado, null);
+    }
+
+    @Override
+    public DocumentoIngreso verificarResubida(int idDocumento, int idUsuarioAutenticado,
+            String rolAutenticado, pe.edu.pucp.klam.modelo.clientes.Cliente clienteSesion) throws BLException {
         DocumentoIngreso doc = buscarDocumento(idDocumento);
         validarEsVigente(doc);
         if (doc.getEstadoValidacion() != EstadoValidacionDocumento.RECHAZADO) {
@@ -335,8 +351,9 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         if (!doc.isHabilitarResubida()) {
             throw new BLException("La resubida de este documento no fue habilitada por el administrador");
         }
-        if (!esPresentadorOriginal(idDocumento, idUsuarioAutenticado, rolAutenticado)) {
-            throw new SecurityException("Solo el presentador original autenticado puede resubir el documento");
+        if (!esPresentadorOriginal(idDocumento, idUsuarioAutenticado, rolAutenticado)
+                && !esClienteDuenio(doc, rolAutenticado, clienteSesion)) {
+            throw new SecurityException("Solo quien presentó el documento o el cliente de la solicitud puede resubirlo");
         }
         return doc;
     }
@@ -430,6 +447,15 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     public DocumentoIngreso resubirDocumento(int idDocumentoRechazado, String nuevoArchivoPath,
                                              int idUsuarioAutenticado, String rolAutenticado,
                                              String responsable) throws BLException {
+        return resubirDocumento(idDocumentoRechazado, nuevoArchivoPath, idUsuarioAutenticado, rolAutenticado,
+                responsable, null);
+    }
+
+    @Override
+    public DocumentoIngreso resubirDocumento(int idDocumentoRechazado, String nuevoArchivoPath,
+                                             int idUsuarioAutenticado, String rolAutenticado,
+                                             String responsable, pe.edu.pucp.klam.modelo.clientes.Cliente clienteSesion)
+            throws BLException {
         if (nuevoArchivoPath == null || nuevoArchivoPath.isBlank()) {
             throw new BLException("Debe indicar el archivo de la nueva versión del documento");
         }
@@ -440,7 +466,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         TransactionsManager.iniciar();
         try {
             DocumentoIngreso anterior = verificarResubida(
-                    idDocumentoRechazado, idUsuarioAutenticado, rolAutenticado);
+                    idDocumentoRechazado, idUsuarioAutenticado, rolAutenticado, clienteSesion);
             DocumentoIngreso original = buscarVersionOriginal(anterior);
 
             DocumentoIngreso nuevo = new DocumentoIngreso();

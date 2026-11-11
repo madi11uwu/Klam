@@ -35,6 +35,17 @@ public interface DocumentoIngresoBL extends BaseBL<DocumentoIngreso,Integer> {
             String rolAutenticado) throws BLException;
 
     /** Verifica estado, versión, autorización e identidad antes de recibir una nueva versión. */
+    /**
+     * Igual que verificarResubida, pero también acepta al cliente dueño de la solicitud (clienteSesion,
+     * con el tipo e id del cliente de la sesión) aunque el documento lo haya presentado el vendedor.
+     */
+    DocumentoIngreso verificarResubida(int idDocumento, int idUsuarioAutenticado, String rolAutenticado,
+            pe.edu.pucp.klam.modelo.clientes.Cliente clienteSesion) throws BLException;
+
+    DocumentoIngreso resubirDocumento(int idDocumentoRechazado, String nuevoArchivoPath, int idUsuarioAutenticado,
+            String rolAutenticado, String responsable, pe.edu.pucp.klam.modelo.clientes.Cliente clienteSesion)
+            throws BLException;
+
     DocumentoIngreso verificarResubida(int idDocumento, int idUsuarioAutenticado,
             String rolAutenticado) throws BLException;
 

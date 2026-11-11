@@ -220,7 +220,10 @@ public class DocumentosResource {
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            if (!esAdministrador(sesion) && !documentoBL.esPresentadorOriginal(id, sesion.idUsuario(), sesion.rol())) {
+            boolean clienteDuenio = esCliente(sesion) && doc.getSolicitud() != null
+                    && esSolicitudDelCliente(solicitudBL.findSolicitudById(doc.getSolicitud().getIdSolicitud()), sesion);
+            if (!esAdministrador(sesion) && !clienteDuenio
+                    && !documentoBL.esPresentadorOriginal(id, sesion.idUsuario(), sesion.rol())) {
                 return error(Response.Status.FORBIDDEN, "No puede consultar este archivo");
             }
             byte[] contenido = ArchivoDocumentoStorage.leer(doc.getArchivoPath());
@@ -285,11 +288,12 @@ public class DocumentosResource {
         try {
             DocumentoIngreso anterior = documentoBL.findById(id);
             if (anterior == null || !anterior.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            documentoBL.verificarResubida(id, sesion.idUsuario(), sesion.rol());
+            pe.edu.pucp.klam.modelo.clientes.Cliente clienteSesion = clienteDeSesion(sesion);
+            documentoBL.verificarResubida(id, sesion.idUsuario(), sesion.rol(), clienteSesion);
             String clave = ArchivoDocumentoStorage.guardar(archivo);
             try {
                 DocumentoIngreso nuevo = documentoBL.resubirDocumento(id, clave,
-                        sesion.idUsuario(), sesion.rol(), sesion.username());
+                        sesion.idUsuario(), sesion.rol(), sesion.username(), clienteSesion);
                 return Response.status(Response.Status.CREATED)
                         .entity(Map.of("idDocumento", nuevo.getIdDocumento(), "version", nuevo.getVersion())).build();
             } catch (RuntimeException ex) {
@@ -331,6 +335,15 @@ public class DocumentosResource {
         if (cliente == null || cliente.getIdCliente() != sesion.idCliente()) return false;
         boolean esClinica = cliente instanceof pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
         return esClinica == "CLINICA_HOSPITAL".equals(sesion.tipoCliente());
+    }
+
+    private static pe.edu.pucp.klam.modelo.clientes.Cliente clienteDeSesion(SesionesRest.Sesion sesion) {
+        if (!esCliente(sesion)) return null;
+        pe.edu.pucp.klam.modelo.clientes.Cliente c = "CLINICA_HOSPITAL".equals(sesion.tipoCliente())
+                ? new pe.edu.pucp.klam.modelo.clientes.ClinicaHospital()
+                : new pe.edu.pucp.klam.modelo.clientes.PacienteParticular();
+        c.setIdCliente(sesion.idCliente());
+        return c;
     }
 
     private boolean esAdministrador(SesionesRest.Sesion sesion) {
