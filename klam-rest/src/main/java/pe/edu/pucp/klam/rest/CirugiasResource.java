@@ -80,6 +80,48 @@ public class CirugiasResource {
         return null;
     }
 
+    // ---------------------------------------------------------------- alcance por perfil (RF06, RF10)
+    // ADMINISTRADOR y TECNICO_INSTRUMENTISTA ven toda la agenda; el VENDEDOR, las cirugías que nacieron de
+    // solicitudes que él registró; el cliente, solo las suyas. La gestión (RF02) sigue siendo del administrador.
+    private static boolean esCliente(SesionesRest.Sesion s) {
+        return ("CLINICA_HOSPITAL".equals(s.rol()) || "PACIENTE_PARTICULAR".equals(s.rol()))
+                && s.idCliente() != null && s.tipoCliente() != null;
+    }
+
+    private static boolean puedeConsultarAgenda(SesionesRest.Sesion s) {
+        return "ADMINISTRADOR".equals(s.rol()) || "TECNICO_INSTRUMENTISTA".equals(s.rol())
+                || "VENDEDOR".equals(s.rol()) || esCliente(s);
+    }
+
+    private List<Map<String, Object>> visibles(List<Map<String, Object>> filas, SesionesRest.Sesion s)
+            throws BLException {
+        if ("ADMINISTRADOR".equals(s.rol()) || "TECNICO_INSTRUMENTISTA".equals(s.rol())) return filas;
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        if (esCliente(s)) {
+            for (Map<String, Object> f : filas) {
+                if (s.tipoCliente().equals(String.valueOf(f.get("tipoCliente")))
+                        && f.get("idCliente") instanceof Number n && n.intValue() == s.idCliente()) {
+                    resultado.add(f);
+                }
+            }
+            return resultado;
+        }
+        if ("VENDEDOR".equals(s.rol())) {
+            pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor vendedor = new pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor();
+            vendedor.setIdUsuario(s.idUsuario());
+            Set<Integer> solicitudes = new java.util.HashSet<>();
+            for (var sol : solicitudBL.listarSolicitudesPorVendedor(vendedor)) solicitudes.add(sol.getIdSolicitud());
+            for (Map<String, Object> f : filas) {
+                if (f.get("idSolicitudOrigen") instanceof Number n && solicitudes.contains(n.intValue())) {
+                    resultado.add(f);
+                }
+            }
+        }
+        return resultado;
+    }
+
+    private final pe.edu.pucp.klam.bl.SolicitudCirugiaBL solicitudBL = new pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl();
+
     private String responsableAutenticado() {
         return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION)).username();
     }
@@ -146,9 +188,15 @@ public class CirugiasResource {
                            @QueryParam("idCliente") Integer idCliente,
                            @QueryParam("idEquipo") Integer idEquipo,
                            @QueryParam("estado") String estado) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        if (!puedeConsultarAgenda(sesion)) return error(Response.Status.FORBIDDEN, "Acceso denegado");
         try {
+            // Un cliente solo consulta las suyas: su tipo e id vienen de la sesión, no de los parámetros.
+            if (esCliente(sesion)) {
+                tipoCliente = sesion.tipoCliente();
+                idCliente = sesion.idCliente();
+            }
             LocalDateTime inicio = parsearFecha(desde, false);
             LocalDateTime fin = parsearFecha(hasta, true);
             EstadoCirugia estadoCirugia = CirugiaConsultaMapper.parsearEstado(estado);
@@ -159,7 +207,7 @@ public class CirugiasResource {
 
             List<Map<String, Object>> filas =
                     cirugiaBL.buscarDetalle(inicio, fin, tipo, idCliente, idEquipo, estadoCirugia);
-            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(filas)).build();
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(visibles(filas, sesion))).build();
         } catch (IllegalArgumentException ex) {
             return error(Response.Status.BAD_REQUEST, ex.getMessage());
         } catch (BLException ex) {
@@ -172,14 +220,15 @@ public class CirugiasResource {
     @Path("/calendario")
     public Response calendario(@QueryParam("anio") Integer anio,
                                @QueryParam("mes") Integer mes) {
-        Response acceso = acceso(null);
-        if (acceso != null) return acceso;
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        if (!puedeConsultarAgenda(sesion)) return error(Response.Status.FORBIDDEN, "Acceso denegado");
         LocalDate hoy = LocalDate.now();
         int a = anio != null ? anio : hoy.getYear();
         int m = mes != null ? mes : hoy.getMonthValue();
         try {
             List<Map<String, Object>> filas = cirugiaBL.buscarCalendarioMensual(a, m);
-            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(filas)).build();
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(visibles(filas, sesion))).build();
         } catch (DateTimeException ex) {
             return error(Response.Status.BAD_REQUEST, "Año o mes no válido: " + a + "/" + m);
         } catch (BLException ex) {
@@ -191,8 +240,9 @@ public class CirugiasResource {
     @GET
     @Path("/{id: \\d+}")
     public Response detalle(@PathParam("id") int id) {
-        Response acceso = acceso(null);
-        if (acceso != null) return acceso;
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        if (!puedeConsultarAgenda(sesion)) return error(Response.Status.FORBIDDEN, "Acceso denegado");
         try {
             // findById devuelve la cirugía con equipo, bandeja y cliente ya cargados; no filtra por
             // 'activo', así que una cirugía eliminada lógicamente se trata como inexistente.
@@ -201,6 +251,9 @@ public class CirugiasResource {
                 return error(Response.Status.NOT_FOUND, "No existe una cirugía con id " + id);
             }
             Map<String, Object> detalle = cirugiaBL.obtenerDetalle(id);
+            if (visibles(List.of(detalle), sesion).isEmpty()) {
+                return error(Response.Status.FORBIDDEN, "La cirugía no pertenece a su cuenta");
+            }
             return Response.ok(CirugiaConsultaMapper.toDetalleDTO(
                     detalle, cirugia.getEquipo(), cirugia.getBandejaInstrumental())).build();
         } catch (BLException ex) {
