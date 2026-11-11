@@ -16,6 +16,7 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
 import pe.edu.pucp.klam.rest.dto.CirugiaDTO;
 import pe.edu.pucp.klam.rest.dto.CirugiaFormDTO;
+import pe.edu.pucp.klam.rest.dto.CirugiaResumenDTO;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/** Convierte filas de CirugiaBL en DTOs de cirugia y modelos para persistencia. */
 public final class CirugiaMapper {
     private static final ClinicaHospitalBL clinicaBL = new ClinicaHospitalBLImpl();
     private static final PacienteParticularBL pacienteBL = new PacienteParticularBLImpl();
@@ -31,6 +33,33 @@ public final class CirugiaMapper {
 
     private CirugiaMapper() {
     }
+
+    // ── Métodos para el historial de cliente (RF10) ──────────────────────────
+
+    public static CirugiaResumenDTO aResumen(Map<String, Object> fila) {
+        CirugiaResumenDTO dto = new CirugiaResumenDTO();
+        dto.setIdCirugia(MapperUtil.aEntero(fila.get("idCirugia")));
+        dto.setFechaHoraInicio(MapperUtil.aIso(fila.get("fechaHoraInicio")));
+        dto.setFechaHoraFin(MapperUtil.aIso(fila.get("fechaHoraFin")));
+        dto.setTipoProcedimiento(MapperUtil.aTexto(fila.get("tipoProcedimiento")));
+        dto.setDoctorNombre(MapperUtil.aTexto(fila.get("doctorNombre")));
+        dto.setMotivoCancelacion(MapperUtil.aTexto(fila.get("motivoCancelacion")));
+        dto.setEstado(MapperUtil.aTexto(fila.get("estado")));
+        dto.setTipoCliente(MapperUtil.aTexto(fila.get("tipoCliente")));
+        dto.setIdCliente(MapperUtil.aEntero(fila.get("idCliente")));
+        dto.setClienteNombre(MapperUtil.aTexto(fila.get("clienteNombre")));
+        return dto;
+    }
+
+    public static List<CirugiaResumenDTO> aResumenes(List<Map<String, Object>> filas) {
+        List<CirugiaResumenDTO> salida = new ArrayList<>(filas.size());
+        for (Map<String, Object> fila : filas) {
+            salida.add(aResumen(fila));
+        }
+        return salida;
+    }
+
+    // ── Métodos de gestión de cirugías (RF02) ───────────────────────────────
 
     // Fila de buscarDetalle / obtenerDetalle (claves en camelCase) -> DTO
     public static CirugiaDTO toDTO(Map<String, Object> fila) {
@@ -55,7 +84,6 @@ public final class CirugiaMapper {
         dto.setIdSolicitudOrigen(enteroONulo(fila.get("idSolicitudOrigen")));
         dto.setPrecioPactado(fila.get("precioPactado") == null ? null : ((Number) fila.get("precioPactado")).doubleValue());
         dto.setEstadoCotizacion(texto(fila.get("estadoCotizacion")));
-        // las filas de la búsqueda solo traen cirugías activas
         Object activo = fila.get("activo");
         dto.setActivo(activo == null || activo.toString().equals("true") || activo.toString().equals("1"));
         return dto;
@@ -104,7 +132,7 @@ public final class CirugiaMapper {
         cirugia.setTipoProcedimiento(dto.getTipoProcedimiento());
         cirugia.setDoctorNombre(dto.getDoctorNombre());
         cirugia.setDiagnostico(dto.getDiagnostico());
-        cirugia.setCliente(cliente);   // sin cliente, la BL responde "La cirugía debe tener un cliente"
+        cirugia.setCliente(cliente);
         cirugia.setEquipo(equipo);
         cirugia.setBandejaInstrumental(bandeja);
         return cirugia;

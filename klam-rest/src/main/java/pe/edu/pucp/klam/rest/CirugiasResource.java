@@ -44,8 +44,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Cirugías.
@@ -69,12 +71,43 @@ import java.util.Map;
 @Produces("application/json")
 @Consumes("application/json")
 public class CirugiasResource {
+    private static final Set<String> ESTADOS_HISTORIAL = Set.of("FINALIZADA", "CANCELADA");
     @Context private HttpHeaders headers;
     private Response acceso(String rol) {
         SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
         if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
         return null;
+    }
+
+    private String responsableAutenticado() {
+        return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION)).username();
+    }
+
+    @GET
+    @Path("/historial")
+    public Response historialPorCliente(@QueryParam("tipoCliente") String tipoCliente,
+                                        @QueryParam("idCliente") String idClienteTexto) {
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        String tipo;
+        int id;
+        if ("ADMINISTRADOR".equals(sesion.rol())) {
+            try { id = Integer.parseInt(idClienteTexto); }
+            catch (NumberFormatException ex) { return error(Response.Status.BAD_REQUEST, "Indique el cliente"); }
+            tipo = tipoCliente;
+        } else if ("PACIENTE_PARTICULAR".equals(sesion.rol()) || "CLINICA_HOSPITAL".equals(sesion.rol())) {
+            if (sesion.idCliente() == null) return error(Response.Status.FORBIDDEN, "Cuenta sin cliente asociado");
+            id = sesion.idCliente();
+            tipo = sesion.tipoCliente();
+        } else return error(Response.Status.FORBIDDEN, "Acceso denegado");
+        try {
+            List<Map<String, Object>> filas = cirugiaBL.buscarDetalle(null, null, tipo, id, null, null);
+            List<Map<String, Object>> historial = new ArrayList<>();
+            for (Map<String, Object> fila : filas)
+                if (ESTADOS_HISTORIAL.contains(String.valueOf(fila.get("estado")))) historial.add(fila);
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(historial)).build();
+        } catch (BLException ex) { return errorBL(ex); }
     }
 
     private final CirugiaBL cirugiaBL;
@@ -217,7 +250,7 @@ public class CirugiasResource {
                 throw new BLException("Debe enviar los datos de la cirugía");
             }
             Cirugia cirugia = CirugiaMapper.toModelo(datos);
-            cirugiaBL.registrar(cirugia, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.registrar(cirugia, responsableAutenticado());
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(String.valueOf(cirugia.getIdCirugia()))
                     .build();
@@ -247,7 +280,7 @@ public class CirugiasResource {
             cirugia.setIdCirugia(id);
             cirugia.setEstado(existente.getEstado());
             cirugia.setMotivoCancelacion(existente.getMotivoCancelacion());
-            cirugiaBL.modificar(cirugia, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.modificar(cirugia, responsableAutenticado());
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (BLException ex) {
             return errorBL(ex);
@@ -265,7 +298,7 @@ public class CirugiasResource {
             if (nuevo == null) {
                 throw new BLException("Debe indicar el nuevo estado");
             }
-            cirugiaBL.cambiarEstado(id, nuevo, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.cambiarEstado(id, nuevo, responsableAutenticado());
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (IllegalArgumentException ex) {
             return error(Response.Status.BAD_REQUEST, ex.getMessage());
@@ -280,7 +313,7 @@ public class CirugiasResource {
         Response acceso = acceso("ADMINISTRADOR");
         if (acceso != null) return acceso;
         try {
-            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), responsableAutenticado());
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (BLException ex) {
             return errorBL(ex);
@@ -294,7 +327,7 @@ public class CirugiasResource {
         Response acceso = acceso("ADMINISTRADOR");
         if (acceso != null) return acceso;
         try {
-            cirugiaBL.eliminar(id, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.eliminar(id, responsableAutenticado());
             return Response.noContent().build();
         } catch (BLException ex) {
             return errorBL(ex);
