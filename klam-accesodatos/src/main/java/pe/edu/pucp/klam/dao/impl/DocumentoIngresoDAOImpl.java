@@ -38,7 +38,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         if (doc == null) {
             throw new IllegalArgumentException("El documento no puede ser nulo");
         }
-        String sql = "{CALL insertar_documento_ingreso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{CALL insertar_documento_ingreso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cs = conn.prepareCall(sql)) {
             cs.registerOutParameter("p_id", Types.INTEGER);
@@ -58,7 +58,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         if (doc == null) {
             throw new IllegalArgumentException("El documento no puede ser nulo");
         }
-        String sql = "{CALL modificar_documento_ingreso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{CALL modificar_documento_ingreso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cs = conn.prepareCall(sql)) {
             cs.setInt("p_id", doc.getIdDocumento());
@@ -309,6 +309,13 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
                 if (!rs.wasNull()) {
                     usuario = new TecnicoInstrumentista();
                     usuario.setIdUsuario(idTec);
+                } else {
+                    // Cuenta de cliente (clínica o paciente) que presentó el documento de su solicitud
+                    int idCuenta = rs.getInt("id_cuenta_usuario");
+                    if (!rs.wasNull()) {
+                        usuario = new pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario();
+                        usuario.setIdUsuario(idCuenta);
+                    }
                 }
             }
         }
@@ -322,5 +329,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
                 usuario instanceof Vendedor ? usuario.getIdUsuario() : null);
         DBManager.setIntONulo(cs, "p_id_tecnico",
                 usuario instanceof TecnicoInstrumentista ? usuario.getIdUsuario() : null);
+        DBManager.setIntONulo(cs, "p_id_cuenta_usuario",
+                usuario instanceof pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario ? usuario.getIdUsuario() : null);
     }
 }

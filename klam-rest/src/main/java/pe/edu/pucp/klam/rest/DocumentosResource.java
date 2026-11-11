@@ -56,7 +56,7 @@ public class DocumentosResource {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
         if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
-        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
+        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol()) && !esCliente(sesion)) return sinPermiso();
         try {
             return Response.ok(respuestaDocumentos(documentoBL.listarPresentadosPorUsuario(
                     idSolicitud, sesion.idUsuario(), sesion.rol()))).build();
@@ -70,7 +70,7 @@ public class DocumentosResource {
     public Response listarPropios() {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
+        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol()) && !esCliente(sesion)) return sinPermiso();
         try {
             return Response.ok(respuestaDocumentos(documentoBL.listarPresentadosPorUsuario(
                     null, sesion.idUsuario(), sesion.rol()))).build();
@@ -109,6 +109,46 @@ public class DocumentosResource {
         }
     }
 
+    /**
+     * Documentos obligatorios de una solicitud y estado vigente de cada uno, para quien la presenta
+     * (cliente dueño, vendedor que la registró) o el administrador. Permite saber qué falta subir
+     * y qué documento rechazado tiene la resubida habilitada.
+     */
+    @GET
+    @Path("/solicitud/{idSolicitud}/requisitos")
+    public Response requisitos(@PathParam("idSolicitud") int idSolicitud) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (idSolicitud <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la solicitud no es válido");
+        try {
+            var solicitud = solicitudBL.findSolicitudById(idSolicitud);
+            if (solicitud == null) return error(Response.Status.NOT_FOUND, "No existe la solicitud");
+            boolean duenio = esAdministrador(sesion)
+                    || (esCliente(sesion) && esSolicitudDelCliente(solicitud, sesion))
+                    || ("VENDEDOR".equals(sesion.rol()) && solicitud.getVendedorRegistrador() != null
+                        && solicitud.getVendedorRegistrador().getIdUsuario() == sesion.idUsuario());
+            if (!duenio) return sinPermiso();
+            String tipoCliente = solicitud.getCliente() instanceof pe.edu.pucp.klam.modelo.clientes.ClinicaHospital
+                    ? pe.edu.pucp.klam.bl.CirugiaBL.TIPO_CLIENTE_CLINICA : pe.edu.pucp.klam.bl.CirugiaBL.TIPO_CLIENTE_PARTICULAR;
+            List<String> obligatorios = new ArrayList<>();
+            for (var t : documentoBL.listarDocumentosObligatorios(tipoCliente)) obligatorios.add(t.name());
+            // Versión vigente (la más alta) de cada tipo
+            Map<String, DocumentoIngreso> vigentes = new LinkedHashMap<>();
+            for (DocumentoIngreso d : documentoBL.listarPorSolicitud(idSolicitud)) {
+                DocumentoIngreso actual = vigentes.get(d.getTipoDocumento().name());
+                if (d.isActivo() && (actual == null || d.getVersion() > actual.getVersion())) vigentes.put(d.getTipoDocumento().name(), d);
+            }
+            Map<String, Object> cuerpo = new LinkedHashMap<>();
+            cuerpo.put("idSolicitud", idSolicitud);
+            cuerpo.put("estadoSolicitud", solicitud.getEstado() == null ? null : solicitud.getEstado().name());
+            cuerpo.put("obligatorios", obligatorios);
+            cuerpo.put("documentos", respuestaDocumentos(new ArrayList<>(vigentes.values())));
+            return Response.ok(cuerpo).build();
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @GET
     @Path("/cirugia/{idCirugia}")
     public Response listarPorCirugia(@PathParam("idCirugia") int idCirugia) {
@@ -131,7 +171,7 @@ public class DocumentosResource {
             @FormParam("tipoDocumento") String tipoTexto, @FormParam("archivo") EntityPart archivo) {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol())) return sinPermiso();
+        if (!esAdministrador(sesion) && !"VENDEDOR".equals(sesion.rol()) && !esCliente(sesion)) return sinPermiso();
         if (idSolicitud <= 0 || tipoTexto == null) return error(Response.Status.BAD_REQUEST, "Solicitud y tipo de documento obligatorios");
         TipoDocumentoIngreso tipo;
         try {
@@ -146,6 +186,9 @@ public class DocumentosResource {
                     && (solicitud.getVendedorRegistrador() == null
                     || solicitud.getVendedorRegistrador().getIdUsuario() != sesion.idUsuario())) {
                 return error(Response.Status.FORBIDDEN, "El vendedor solo puede adjuntar documentos a sus solicitudes");
+            }
+            if (esCliente(sesion) && !esSolicitudDelCliente(solicitud, sesion)) {
+                return error(Response.Status.FORBIDDEN, "Solo puede adjuntar documentos a sus propias solicitudes");
             }
             String clave = ArchivoDocumentoStorage.guardar(archivo);
             try {
@@ -274,6 +317,20 @@ public class DocumentosResource {
 
     private SesionesRest.Sesion sesion() {
         return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+    }
+
+    private static boolean esCliente(SesionesRest.Sesion sesion) {
+        return ("CLINICA_HOSPITAL".equals(sesion.rol()) || "PACIENTE_PARTICULAR".equals(sesion.rol()))
+                && sesion.idCliente() != null;
+    }
+
+    // La solicitud es del cliente si su solicitante coincide en tipo e id con el cliente de la sesión.
+    private static boolean esSolicitudDelCliente(pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia solicitud,
+                                                 SesionesRest.Sesion sesion) {
+        var cliente = solicitud.getCliente();
+        if (cliente == null || cliente.getIdCliente() != sesion.idCliente()) return false;
+        boolean esClinica = cliente instanceof pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
+        return esClinica == "CLINICA_HOSPITAL".equals(sesion.tipoCliente());
     }
 
     private boolean esAdministrador(SesionesRest.Sesion sesion) {

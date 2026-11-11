@@ -309,6 +309,8 @@ NOT NULL DEFAULT 'PENDIENTE',
                  `id_administrador` INT NULL,
                  `id_vendedor` INT NULL,
                  `id_tecnico` INT NULL,
+                 -- cuenta de cliente (clínica o paciente) que presentó el documento de su propia solicitud
+                 `id_cuenta_usuario` INT NULL,
                  PRIMARY KEY (`id_documento`),
                  UNIQUE KEY `uq_documento_solicitud_version` (`id_solicitud`, `tipo_documento`, `version`),
                  UNIQUE KEY `uq_documento_cirugia_version` (`id_cirugia`, `tipo_documento`, `version`),
@@ -333,13 +335,17 @@ NOT NULL DEFAULT 'PENDIENTE',
                  CONSTRAINT `fk_documento_ingreso_tecnico`
                      FOREIGN KEY (`id_tecnico`) REFERENCES `tecnico_instrumentista` (`id_usuario`)
                          ON DELETE RESTRICT ON UPDATE RESTRICT,
+                 CONSTRAINT `fk_documento_ingreso_cuenta`
+                     FOREIGN KEY (`id_cuenta_usuario`) REFERENCES `cuenta_usuario` (`id_usuario`)
+                         ON DELETE RESTRICT ON UPDATE RESTRICT,
                  CONSTRAINT `chk_documento_version` CHECK (`version` >= 1),
                  -- los clientes no tienen usuario en la plataforma: a lo sumo un usuario
                  -- y, en su lugar, el nombre del responsable como texto
                  CONSTRAINT `chk_documento_ingreso_un_usuario` CHECK (
                      (`id_administrador` IS NOT NULL)
                          + (`id_vendedor` IS NOT NULL)
-                         + (`id_tecnico` IS NOT NULL) <= 1
+                         + (`id_tecnico` IS NOT NULL)
+                         + (`id_cuenta_usuario` IS NOT NULL) <= 1
                      )
 );
 

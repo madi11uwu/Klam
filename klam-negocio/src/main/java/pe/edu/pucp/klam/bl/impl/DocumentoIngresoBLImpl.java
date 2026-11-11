@@ -224,8 +224,8 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             String responsable) throws BLException {
         validarId(idSolicitud, "solicitud");
         if (idUsuarioAutenticado <= 0 || (!"ADMINISTRADOR".equals(rolAutenticado)
-                && !"VENDEDOR".equals(rolAutenticado))) {
-            throw new SecurityException("La carga exige un administrador o vendedor autenticado");
+                && !"VENDEDOR".equals(rolAutenticado) && !esRolCliente(rolAutenticado))) {
+            throw new SecurityException("La carga exige un usuario autenticado del personal o el cliente de la solicitud");
         }
         if (tipo == null || archivoPath == null || archivoPath.isBlank()) {
             throw new BLException("El tipo y el archivo son obligatorios");
@@ -253,8 +253,10 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
                 new pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia();
         solicitud.setIdSolicitud(idSolicitud);
         doc.setSolicitud(solicitud);
-        UsuarioPlataforma presentador = "VENDEDOR".equals(rolAutenticado)
-                ? new Vendedor() : new Administrador();
+        // La propiedad de la solicitud del cliente la comprueba el recurso REST con los datos de la sesión.
+        UsuarioPlataforma presentador = "VENDEDOR".equals(rolAutenticado) ? new Vendedor()
+                : esRolCliente(rolAutenticado) ? new pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario()
+                : new Administrador();
         presentador.setIdUsuario(idUsuarioAutenticado);
         doc.setUsuarioCarga(presentador);
         doc.setResponsable(textoResponsable(responsable));
@@ -278,9 +280,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             List<DocumentoIngreso> propios = new ArrayList<>();
             for (DocumentoIngreso doc : documentos) {
                 UsuarioPlataforma original = originales.get(claveOrigen(doc));
-                if (doc.isActivo() && original != null
-                        && original.getIdUsuario() == idUsuarioAutenticado
-                        && rolAutenticado.equals(original.getRol())) propios.add(doc);
+                if (doc.isActivo() && coincidePresentador(original, idUsuarioAutenticado, rolAutenticado)) propios.add(doc);
             }
             return propios;
         } catch (SQLException e) {
@@ -295,6 +295,18 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         return origen + ":" + doc.getTipoDocumento();
     }
 
+    private static boolean esRolCliente(String rol) {
+        return "CLINICA_HOSPITAL".equals(rol) || "PACIENTE_PARTICULAR".equals(rol);
+    }
+
+    // El DAO carga al presentador solo con su id y su tipo: una cuenta de cliente se reconoce por su tipo
+    // (CuentaUsuario) y un rol de cliente; el personal, por su rol.
+    private static boolean coincidePresentador(UsuarioPlataforma usuario, int idUsuario, String rol) {
+        if (usuario == null || rol == null || usuario.getIdUsuario() != idUsuario) return false;
+        if (usuario instanceof pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario) return esRolCliente(rol);
+        return rol.equals(usuario.getRol());
+    }
+
     @Override
     public boolean esPresentadorOriginal(int idDocumento, int idUsuarioAutenticado,
             String rolAutenticado) throws BLException {
@@ -306,8 +318,7 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         try {
             DocumentoIngreso original = buscarVersionOriginal(doc);
             UsuarioPlataforma usuario = original == null ? null : original.getUsuarioCarga();
-            return usuario != null && usuario.getIdUsuario() == idUsuarioAutenticado
-                    && rolAutenticado.equals(usuario.getRol());
+            return coincidePresentador(usuario, idUsuarioAutenticado, rolAutenticado);
         } catch (SQLException e) {
             throw new BLException("No se pudo comprobar la identidad del presentador original", e);
         }

@@ -39,11 +39,11 @@ public class SolicitudesResource {
         }
 
         Cliente cliente;
-        if ("PARTICULAR".equals(datos.getTipoCliente())) {
+        if ("PARTICULAR".equals(datos.getTipoCliente()) || "PACIENTE_PARTICULAR".equals(datos.getTipoCliente())) {
             PacienteParticular particular = new PacienteParticular();
             particular.setIdCliente(datos.getIdCliente());
             cliente = particular;
-        } else if ("CLINICA".equals(datos.getTipoCliente())) {
+        } else if ("CLINICA".equals(datos.getTipoCliente()) || "CLINICA_HOSPITAL".equals(datos.getTipoCliente())) {
             ClinicaHospital clinica = new ClinicaHospital();
             clinica.setIdCliente(datos.getIdCliente());
             cliente = clinica;

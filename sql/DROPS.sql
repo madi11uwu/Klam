@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS `solicitud_cirugia`;
 DROP TABLE IF EXISTS `bandeja_consumible`;
 DROP TABLE IF EXISTS `equipo_especificacion`;
 
+DROP TABLE IF EXISTS `cuenta_usuario`;
 DROP TABLE IF EXISTS `paciente_particular`;
 DROP TABLE IF EXISTS `clinica_hospital`;
 DROP TABLE IF EXISTS `equipo`;

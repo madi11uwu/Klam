@@ -138,17 +138,18 @@ CREATE PROCEDURE insertar_documento_ingreso(
     IN  p_id_administrador INT,
     IN  p_id_vendedor INT,
     IN  p_id_tecnico INT,
+    IN  p_id_cuenta_usuario INT,
     IN  p_activo TINYINT
 )
 BEGIN
     INSERT INTO documento_ingreso (tipo_documento, archivo_path, estado_validacion, fecha_carga,
                                    fecha_validacion, motivo_rechazo, habilitar_resubida, version, responsable,
                                    id_solicitud, id_cirugia, id_orden_compra,
-                                   id_administrador, id_vendedor, id_tecnico, activo)
+                                   id_administrador, id_vendedor, id_tecnico, id_cuenta_usuario, activo)
     VALUES (p_tipo_documento, p_archivo_path, p_estado_validacion, p_fecha_carga,
             p_fecha_validacion, p_motivo_rechazo, 0, p_version, p_responsable,
             p_id_solicitud, p_id_cirugia, p_id_orden_compra,
-            p_id_administrador, p_id_vendedor, p_id_tecnico, p_activo);
+            p_id_administrador, p_id_vendedor, p_id_tecnico, p_id_cuenta_usuario, p_activo);
 
     SET p_id = LAST_INSERT_ID();
 END$$
@@ -169,6 +170,7 @@ CREATE PROCEDURE modificar_documento_ingreso(
     IN p_id_administrador INT,
     IN p_id_vendedor INT,
     IN p_id_tecnico INT,
+    IN p_id_cuenta_usuario INT,
     IN p_activo TINYINT
 )
 BEGIN
@@ -187,6 +189,7 @@ BEGIN
            id_administrador = p_id_administrador,
            id_vendedor = p_id_vendedor,
            id_tecnico = p_id_tecnico,
+           id_cuenta_usuario = p_id_cuenta_usuario,
            activo = p_activo
      WHERE id_documento = p_id;
 END$$
@@ -206,7 +209,7 @@ BEGIN
     SELECT id_documento, tipo_documento, archivo_path, estado_validacion,
            fecha_carga, fecha_validacion, motivo_rechazo, habilitar_resubida, version, responsable,
            id_solicitud, id_cirugia, id_orden_compra, id_administrador,
-           id_vendedor, id_tecnico, activo
+           id_vendedor, id_tecnico, id_cuenta_usuario, activo
       FROM documento_ingreso
      WHERE activo = 1;
 END$$
@@ -218,7 +221,7 @@ BEGIN
     SELECT id_documento, tipo_documento, archivo_path, estado_validacion,
            fecha_carga, fecha_validacion, motivo_rechazo, habilitar_resubida, version, responsable,
            id_solicitud, id_cirugia, id_orden_compra, id_administrador,
-           id_vendedor, id_tecnico, activo
+           id_vendedor, id_tecnico, id_cuenta_usuario, activo
       FROM documento_ingreso
      WHERE id_documento = p_id;
 END$$
@@ -267,7 +270,7 @@ BEGIN
     SELECT id_documento, tipo_documento, archivo_path, estado_validacion,
            fecha_carga, fecha_validacion, motivo_rechazo, habilitar_resubida, version, responsable,
            id_solicitud, id_cirugia, id_orden_compra, id_administrador,
-           id_vendedor, id_tecnico, activo
+           id_vendedor, id_tecnico, id_cuenta_usuario, activo
       FROM documento_ingreso d
      WHERE d.activo = 1
        AND ((p_id_solicitud IS NOT NULL AND d.id_solicitud = p_id_solicitud)
