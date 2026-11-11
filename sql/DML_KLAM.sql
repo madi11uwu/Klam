@@ -104,9 +104,12 @@ VALUES
 INSERT INTO equipo_especificacion
 (id_equipo, clave, valor)
 VALUES
+    (1, 'marca',      'Medtronic'),
     (1, 'voltaje',    '110V'),
     (1, 'peso_kg',    '2.3'),
+    (2, 'marca',      'Medtronic'),
     (2, 'version_sw', '8.0.1'),
+    (3, 'marca',      'DePuy Synthes'),
     (3, 'voltaje',    '220V');
 
 -- ============================================================
