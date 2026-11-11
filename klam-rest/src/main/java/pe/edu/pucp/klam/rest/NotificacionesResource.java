@@ -88,7 +88,7 @@ public class NotificacionesResource {
                     .filter(n -> !soloNoLeidas || !n.isEstadoLeida())
                     .filter(n -> !soloLeidas || n.isEstadoLeida())
                     .sorted(Comparator.comparing(Notificacion::getFechaHora, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .map(this::dto)
+                    .map(n -> dto(n, sesion))
                     .toList();
             return Response.ok(avisos).header("Cache-Control", "no-store").build();
         } catch (BLException ex) {
@@ -131,7 +131,7 @@ public class NotificacionesResource {
                         .build();
             }
             if (!propia(aviso, sesion)) return ajena();
-            return Response.ok(dto(aviso)).header("Cache-Control", "no-store").build();
+            return Response.ok(dto(aviso, sesion)).header("Cache-Control", "no-store").build();
         } catch (BLException ex) {
             return responderError(ex);
         }
@@ -200,7 +200,9 @@ public class NotificacionesResource {
 
     // ---- apoyo ----
 
-    private NotificacionDTO dto(Notificacion n) {
+    // Los avisos que se entregan son siempre del usuario de la sesión: si el destinatario no trae
+    // su username (el DAO solo carga el id), se usa el de la sesión.
+    private NotificacionDTO dto(Notificacion n, SesionesRest.Sesion sesion) {
         String perfil = "usuario";
         String destNombre = "Usuario";
         if (n.getDestinatario() instanceof Administrador a) {
@@ -212,6 +214,10 @@ public class NotificacionesResource {
         } else if (n.getDestinatario() instanceof Vendedor v) {
             perfil = "vendedor";
             destNombre = v.getUsername() != null ? v.getUsername() : "Vendedor";
+        }
+        if (destNombre == null || destNombre.isBlank()
+                || (n.getDestinatario() != null && n.getDestinatario().getIdUsuario() == sesion.idUsuario())) {
+            destNombre = sesion.username();
         }
         return new NotificacionDTO(n, destNombre, perfil);
     }
