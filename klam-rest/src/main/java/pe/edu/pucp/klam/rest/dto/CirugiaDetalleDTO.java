@@ -8,8 +8,19 @@ public class CirugiaDetalleDTO extends CirugiaResumenDTO {
     private EquipoDTO equipo;
     private String equipoMarca;
     private BandejaInstrumentalDTO bandejaInstrumental;
+    // El detalle solo se entrega para cirugías vigentes (las eliminadas responden 404).
+    // Se incluye porque las pantallas de gestión (RF02) lo consultan.
+    private boolean activo = true;
 
     public CirugiaDetalleDTO() {
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public EquipoDTO getEquipo() {
