@@ -48,12 +48,23 @@ public class NotificacionesResource {
     private SesionesRest.Sesion sesion() { return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION)); }
     private Response acceso(SesionesRest.Sesion s) {
         if (s == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
-        if (!"INSTRUMENTISTA".equals(s.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
+        // Cada usuario del personal ve solo su propia bandeja (RF12: instrumentista; también administrador y vendedor).
+        // Los clientes no reciben avisos internos.
+        if (!ROLES_CON_BANDEJA.contains(s.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
         return null;
     }
+    private static final java.util.Set<String> ROLES_CON_BANDEJA =
+            java.util.Set.of("ADMINISTRADOR", "VENDEDOR", "TECNICO_INSTRUMENTISTA");
+    // Los ids de administrador, vendedor y técnico viven en tablas distintas: se compara el tipo y el id.
     private boolean propia(Notificacion n, SesionesRest.Sesion s) {
-        return n.getDestinatario() instanceof TecnicoInstrumentista
-                && n.getDestinatario().getIdUsuario() == s.idUsuario();
+        UsuarioPlataforma d = n.getDestinatario();
+        if (d == null || d.getIdUsuario() != s.idUsuario()) return false;
+        return switch (s.rol()) {
+            case "ADMINISTRADOR" -> d instanceof Administrador;
+            case "VENDEDOR" -> d instanceof Vendedor;
+            case "TECNICO_INSTRUMENTISTA" -> d instanceof TecnicoInstrumentista;
+            default -> false;
+        };
     }
     private Response ajena() { return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Notificación ajena")).build(); }
 
@@ -172,7 +183,8 @@ public class NotificacionesResource {
         Response acceso = acceso(sesion);
         if (acceso != null) return acceso;
         try {
-            List<Notificacion> filtradas = filtrarPorRol(notificacionBL.findAll(), rol);
+            // Solo los avisos propios, sin importar el parámetro rol (se conserva por compatibilidad).
+            List<Notificacion> filtradas = notificacionBL.findAll().stream().filter(n -> propia(n, sesion)).toList();
             int marcadas = 0;
             for (Notificacion aviso : filtradas) {
                 if (!aviso.isEstadoLeida()) {
@@ -187,21 +199,6 @@ public class NotificacionesResource {
     }
 
     // ---- apoyo ----
-
-    private List<Notificacion> filtrarPorRol(List<Notificacion> todas, String rol) {
-        if (rol == null || rol.isBlank() || "todas".equalsIgnoreCase(rol)) {
-            return todas;
-        }
-        String r = rol.trim().toLowerCase(Locale.ROOT);
-        return todas.stream().filter(n -> {
-            UsuarioPlataforma d = n.getDestinatario();
-            if (d == null) return false;
-            if (r.contains("admin")) return d instanceof Administrador;
-            if (r.contains("tec") || r.contains("inst")) return d instanceof TecnicoInstrumentista;
-            if (r.contains("vend")) return d instanceof Vendedor;
-            return false;
-        }).toList();
-    }
 
     private NotificacionDTO dto(Notificacion n) {
         String perfil = "usuario";
