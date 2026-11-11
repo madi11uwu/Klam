@@ -29,25 +29,72 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 import pe.edu.pucp.klam.rest.dto.AccionCirugiaDTO;
-import pe.edu.pucp.klam.rest.dto.CirugiaDTO;
 import pe.edu.pucp.klam.rest.dto.CirugiaFormDTO;
 import pe.edu.pucp.klam.rest.dto.OpcionDTO;
 import pe.edu.pucp.klam.rest.dto.OpcionesCirugiaDTO;
 import pe.edu.pucp.klam.rest.mapper.BandejaMapper;
+import pe.edu.pucp.klam.rest.mapper.CirugiaConsultaMapper;
 import pe.edu.pucp.klam.rest.mapper.CirugiaMapper;
 
 import java.net.URI;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
-// RF02: gestión de cirugías. Las reglas (cruces de horario, esterilización, estados) están en CirugiaBL.
-// BLException sin causa = regla de negocio (400); con causa = error de base de datos (500).
+/**
+ * Cirugías.
+ * Consultas (rol 1): RF06 calendario y detalle, RF17 filtros, RF10 historial por cliente.
+ * Gestión (rol 5):   RF02 registrar, modificar, cambiar estado, cancelar y eliminar lógicamente.
+ *
+ * GET    /api/v1/cirugias                 -> lista filtrada (CirugiaResumenDTO)
+ * GET    /api/v1/cirugias/calendario      -> cirugías de un mes (CirugiaResumenDTO)
+ * GET    /api/v1/cirugias/{id}            -> detalle (CirugiaDetalleDTO)
+ * GET    /api/v1/cirugias/opciones        -> listas del formulario (clientes, equipos y bandejas disponibles)
+ * POST   /api/v1/cirugias                 -> registra (CirugiaFormDTO, responde CirugiaDTO)
+ * PUT    /api/v1/cirugias/{id}            -> modifica datos (no el estado)
+ * POST   /api/v1/cirugias/{id}/estado     -> PROGRAMADA -> EN_PROCESO -> FINALIZADA
+ * POST   /api/v1/cirugias/{id}/cancelacion-> cancela con motivo
+ * DELETE /api/v1/cirugias/{id}            -> eliminación lógica
+ *
+ * Las reglas (cruces de horario, esterilización, estados) están en CirugiaBL.
+ * Las escrituras reciben ?responsable=usuario (bitácora RF16); sin él la BL registra "SISTEMA".
+ * BLException sin causa = regla de negocio (400); con causa = error de base de datos (500).
+ */
 @Path("/cirugias")
 @Produces("application/json")
 @Consumes("application/json")
 public class CirugiasResource {
+    private static final Set<String> ESTADOS_HISTORIAL = Set.of("FINALIZADA", "CANCELADA");
+    /** RF10: cirugías culminadas y canceladas de un cliente (el cliente de la sesión o el que elige el administrador). */
+    @GET
+    @Path("/historial")
+    public Response historialPorCliente(@QueryParam("tipoCliente") String tipoCliente,
+                                        @QueryParam("idCliente") Integer idCliente) {
+        try {
+            if (vacioANulo(tipoCliente) == null || idCliente == null) {
+                throw new BLException("Indique el cliente");
+            }
+            List<Map<String, Object>> filas = cirugiaBL.buscarDetalle(null, null,
+                    tipoCliente.trim().toUpperCase(Locale.ROOT), idCliente, null, null);
+            List<Map<String, Object>> historial = new ArrayList<>();
+            for (Map<String, Object> fila : filas) {
+                if (ESTADOS_HISTORIAL.contains(String.valueOf(fila.get("estado")))) {
+                    historial.add(fila);
+                }
+            }
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(historial)).build();
+        }
+        catch (BLException ex) {
+            return errorBL(ex);
+        }
+    }
+
     private final CirugiaBL cirugiaBL;
     private final ClinicaHospitalBL clinicaBL;
     private final PacienteParticularBL pacienteBL;
@@ -58,64 +105,91 @@ public class CirugiasResource {
     private UriInfo uriInfo;
 
     public CirugiasResource() {
-        cirugiaBL = new CirugiaBLImpl();
-        clinicaBL = new ClinicaHospitalBLImpl();
-        pacienteBL = new PacienteParticularBLImpl();
-        equipoBL = new EquipoBLImpl();
-        bandejaBL = new BandejaInstrumentalBLImpl();
+        this(new CirugiaBLImpl());
     }
 
-    // GET /cirugias?desde=2026-11-01&hasta=2026-11-30&tipoCliente=CLINICA_HOSPITAL&idCliente=2&idEquipo=1&estado=PROGRAMADA
+    // Visibilidad de paquete a propósito: el contenedor REST solo usa el constructor público sin argumentos.
+    CirugiasResource(CirugiaBL cirugiaBL) {
+        this.cirugiaBL = cirugiaBL;
+        this.clinicaBL = new ClinicaHospitalBLImpl();
+        this.pacienteBL = new PacienteParticularBLImpl();
+        this.equipoBL = new EquipoBLImpl();
+        this.bandejaBL = new BandejaInstrumentalBLImpl();
+    }
+
+    /**
+     * Lista de cirugías con filtros combinables (todos opcionales):
+     * desde / hasta (yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss), tipoCliente (CLINICA_HOSPITAL | PACIENTE_PARTICULAR),
+     * idCliente (requiere tipoCliente), idEquipo y estado (PROGRAMADA, EN_PROCESO, FINALIZADA, CANCELADA
+     * o su etiqueta: Programada, En curso, Culminada, Cancelada).
+     * Sin resultados responde 200 con una lista vacía.
+     */
     @GET
-    public Response listar(@QueryParam("desde") String desde, @QueryParam("hasta") String hasta,
-                           @QueryParam("tipoCliente") String tipoCliente, @QueryParam("idCliente") Integer idCliente,
-                           @QueryParam("idEquipo") Integer idEquipo, @QueryParam("estado") String estado) {
+    public Response buscar(@QueryParam("desde") String desde,
+                           @QueryParam("hasta") String hasta,
+                           @QueryParam("tipoCliente") String tipoCliente,
+                           @QueryParam("idCliente") Integer idCliente,
+                           @QueryParam("idEquipo") Integer idEquipo,
+                           @QueryParam("estado") String estado) {
         try {
-            return Response.ok(CirugiaMapper.toDTOs(cirugiaBL.buscarDetalle(
-                    fecha(desde, false), fecha(hasta, true), vacioANulo(tipoCliente),
-                    idCliente, idEquipo, estado(estado))))
-                    .build();
-        }
-        catch (BLException ex) {
-            if (ex.getCause() == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", ex.getMessage()))
-                        .build();
+            LocalDateTime inicio = parsearFecha(desde, false);
+            LocalDateTime fin = parsearFecha(hasta, true);
+            EstadoCirugia estadoCirugia = CirugiaConsultaMapper.parsearEstado(estado);
+            String tipo = vacioANulo(tipoCliente);
+            if (tipo != null) {
+                tipo = tipo.toUpperCase(Locale.ROOT);
             }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", ex.getMessage()))
-                    .build();
+
+            List<Map<String, Object>> filas =
+                    cirugiaBL.buscarDetalle(inicio, fin, tipo, idCliente, idEquipo, estadoCirugia);
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(filas)).build();
+        } catch (IllegalArgumentException ex) {
+            return error(Response.Status.BAD_REQUEST, ex.getMessage());
+        } catch (BLException ex) {
+            return errorBL(ex);
         }
     }
 
+    /** Cirugías de un mes. Si no se indican ano y mes se usa el mes actual. */
     @GET
-    @Path("/{id}")
-    public Response consultar(@PathParam("id") int id) {
+    @Path("/calendario")
+    public Response calendario(@QueryParam("anio") Integer anio,
+                               @QueryParam("mes") Integer mes) {
+        LocalDate hoy = LocalDate.now();
+        int a = anio != null ? anio : hoy.getYear();
+        int m = mes != null ? mes : hoy.getMonthValue();
         try {
+            List<Map<String, Object>> filas = cirugiaBL.buscarCalendarioMensual(a, m);
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(filas)).build();
+        } catch (DateTimeException ex) {
+            return error(Response.Status.BAD_REQUEST, "Año o mes no válido: " + a + "/" + m);
+        } catch (BLException ex) {
+            return errorBL(ex);
+        }
+    }
+
+    /** Detalle de una cirugía con su equipo (y marca), bandeja y consumibles. */
+    @GET
+    @Path("/{id: \\d+}")
+    public Response detalle(@PathParam("id") int id) {
+        try {
+            // findById devuelve la cirugía con equipo, bandeja y cliente ya cargados; no filtra por
+            // 'activo', así que una cirugía eliminada lógicamente se trata como inexistente.
             Cirugia cirugia = cirugiaBL.findById(id);
-            if (cirugia == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(Map.of("error", "No existe la cirugía " + id))
-                        .build();
+            if (cirugia == null || !cirugia.isActivo()) {
+                return error(Response.Status.NOT_FOUND, "No existe una cirugía con id " + id);
             }
-            CirugiaDTO dto = CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id));
-            dto.setActivo(cirugia.isActivo());
-            return Response.ok(dto)
-                    .build();
-        }
-        catch (BLException ex) {
-            if (ex.getCause() == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", ex.getMessage()))
-                        .build();
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", ex.getMessage()))
-                    .build();
+            Map<String, Object> detalle = cirugiaBL.obtenerDetalle(id);
+            return Response.ok(CirugiaConsultaMapper.toDetalleDTO(
+                    detalle, cirugia.getEquipo(), cirugia.getBandejaInstrumental())).build();
+        } catch (BLException ex) {
+            return errorBL(ex);
         }
     }
 
-    // Listas del formulario: clientes, equipos disponibles y bandejas disponibles del procedimiento
+    // ---------------------------------------------------------------- RF02 (rol 5)
+
+    /** Listas del formulario: clientes, equipos disponibles y bandejas disponibles del procedimiento. */
     @GET
     @Path("/opciones")
     public Response opciones(@QueryParam("procedimiento") String procedimiento) {
@@ -138,177 +212,129 @@ public class CirugiasResource {
                         equipo.getCategoria() != null ? equipo.getCategoria().name() : null));
             }
             dto.setBandejas(BandejaMapper.toDTOs(bandejaBL.listarDisponibles(vacioANulo(procedimiento))));
-            return Response.ok(dto)
-                    .build();
-        }
-        catch (BLException ex) {
-            if (ex.getCause() == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", ex.getMessage()))
-                        .build();
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", ex.getMessage()))
-                    .build();
+            return Response.ok(dto).build();
+        } catch (BLException ex) {
+            return errorBL(ex);
         }
     }
 
     @POST
-    public Response registrar(CirugiaFormDTO datos) {
+    public Response registrar(@QueryParam("responsable") String responsable, CirugiaFormDTO datos) {
         try {
             if (datos == null) {
                 throw new BLException("Debe enviar los datos de la cirugía");
             }
             Cirugia cirugia = CirugiaMapper.toModelo(datos);
-            cirugiaBL.registrar(cirugia, CirugiaBL.RESPONSABLE_SISTEMA);
-
+            cirugiaBL.registrar(cirugia, responsable);
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(String.valueOf(cirugia.getIdCirugia()))
                     .build();
-
             return Response.created(uri)
                     .entity(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(cirugia.getIdCirugia())))
                     .build();
-        }
-        catch (BLException ex) {
-            if (ex.getCause() == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", ex.getMessage()))
-                        .build();
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", ex.getMessage()))
-                    .build();
+        } catch (BLException ex) {
+            return errorBL(ex);
         }
     }
 
-    // Modifica los datos; el estado no se cambia aquí (para eso están /estado y /cancelacion)
+    /** Modifica los datos; el estado no se cambia aquí (para eso están /estado y /cancelacion). */
     @PUT
-    @Path("/{id}")
-    public Response modificar(@PathParam("id") int id, CirugiaFormDTO datos) {
+    @Path("/{id: \\d+}")
+    public Response modificar(@PathParam("id") int id, @QueryParam("responsable") String responsable,
+                              CirugiaFormDTO datos) {
         try {
             if (datos == null) {
                 throw new BLException("Debe enviar los datos de la cirugía");
             }
             Cirugia existente = cirugiaBL.findById(id);
-            if (existente == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(Map.of("error", "No existe la cirugía " + id))
-                        .build();
+            if (existente == null || !existente.isActivo()) {
+                return error(Response.Status.NOT_FOUND, "No existe una cirugía con id " + id);
             }
             Cirugia cirugia = CirugiaMapper.toModelo(datos);
             cirugia.setIdCirugia(id);
             cirugia.setEstado(existente.getEstado());
             cirugia.setMotivoCancelacion(existente.getMotivoCancelacion());
-            cirugiaBL.modificar(cirugia, CirugiaBL.RESPONSABLE_SISTEMA);
-
-            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id)))
-                    .build();
-        }
-        catch (BLException ex) {
-            if (ex.getCause() == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", ex.getMessage()))
-                        .build();
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", ex.getMessage()))
-                    .build();
+            cirugiaBL.modificar(cirugia, responsable);
+            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
+        } catch (BLException ex) {
+            return errorBL(ex);
         }
     }
 
-    // PROGRAMADA -> EN_PROCESO -> FINALIZADA
+    /** PROGRAMADA -> EN_PROCESO -> FINALIZADA. */
     @POST
-    @Path("/{id}/estado")
-    public Response cambiarEstado(@PathParam("id") int id, AccionCirugiaDTO datos) {
+    @Path("/{id: \\d+}/estado")
+    public Response cambiarEstado(@PathParam("id") int id, @QueryParam("responsable") String responsable,
+                                  AccionCirugiaDTO datos) {
         try {
-            EstadoCirugia nuevo = estado(datos == null ? null : datos.getEstado());
-            cirugiaBL.cambiarEstado(id, nuevo, CirugiaBL.RESPONSABLE_SISTEMA);
-            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id)))
-                    .build();
-        }
-        catch (BLException ex) {
-            if (ex.getCause() == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", ex.getMessage()))
-                        .build();
+            EstadoCirugia nuevo = CirugiaConsultaMapper.parsearEstado(datos == null ? null : datos.getEstado());
+            if (nuevo == null) {
+                throw new BLException("Debe indicar el nuevo estado");
             }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", ex.getMessage()))
-                    .build();
+            cirugiaBL.cambiarEstado(id, nuevo, responsable);
+            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
+        } catch (IllegalArgumentException ex) {
+            return error(Response.Status.BAD_REQUEST, ex.getMessage());
+        } catch (BLException ex) {
+            return errorBL(ex);
         }
     }
 
     @POST
-    @Path("/{id}/cancelacion")
-    public Response cancelar(@PathParam("id") int id, AccionCirugiaDTO datos) {
+    @Path("/{id: \\d+}/cancelacion")
+    public Response cancelar(@PathParam("id") int id, @QueryParam("responsable") String responsable,
+                             AccionCirugiaDTO datos) {
         try {
-            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), CirugiaBL.RESPONSABLE_SISTEMA);
-            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id)))
-                    .build();
-        }
-        catch (BLException ex) {
-            if (ex.getCause() == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", ex.getMessage()))
-                        .build();
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", ex.getMessage()))
-                    .build();
+            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), responsable);
+            return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
+        } catch (BLException ex) {
+            return errorBL(ex);
         }
     }
 
-    // Eliminación lógica (activo = 0)
+    /** Eliminación lógica (activo = 0). */
     @DELETE
-    @Path("/{id}")
-    public Response eliminar(@PathParam("id") int id) {
+    @Path("/{id: \\d+}")
+    public Response eliminar(@PathParam("id") int id, @QueryParam("responsable") String responsable) {
         try {
-            cirugiaBL.eliminar(id, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.eliminar(id, responsable);
             return Response.noContent().build();
-        }
-        catch (BLException ex) {
-            if (ex.getCause() == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", ex.getMessage()))
-                        .build();
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", ex.getMessage()))
-                    .build();
+        } catch (BLException ex) {
+            return errorBL(ex);
         }
     }
 
-    // Acepta yyyy-MM-dd (día completo) o yyyy-MM-ddTHH:mm:ss
-    private LocalDateTime fecha(String valor, boolean finDelDia) {
-        if (valor == null || valor.isBlank()) {
+    // ---------------------------------------------------------------- apoyo
+    private static LocalDateTime parsearFecha(String texto, boolean finDeDia) {
+        String t = vacioANulo(texto);
+        if (t == null) {
             return null;
         }
         try {
-            if (valor.trim().length() == 10) {
-                LocalDate dia = LocalDate.parse(valor.trim());
-                return finDelDia ? dia.atTime(23, 59, 59) : dia.atStartOfDay();
+            if (t.length() <= 10) {
+                LocalDate fecha = LocalDate.parse(t);
+                return finDeDia ? fecha.atTime(23, 59, 59) : fecha.atStartOfDay();
             }
-            return LocalDateTime.parse(valor.trim());
-        }
-        catch (DateTimeParseException ex) {
-            throw new BLException("Fecha con formato inválido: " + valor);
-        }
-    }
-
-    private EstadoCirugia estado(String valor) {
-        if (valor == null || valor.isBlank()) {
-            return null;
-        }
-        try {
-            return EstadoCirugia.valueOf(valor.trim().toUpperCase());
-        }
-        catch (IllegalArgumentException ex) {
-            throw new BLException("Estado de cirugía no válido: " + valor);
+            return LocalDateTime.parse(t);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException(
+                    "Fecha no válida: " + texto + " (use yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss)");
         }
     }
 
-    private String vacioANulo(String valor) {
-        return valor == null || valor.isBlank() ? null : valor.trim();
+    private static String vacioANulo(String texto) {
+        return texto == null || texto.isBlank() ? null : texto.trim();
+    }
+
+
+    private static Response errorBL(BLException ex) {
+        Response.Status estado = ex.getCause() == null
+                ? Response.Status.BAD_REQUEST
+                : Response.Status.INTERNAL_SERVER_ERROR;
+        return error(estado, ex.getMessage());
+    }
+
+    private static Response error(Response.Status estado, String mensaje) {
+        return Response.status(estado).entity(Map.of("error", mensaje)).build();
     }
 }
