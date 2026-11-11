@@ -1,24 +1,28 @@
 package pe.edu.pucp.klam.rest.dto;
 
-/**
- * DTO espejo de Cirugia. Se usa para registrar y modificar (toModelo) y como respuesta con objetos anidados.
- * Para calendario, listas e historial usar CirugiaResumenDTO.
- */
+// Datos de una cirugía que se envían a Blazor (las fechas viajan como texto ISO)
 public class CirugiaDTO {
     private int idCirugia;
-    private boolean activo;
+    private String estado;
     private String fechaHoraInicio;
     private String fechaHoraFin;
     private String tipoProcedimiento;
-    private String motivoCancelacion;
     private String doctorNombre;
     private String diagnostico;
-    private String estado;
+    private String motivoCancelacion;
+    private String tipoCliente;
+    private Integer idCliente;
+    private String clienteNombre;
+    private String pacienteNombre;
+    private String clinicaNombre;
+    private Integer idEquipo;
+    private String equipoNombre;
+    private Integer idBandeja;
+    private String bandejaTipo;
     private Integer idSolicitudOrigen;
-    private boolean consumoCompleto;
-    private EquipoDTO equipo;
-    private BandejaInstrumentalDTO bandejaInstrumental;
-    private ClienteDTO cliente;
+    private Double precioPactado;
+    private String estadoCotizacion;
+    private boolean activo;
 
     public CirugiaDTO() {
     }
@@ -31,12 +35,12 @@ public class CirugiaDTO {
         this.idCirugia = idCirugia;
     }
 
-    public boolean isActivo() {
-        return activo;
+    public String getEstado() {
+        return estado;
     }
 
-    public void setActivo(boolean activo) {
-        this.activo = activo;
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 
     public String getFechaHoraInicio() {
@@ -63,14 +67,6 @@ public class CirugiaDTO {
         this.tipoProcedimiento = tipoProcedimiento;
     }
 
-    public String getMotivoCancelacion() {
-        return motivoCancelacion;
-    }
-
-    public void setMotivoCancelacion(String motivoCancelacion) {
-        this.motivoCancelacion = motivoCancelacion;
-    }
-
     public String getDoctorNombre() {
         return doctorNombre;
     }
@@ -87,12 +83,84 @@ public class CirugiaDTO {
         this.diagnostico = diagnostico;
     }
 
-    public String getEstado() {
-        return estado;
+    public String getMotivoCancelacion() {
+        return motivoCancelacion;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public void setMotivoCancelacion(String motivoCancelacion) {
+        this.motivoCancelacion = motivoCancelacion;
+    }
+
+    public String getTipoCliente() {
+        return tipoCliente;
+    }
+
+    public void setTipoCliente(String tipoCliente) {
+        this.tipoCliente = tipoCliente;
+    }
+
+    public Integer getIdCliente() {
+        return idCliente;
+    }
+
+    public void setIdCliente(Integer idCliente) {
+        this.idCliente = idCliente;
+    }
+
+    public String getClienteNombre() {
+        return clienteNombre;
+    }
+
+    public void setClienteNombre(String clienteNombre) {
+        this.clienteNombre = clienteNombre;
+    }
+
+    public String getPacienteNombre() {
+        return pacienteNombre;
+    }
+
+    public void setPacienteNombre(String pacienteNombre) {
+        this.pacienteNombre = pacienteNombre;
+    }
+
+    public String getClinicaNombre() {
+        return clinicaNombre;
+    }
+
+    public void setClinicaNombre(String clinicaNombre) {
+        this.clinicaNombre = clinicaNombre;
+    }
+
+    public Integer getIdEquipo() {
+        return idEquipo;
+    }
+
+    public void setIdEquipo(Integer idEquipo) {
+        this.idEquipo = idEquipo;
+    }
+
+    public String getEquipoNombre() {
+        return equipoNombre;
+    }
+
+    public void setEquipoNombre(String equipoNombre) {
+        this.equipoNombre = equipoNombre;
+    }
+
+    public Integer getIdBandeja() {
+        return idBandeja;
+    }
+
+    public void setIdBandeja(Integer idBandeja) {
+        this.idBandeja = idBandeja;
+    }
+
+    public String getBandejaTipo() {
+        return bandejaTipo;
+    }
+
+    public void setBandejaTipo(String bandejaTipo) {
+        this.bandejaTipo = bandejaTipo;
     }
 
     public Integer getIdSolicitudOrigen() {
@@ -103,35 +171,27 @@ public class CirugiaDTO {
         this.idSolicitudOrigen = idSolicitudOrigen;
     }
 
-    public boolean isConsumoCompleto() {
-        return consumoCompleto;
+    public Double getPrecioPactado() {
+        return precioPactado;
     }
 
-    public void setConsumoCompleto(boolean consumoCompleto) {
-        this.consumoCompleto = consumoCompleto;
+    public void setPrecioPactado(Double precioPactado) {
+        this.precioPactado = precioPactado;
     }
 
-    public EquipoDTO getEquipo() {
-        return equipo;
+    public String getEstadoCotizacion() {
+        return estadoCotizacion;
     }
 
-    public void setEquipo(EquipoDTO equipo) {
-        this.equipo = equipo;
+    public void setEstadoCotizacion(String estadoCotizacion) {
+        this.estadoCotizacion = estadoCotizacion;
     }
 
-    public BandejaInstrumentalDTO getBandejaInstrumental() {
-        return bandejaInstrumental;
+    public boolean isActivo() {
+        return activo;
     }
 
-    public void setBandejaInstrumental(BandejaInstrumentalDTO bandejaInstrumental) {
-        this.bandejaInstrumental = bandejaInstrumental;
-    }
-
-    public ClienteDTO getCliente() {
-        return cliente;
-    }
-
-    public void setCliente(ClienteDTO cliente) {
-        this.cliente = cliente;
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 }
