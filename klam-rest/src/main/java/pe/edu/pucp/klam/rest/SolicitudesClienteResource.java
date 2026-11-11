@@ -4,7 +4,9 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import pe.edu.pucp.klam.bl.BLException;
+import pe.edu.pucp.klam.bl.ClinicaHospitalBL;
 import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
+import pe.edu.pucp.klam.bl.impl.ClinicaHospitalBLImpl;
 import pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
@@ -14,6 +16,10 @@ import pe.edu.pucp.klam.rest.dto.RegistrarSolicitudDTO;
 import pe.edu.pucp.klam.rest.dto.SolicitudCirugiaDTO;
 
 import java.net.URI;
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
@@ -30,6 +36,7 @@ import java.time.format.DateTimeParseException;
 public class SolicitudesClienteResource {
 
     private final SolicitudCirugiaBL solicitudBL = new SolicitudCirugiaBLImpl();
+    private final ClinicaHospitalBL clinicaBL = new ClinicaHospitalBLImpl();
 
     @POST
     public Response registrar(@HeaderParam("Authorization") String authorization, RegistrarSolicitudDTO datos) {
@@ -81,6 +88,48 @@ public class SolicitudesClienteResource {
         } catch (BLException ex) {
             return Errores.desde(ex);
         }
+    }
+
+    /**
+     * Búsqueda de clínicas por NOMBRE para elegir el destino de la solicitud (el cliente no conoce los ids).
+     * Solo clientes. Devuelve únicamente id y nombre, y como mucho 10 coincidencias de 2 o más letras
+     * (sin distinguir mayúsculas ni tildes).
+     *   GET /cliente/solicitudes/clinicas?nombre=san fe
+     */
+    @GET
+    @Path("/clinicas")
+    public Response buscarClinicas(@HeaderParam("Authorization") String authorization,
+                                   @QueryParam("nombre") String nombre) {
+        Response rechazo = verificar(authorization);
+        if (rechazo != null) {
+            return rechazo;
+        }
+        String filtro = normalizar(nombre);
+        if (filtro.length() < 2) {
+            return Response.ok(List.of()).build();
+        }
+        try {
+            List<Map<String, Object>> opciones = new ArrayList<>();
+            for (ClinicaHospital clinica : clinicaBL.findAll()) {
+                if (opciones.size() >= 10) {
+                    break;
+                }
+                if (clinica.isActivo() && normalizar(clinica.getNombre()).contains(filtro)) {
+                    opciones.add(Map.of("idCliente", clinica.getIdCliente(), "nombre", clinica.getNombre()));
+                }
+            }
+            return Response.ok(opciones).build();
+        } catch (BLException ex) {
+            return Errores.desde(ex);
+        }
+    }
+
+    private static String normalizar(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        return Normalizer.normalize(texto.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT);
     }
 
     /** 401 sin sesión válida; 403 si quien llama no es un cliente. */

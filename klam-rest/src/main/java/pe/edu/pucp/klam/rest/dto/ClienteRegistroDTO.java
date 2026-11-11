@@ -19,6 +19,8 @@ public class ClienteRegistroDTO {
     private String periodoCredito;
     private String dni;
     private boolean pagoConfirmado;
+    private String username;     // solo en el alta (obligatorio)
+    private String password;     // solo en el alta (obligatorio); nunca se devuelve
 
     public ClienteRegistroDTO() {
     }
@@ -47,4 +49,9 @@ public class ClienteRegistroDTO {
     public void setDni(String dni) { this.dni = dni; }
     public boolean isPagoConfirmado() { return pagoConfirmado; }
     public void setPagoConfirmado(boolean pagoConfirmado) { this.pagoConfirmado = pagoConfirmado; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

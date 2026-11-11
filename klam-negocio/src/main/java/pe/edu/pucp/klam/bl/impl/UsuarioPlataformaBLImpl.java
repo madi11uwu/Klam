@@ -104,6 +104,34 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
             throw new BLException("Tipo de usuario no soportado");
         }
     }
+    /**
+     * Comprueba, sin guardar nada, que un usuario y una contraseña sirven para una cuenta nueva de cliente:
+     * usuario de 4 a 50 caracteres (letras, números, punto, guion y guion bajo), contraseña con el formato de la
+     * plataforma y nombre de usuario que no esté en uso (personal ni otras cuentas).
+     */
+    public void validarCredencialesNuevas(String username, String password) throws BLException {
+        if (username == null || username.isBlank()) {
+            throw new BLException("El usuario es obligatorio");
+        }
+        String nombre = username.trim();
+        if (nombre.length() < 4 || nombre.length() > 50 || !nombre.matches("[A-Za-z0-9._-]+")) {
+            throw new BLException("El usuario debe tener entre 4 y 50 caracteres (letras, números, punto, guion y guion bajo)");
+        }
+        Contrasenas.validarFormato(password);
+        if (administradorBL.findByUsername(nombre) != null
+                || vendedorBL.findByUsername(nombre) != null
+                || tecnicoBL.findByUsername(nombre) != null) {
+            throw new BLException("El nombre de usuario ya está registrado");
+        }
+        try {
+            if (cuentaDAO.findByUsername(nombre) != null) {
+                throw new BLException("El nombre de usuario ya está registrado");
+            }
+        } catch (SQLException ex) {
+            throw new BLException("No se pudo verificar el nombre de usuario", ex);
+        }
+    }
+
     @Override
     public int habilitarCuentaCliente(String tipo, int idCliente, String username, String password)
             throws BLException {

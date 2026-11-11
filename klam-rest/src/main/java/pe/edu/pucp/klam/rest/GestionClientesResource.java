@@ -88,12 +88,17 @@ public class GestionClientesResource {
         if (dto == null) {
             return Errores.error(Response.Status.BAD_REQUEST, "El cuerpo del cliente es obligatorio");
         }
+        // RF01: el cliente no puede registrarse sin sus credenciales.
+        if (dto.getUsername() == null || dto.getUsername().isBlank()
+                || dto.getPassword() == null || dto.getPassword().isBlank()) {
+            return Errores.error(Response.Status.BAD_REQUEST, "El usuario y la contraseña del cliente son obligatorios");
+        }
         try {
             ClienteResumenDTO creado = new ClienteResumenDTO();
             if (CirugiaBL.TIPO_CLIENTE_CLINICA.equals(dto.getTipoCliente())) {
                 ClinicaHospital c = new ClinicaHospital();
                 copiarClinica(dto, c);
-                clinicaBL.insert(c);
+                clinicaBL.insert(c, dto.getUsername(), dto.getPassword());
                 creado.setIdCliente(c.getIdCliente());
                 creado.setNombre(c.getNombre());
                 creado.setEmailContacto(c.getEmailContacto());
@@ -103,7 +108,7 @@ public class GestionClientesResource {
             } else if (CirugiaBL.TIPO_CLIENTE_PARTICULAR.equals(dto.getTipoCliente())) {
                 PacienteParticular c = new PacienteParticular();
                 copiarPaciente(dto, c);
-                pacienteBL.insert(c);
+                pacienteBL.insert(c, dto.getUsername(), dto.getPassword());
                 creado.setIdCliente(c.getIdCliente());
                 creado.setNombre(c.getNombre());
                 creado.setEmailContacto(c.getEmailContacto());

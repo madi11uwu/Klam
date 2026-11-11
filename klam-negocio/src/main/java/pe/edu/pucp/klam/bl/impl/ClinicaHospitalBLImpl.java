@@ -90,12 +90,37 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
 
     @Override
     public void insert(ClinicaHospital cliente) throws BLException {
+        // Sin credenciales indicadas (p. ej. alta del vendedor): cuenta inicial con el documento del cliente.
+        validarDatos(cliente);
+        String documento = CuentaInicialCliente.usuarioInicial(cliente.getRuc());
+        insert(cliente, documento, CuentaInicialCliente.passwordInicial(documento));
+    }
+
+    @Override
+    public void insert(ClinicaHospital cliente, String username, String password) throws BLException {
         validarDatos(cliente);
         validarDocumentoUnico(cliente, false);
+        // Antes de guardar: sin credenciales válidas no se registra el cliente.
+        CuentaInicialCliente.validar(username, password);
         try {
             clinicaHospitalDAO.insert(cliente);
         } catch (SQLException e) {
             throw new BLException("No se pudo registrar " + "la clínica u hospital", e);
+        }
+        try {
+            CuentaInicialCliente.crear("CLINICA_HOSPITAL", cliente.getIdCliente(), username, password);
+        } catch (BLException e) {
+            deshacerAlta(cliente.getIdCliente());
+            throw new BLException("No se registró el cliente: no se pudo crear su cuenta de acceso. " + e.getMessage(), e);
+        }
+    }
+
+    /** Compensación: un cliente sin cuenta no debe quedar activo. */
+    private void deshacerAlta(int id) {
+        try {
+            delete(id);
+        } catch (BLException ignorada) {
+            // el error principal ya se informa al llamador
         }
     }
 
