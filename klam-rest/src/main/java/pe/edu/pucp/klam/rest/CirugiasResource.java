@@ -11,6 +11,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.BandejaInstrumentalBL;
@@ -67,6 +69,14 @@ import java.util.Map;
 @Produces("application/json")
 @Consumes("application/json")
 public class CirugiasResource {
+    @Context private HttpHeaders headers;
+    private Response acceso(String rol) {
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
+        if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
+        return null;
+    }
+
     private final CirugiaBL cirugiaBL;
     private final ClinicaHospitalBL clinicaBL;
     private final PacienteParticularBL pacienteBL;
@@ -103,6 +113,8 @@ public class CirugiasResource {
                            @QueryParam("idCliente") Integer idCliente,
                            @QueryParam("idEquipo") Integer idEquipo,
                            @QueryParam("estado") String estado) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             LocalDateTime inicio = parsearFecha(desde, false);
             LocalDateTime fin = parsearFecha(hasta, true);
@@ -127,6 +139,8 @@ public class CirugiasResource {
     @Path("/calendario")
     public Response calendario(@QueryParam("anio") Integer anio,
                                @QueryParam("mes") Integer mes) {
+        Response acceso = acceso(null);
+        if (acceso != null) return acceso;
         LocalDate hoy = LocalDate.now();
         int a = anio != null ? anio : hoy.getYear();
         int m = mes != null ? mes : hoy.getMonthValue();
@@ -144,6 +158,8 @@ public class CirugiasResource {
     @GET
     @Path("/{id: \\d+}")
     public Response detalle(@PathParam("id") int id) {
+        Response acceso = acceso(null);
+        if (acceso != null) return acceso;
         try {
             // findById devuelve la cirugía con equipo, bandeja y cliente ya cargados; no filtra por
             // 'activo', así que una cirugía eliminada lógicamente se trata como inexistente.
@@ -165,6 +181,8 @@ public class CirugiasResource {
     @GET
     @Path("/opciones")
     public Response opciones(@QueryParam("procedimiento") String procedimiento) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             OpcionesCirugiaDTO dto = new OpcionesCirugiaDTO();
             for (ClinicaHospital clinica : clinicaBL.findAll()) {
@@ -192,6 +210,8 @@ public class CirugiasResource {
 
     @POST
     public Response registrar(CirugiaFormDTO datos) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             if (datos == null) {
                 throw new BLException("Debe enviar los datos de la cirugía");
@@ -213,6 +233,8 @@ public class CirugiasResource {
     @PUT
     @Path("/{id: \\d+}")
     public Response modificar(@PathParam("id") int id, CirugiaFormDTO datos) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             if (datos == null) {
                 throw new BLException("Debe enviar los datos de la cirugía");
@@ -236,6 +258,8 @@ public class CirugiasResource {
     @POST
     @Path("/{id: \\d+}/estado")
     public Response cambiarEstado(@PathParam("id") int id, AccionCirugiaDTO datos) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             EstadoCirugia nuevo = CirugiaConsultaMapper.parsearEstado(datos == null ? null : datos.getEstado());
             if (nuevo == null) {
@@ -253,6 +277,8 @@ public class CirugiasResource {
     @POST
     @Path("/{id: \\d+}/cancelacion")
     public Response cancelar(@PathParam("id") int id, AccionCirugiaDTO datos) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), CirugiaBL.RESPONSABLE_SISTEMA);
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
@@ -265,6 +291,8 @@ public class CirugiasResource {
     @DELETE
     @Path("/{id: \\d+}")
     public Response eliminar(@PathParam("id") int id) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             cirugiaBL.eliminar(id, CirugiaBL.RESPONSABLE_SISTEMA);
             return Response.noContent().build();

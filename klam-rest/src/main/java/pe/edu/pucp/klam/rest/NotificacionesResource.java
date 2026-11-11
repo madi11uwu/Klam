@@ -10,6 +10,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -42,10 +44,26 @@ import pe.edu.pucp.klam.rest.dto.NotificacionDTO;
 @Consumes(MediaType.APPLICATION_JSON)
 public class NotificacionesResource {
 
+    @Context private HttpHeaders headers;
+    private SesionesRest.Sesion sesion() { return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION)); }
+    private Response acceso(SesionesRest.Sesion s) {
+        if (s == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
+        if (!"INSTRUMENTISTA".equals(s.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
+        return null;
+    }
+    private boolean propia(Notificacion n, SesionesRest.Sesion s) {
+        return n.getDestinatario() instanceof TecnicoInstrumentista
+                && n.getDestinatario().getIdUsuario() == s.idUsuario();
+    }
+    private Response ajena() { return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Notificación ajena")).build(); }
+
     private final NotificacionBL notificacionBL = new NotificacionBLImpl();
 
     @GET
     public Response listar(@QueryParam("rol") String rol, @QueryParam("estado") String estado) {
+        SesionesRest.Sesion sesion = sesion();
+        Response acceso = acceso(sesion);
+        if (acceso != null) return acceso;
         boolean soloNoLeidas = "no-leidas".equalsIgnoreCase(estado);
         boolean soloLeidas = "leidas".equalsIgnoreCase(estado);
         if (estado != null && !estado.isBlank() && !soloNoLeidas && !soloLeidas && !"todas".equalsIgnoreCase(estado)) {
@@ -55,7 +73,7 @@ public class NotificacionesResource {
         }
         try {
             List<Notificacion> todas = notificacionBL.findAll();
-            List<NotificacionDTO> avisos = filtrarPorRol(todas, rol).stream()
+            List<NotificacionDTO> avisos = todas.stream().filter(n -> propia(n, sesion))
                     .filter(n -> !soloNoLeidas || !n.isEstadoLeida())
                     .filter(n -> !soloLeidas || n.isEstadoLeida())
                     .sorted(Comparator.comparing(Notificacion::getFechaHora, Comparator.nullsLast(Comparator.reverseOrder())))
@@ -70,8 +88,11 @@ public class NotificacionesResource {
     @GET
     @Path("/resumen")
     public Response resumen(@QueryParam("rol") String rol) {
+        SesionesRest.Sesion sesion = sesion();
+        Response acceso = acceso(sesion);
+        if (acceso != null) return acceso;
         try {
-            List<Notificacion> filtradas = filtrarPorRol(notificacionBL.findAll(), rol);
+            List<Notificacion> filtradas = notificacionBL.findAll().stream().filter(n -> propia(n, sesion)).toList();
             long noLeidas = filtradas.stream().filter(n -> !n.isEstadoLeida()).count();
             return Response.ok(Map.of("total", filtradas.size(), "noLeidas", noLeidas))
                     .header("Cache-Control", "no-store").build();
@@ -83,6 +104,9 @@ public class NotificacionesResource {
     @GET
     @Path("/{id}")
     public Response consultar(@PathParam("id") int id) {
+        SesionesRest.Sesion sesion = sesion();
+        Response acceso = acceso(sesion);
+        if (acceso != null) return acceso;
         if (id <= 0) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Map.of("error", "El ID de la notificación no es válido"))
@@ -95,6 +119,7 @@ public class NotificacionesResource {
                         .entity(Map.of("error", "No existe la notificación " + id))
                         .build();
             }
+            if (!propia(aviso, sesion)) return ajena();
             return Response.ok(dto(aviso)).header("Cache-Control", "no-store").build();
         } catch (BLException ex) {
             return responderError(ex);
@@ -116,6 +141,9 @@ public class NotificacionesResource {
     }
 
     private Response marcarLeidaInterno(int id) {
+        SesionesRest.Sesion sesion = sesion();
+        Response acceso = acceso(sesion);
+        if (acceso != null) return acceso;
         if (id <= 0) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Map.of("error", "El ID de la notificación no es válido"))
@@ -128,6 +156,7 @@ public class NotificacionesResource {
                         .entity(Map.of("error", "No existe la notificación " + id))
                         .build();
             }
+            if (!propia(aviso, sesion)) return ajena();
             notificacionBL.marcarLeida(id, true);
             return Response.noContent().build();
         } catch (BLException ex) {
@@ -139,6 +168,9 @@ public class NotificacionesResource {
     @Path("/lectura")
     @Consumes(MediaType.WILDCARD)
     public Response marcarTodasLeidas(@QueryParam("rol") String rol) {
+        SesionesRest.Sesion sesion = sesion();
+        Response acceso = acceso(sesion);
+        if (acceso != null) return acceso;
         try {
             List<Notificacion> filtradas = filtrarPorRol(notificacionBL.findAll(), rol);
             int marcadas = 0;

@@ -9,6 +9,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Context;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -50,6 +52,14 @@ import pe.edu.pucp.klam.rest.dto.NuevoDespachoDTO;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DespachosResource {
+    @Context private HttpHeaders headers;
+    private Response acceso(String rol) {
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
+        if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
+        return null;
+    }
+
 
     private final EquipoBL equipoBL = new EquipoBLImpl();
     private final CirugiaBL cirugiaBL = new CirugiaBLImpl();
@@ -57,6 +67,8 @@ public class DespachosResource {
 
     @GET
     public Response listar(@QueryParam("estado") String estado, @QueryParam("q") String q) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         final String filtro = estado == null || estado.isBlank() ? "todos" : estado;
         if (!Set.of("todos", "pendientes", "retornados").contains(filtro)) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -82,6 +94,8 @@ public class DespachosResource {
     @GET
     @Path("/cirugias-despachables")
     public Response cirugiasDespachables() {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             List<Map<String, Object>> candidatas = new ArrayList<>();
             candidatas.addAll(cirugiaBL.buscarDetalle(null, null, null, null, null, EstadoCirugia.PROGRAMADA));
@@ -127,6 +141,8 @@ public class DespachosResource {
     @GET
     @Path("/disponibilidad")
     public Response disponibilidad() {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             List<Map<String, Object>> equipos = new ArrayList<>();
             for (Equipo e : equipoBL.listarDisponibles()) {
@@ -156,6 +172,8 @@ public class DespachosResource {
     @GET
     @Path("/{codigo}")
     public Response consultar(@PathParam("codigo") String codigo) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         Response invalido = validarCodigo(codigo);
         if (invalido != null) return invalido;
         try {
@@ -172,6 +190,8 @@ public class DespachosResource {
 
     @POST
     public Response registrar(NuevoDespachoDTO datos) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         if (datos == null || datos.getIdCirugia() == null || datos.getIdCirugia() <= 0) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Map.of("error", "Debe indicar una cirugía válida"))
@@ -189,6 +209,8 @@ public class DespachosResource {
     @Path("/{codigo}/retorno")
     @Consumes(MediaType.WILDCARD)
     public Response registrarRetorno(@PathParam("codigo") String codigo) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         Response invalido = validarCodigo(codigo);
         if (invalido != null) return invalido;
         try {

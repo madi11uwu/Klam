@@ -4,6 +4,8 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Context;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.ConsumibleBL;
 import pe.edu.pucp.klam.bl.impl.ConsumibleBLImpl;
@@ -19,6 +21,14 @@ import java.util.Map;
 @Path("/consumibles")
 @Produces("application/json")
 public class ConsumiblesResource {
+    @Context private HttpHeaders headers;
+    private Response acceso(String rol) {
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
+        if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
+        return null;
+    }
+
     private final ConsumibleBL consumibleBL;
 
     public ConsumiblesResource() {
@@ -27,6 +37,8 @@ public class ConsumiblesResource {
 
     @GET
     public Response listar() {
+        Response acceso = acceso(null);
+        if (acceso != null) return acceso;
         try {
             List<ConsumibleDTO> dtos = new ArrayList<>();
             for (Consumible consumible : consumibleBL.findAll()) {

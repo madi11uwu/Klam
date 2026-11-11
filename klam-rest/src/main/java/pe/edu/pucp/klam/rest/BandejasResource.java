@@ -11,6 +11,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.BandejaInstrumentalBL;
@@ -29,6 +31,14 @@ import java.util.Map;
 @Produces("application/json")
 @Consumes("application/json")
 public class BandejasResource {
+    @Context private HttpHeaders headers;
+    private Response acceso(String rol) {
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
+        if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
+        return null;
+    }
+
     private final BandejaInstrumentalBL bandejaBL;
 
     @Context
@@ -41,6 +51,8 @@ public class BandejasResource {
     // GET /bandejas o /bandejas?procedimiento=Cirugía de columna
     @GET
     public Response listar(@QueryParam("procedimiento") String procedimiento) {
+        Response acceso = acceso(null);
+        if (acceso != null) return acceso;
         try {
             if (procedimiento != null && !procedimiento.isBlank()) {
                 return Response.ok(BandejaMapper.toDTOs(bandejaBL.listarPorProcedimiento(procedimiento)))
@@ -65,6 +77,8 @@ public class BandejasResource {
     @GET
     @Path("/disponibles")
     public Response disponibles(@QueryParam("procedimiento") String procedimiento) {
+        Response acceso = acceso(null);
+        if (acceso != null) return acceso;
         try {
             return Response.ok(BandejaMapper.toDTOs(bandejaBL.listarDisponibles(procedimiento)))
                     .build();
@@ -84,6 +98,8 @@ public class BandejasResource {
     @GET
     @Path("/{id}")
     public Response consultar(@PathParam("id") int id) {
+        Response acceso = acceso(null);
+        if (acceso != null) return acceso;
         try {
             if (bandejaBL.findById(id) == null) {
                 return Response.status(Response.Status.NOT_FOUND)
@@ -108,6 +124,8 @@ public class BandejasResource {
     // Crea una plantilla nueva (sin consumibles; luego se asocian)
     @POST
     public Response registrar(BandejaFormDTO datos) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             if (datos == null) {
                 throw new BLException("Debe enviar los datos de la bandeja");
@@ -139,6 +157,8 @@ public class BandejasResource {
     @POST
     @Path("/{id}/consumibles")
     public Response asociarConsumible(@PathParam("id") int id, ConsumibleBandejaDTO datos) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             if (datos == null) {
                 throw new BLException("Debe indicar el consumible y la cantidad");
@@ -164,6 +184,8 @@ public class BandejasResource {
     @Path("/{id}/consumibles/{idConsumible}")
     public Response actualizarCantidad(@PathParam("id") int id, @PathParam("idConsumible") int idConsumible,
                                        ConsumibleBandejaDTO datos) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             if (datos == null) {
                 throw new BLException("Debe indicar la cantidad");
@@ -187,6 +209,8 @@ public class BandejasResource {
     @DELETE
     @Path("/{id}/consumibles/{idConsumible}")
     public Response quitarConsumible(@PathParam("id") int id, @PathParam("idConsumible") int idConsumible) {
+        Response acceso = acceso("ADMINISTRADOR");
+        if (acceso != null) return acceso;
         try {
             bandejaBL.quitarConsumible(id, idConsumible);
             return Response.ok(BandejaMapper.toDTO(bandejaBL.consultarDetalle(id)))
