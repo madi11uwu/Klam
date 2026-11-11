@@ -1,6 +1,8 @@
 -- Migración incremental RF05: cuentas de acceso separadas de los clientes comerciales.
 -- Ejecutar una sola vez después de verificar que DDL_KLAM.sql base ya existe.
 -- No asigna cuentas a clientes anteriores ni cambia contraseñas del personal.
+USE `klam`;
+
 CREATE TABLE IF NOT EXISTS `cuenta_usuario` (
     `id_usuario` INT NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(50) NOT NULL,
