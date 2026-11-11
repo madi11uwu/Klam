@@ -23,9 +23,9 @@ public class NotificacionDAOImpl implements NotificacionDAO {
              CallableStatement cmd = conn.prepareCall(sql);
              ResultSet rs = cmd.executeQuery()) {
 
-            List notificaciones = new ArrayList<>();
+            List <Notificacion> notificaciones = new ArrayList<>();
             while (rs.next()) {
-                notificaciones.add(mapear(rs));
+                notificaciones.add(mapear(rs,new Notificacion()));
             }
             return notificaciones;
         }
@@ -40,7 +40,7 @@ public class NotificacionDAOImpl implements NotificacionDAO {
              CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.setInt(1, id);
             try (ResultSet rs = cmd.executeQuery()) {
-                return rs.next() ? mapear(rs) : null;
+                return rs.next() ? mapear(rs,new Notificacion()) : null;
             }
         }
     }
@@ -81,17 +81,17 @@ public class NotificacionDAOImpl implements NotificacionDAO {
         String sql = "{call modificar_notificacion(?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection conn = DBManager.getInstance().getConnection();
-             CallableStatement cmd = conn.prepareCall(sql)) {
+             CallableStatement cs = conn.prepareCall(sql)) {
 
-            cmd.setInt(1, notificacion.getIdNotificacion());
-            cmd.setTimestamp(2, Timestamp.valueOf(notificacion.getFechaHora()));
-            cmd.setString(3, notificacion.getTitulo());
-            cmd.setString(4, notificacion.getMensaje());
-            cmd.setBoolean(5, notificacion.isEstadoLeida());
+            cs.setInt(1, notificacion.getIdNotificacion());
+            cs.setTimestamp(2, Timestamp.valueOf(notificacion.getFechaHora()));
+            cs.setString(3, notificacion.getTitulo());
+            cs.setString(4, notificacion.getMensaje());
+            cs.setBoolean(5, notificacion.isEstadoLeida());
 
-            setDestinatarioParams(cmd, notificacion.getDestinatario(), 6, 7, 8);
+            setDestinatarioParams(cs, notificacion.getDestinatario(), 6, 7, 8);
 
-            cmd.executeUpdate();
+            cs.executeUpdate();
         }
     }
 
@@ -134,9 +134,9 @@ public class NotificacionDAOImpl implements NotificacionDAO {
             else cmd.setNull(3, Types.INTEGER);
 
             try (ResultSet rs = cmd.executeQuery()) {
-                List notificaciones = new ArrayList<>();
+                List <Notificacion> notificaciones = new ArrayList<>();
                 while (rs.next()) {
-                    notificaciones.add(mapear(rs));
+                    notificaciones.add(mapear(rs,new Notificacion()));
                 }
                 return notificaciones;
             }
@@ -150,27 +150,21 @@ public class NotificacionDAOImpl implements NotificacionDAO {
              CallableStatement cmd = conn.prepareCall(sql);
              ResultSet rs = cmd.executeQuery()) {
 
-            List notificaciones = new ArrayList<>();
+            List <Notificacion> notificaciones = new ArrayList<>();
             while (rs.next()) {
-                notificaciones.add(mapear(rs));
+                notificaciones.add(mapear(rs,new Notificacion()));
             }
             return notificaciones;
         }
     }
 
-    // --- MÉTODOS AUXILIARES PRIVADOS ---
-
-    private Notificacion mapear(ResultSet rs) throws SQLException {
-        Notificacion noti = new Notificacion();
+    private Notificacion mapear(ResultSet rs,Notificacion noti) throws SQLException {
         noti.setIdNotificacion(rs.getInt("id_notificacion"));
-
         Timestamp ts = rs.getTimestamp("fecha_hora");
         noti.setFechaHora(ts != null ? ts.toLocalDateTime() : null);
         noti.setTitulo(rs.getString("titulo"));
         noti.setMensaje(rs.getString("mensaje"));
         noti.setEstadoLeida(rs.getBoolean("estado_leida"));
-
-        // Recuperar el destinatario
         UsuarioPlataforma destinatario = null;
 
         int idAdmin = rs.getInt("id_administrador");
@@ -194,18 +188,18 @@ public class NotificacionDAOImpl implements NotificacionDAO {
         return noti;
     }
 
-    private void setDestinatarioParams(CallableStatement cmd, UsuarioPlataforma destinatario, int idxAdmin, int idxVend, int idxTec) throws SQLException {
+    private void setDestinatarioParams(CallableStatement cs, UsuarioPlataforma destinatario, int idxAdmin, int idxVend, int idxTec) throws SQLException {
         // Por defecto todos nulos
-        cmd.setNull(idxAdmin, Types.INTEGER);
-        cmd.setNull(idxVend, Types.INTEGER);
-        cmd.setNull(idxTec, Types.INTEGER);
+        cs.setNull(idxAdmin, Types.INTEGER);
+        cs.setNull(idxVend, Types.INTEGER);
+        cs.setNull(idxTec, Types.INTEGER);
 
         if (destinatario instanceof Administrador) {
-            cmd.setInt(idxAdmin, destinatario.getIdUsuario());
+            cs.setInt(idxAdmin, destinatario.getIdUsuario());
         } else if (destinatario instanceof Vendedor) {
-            cmd.setInt(idxVend, destinatario.getIdUsuario());
+            cs.setInt(idxVend, destinatario.getIdUsuario());
         } else if (destinatario instanceof TecnicoInstrumentista) {
-            cmd.setInt(idxTec, destinatario.getIdUsuario());
+            cs.setInt(idxTec, destinatario.getIdUsuario());
         }
     }
 }

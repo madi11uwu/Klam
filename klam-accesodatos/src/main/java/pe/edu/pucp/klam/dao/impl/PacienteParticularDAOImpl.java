@@ -281,4 +281,3 @@ public class PacienteParticularDAOImpl extends ClienteDAOImpl<PacienteParticular
             return paciente;
         }
 }
-

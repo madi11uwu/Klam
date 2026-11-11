@@ -7,6 +7,7 @@ import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 
@@ -121,7 +122,7 @@ public class CirugiaDAOImpl implements CirugiaDAO {
         try (CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.registerOutParameter("p_id", Types.INTEGER);
             asignarDatos(cmd, cirugia);
-            DBManager.setIntONulo(cmd, "p_id_solicitud_origen", cirugia.getIdSolicitudOrigen());
+            DBManager.setIntONulo(cmd, "p_id_solicitud_origen", cirugia.getSolicitudOrigen() != null ? cirugia.getSolicitudOrigen().getIdSolicitud() : null);
 
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo insertar la cirugia");
@@ -289,79 +290,6 @@ public class CirugiaDAOImpl implements CirugiaDAO {
     }
 
     // ------------------------------------------------------------------
-    // Solicitudes de cirugia
-    // ------------------------------------------------------------------
-    @Override
-    public int insertSolicitud(Cirugia datos, int idClinicaDestino, String pacienteNombre,
-                               String observaciones, LocalDateTime fechaRegistro) throws SQLException {
-        if (datos == null) {
-            throw new IllegalArgumentException("Los datos de la solicitud no pueden ser nulos");
-        }
-
-        String sql = "{call insertar_solicitud_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-        Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.registerOutParameter("p_id", Types.INTEGER);
-            DBManager.setIntONulo(cmd, "p_id_clinica_solicitante",
-                    datos.getCliente() instanceof ClinicaHospital c ? c.getIdCliente() : null);
-            DBManager.setIntONulo(cmd, "p_id_paciente_solicitante",
-                    datos.getCliente() instanceof PacienteParticular p ? p.getIdCliente() : null);
-            cmd.setInt("p_id_clinica_hospital", idClinicaDestino);
-            cmd.setString("p_paciente_nombre", pacienteNombre);
-            cmd.setString("p_diagnostico", datos.getDiagnostico());
-            cmd.setString("p_tipo_procedimiento", datos.getTipoProcedimiento());
-            cmd.setString("p_doctor_nombre", datos.getDoctorNombre());
-            cmd.setTimestamp("p_fecha_hora_solicitada", Timestamp.valueOf(datos.getFechaHoraInicio()));
-            DBManager.setStringONulo(cmd, "p_observaciones", observaciones);
-            cmd.setTimestamp("p_fecha_registro", Timestamp.valueOf(fechaRegistro));
-
-            if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo insertar la solicitud de cirugia");
-            }
-            return cmd.getInt("p_id");
-        } finally {
-            TransactionsManager.liberar(conn);
-        }
-    }
-
-    @Override
-    public List<Map<String, Object>> buscarSolicitudes(Integer idSolicitud, String estado,
-                                                       String tipoCliente, Integer idCliente) throws SQLException {
-        String sql = "{call buscar_solicitudes(?, ?, ?, ?)}";
-        Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            DBManager.setIntONulo(cmd, "p_id_solicitud", idSolicitud);
-            DBManager.setStringONulo(cmd, "p_estado", estado);
-            DBManager.setStringONulo(cmd, "p_tipo_cliente", tipoCliente);
-            DBManager.setIntONulo(cmd, "p_id_cliente", idCliente);
-            try (ResultSet rs = cmd.executeQuery()) {
-                return DBManager.filasAMapas(rs);
-            }
-        } finally {
-            TransactionsManager.liberar(conn);
-        }
-    }
-
-    @Override
-    public void cambiarEstadoSolicitud(int idSolicitud, String estado, String motivoRechazo,
-                                       LocalDateTime fechaRevision) throws SQLException {
-        String sql = "{call cambiar_estado_solicitud(?, ?, ?, ?)}";
-        Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id", idSolicitud);
-            cmd.setString("p_estado", estado);
-            DBManager.setStringONulo(cmd, "p_motivo_rechazo", motivoRechazo);
-            DBManager.setFechaONula(cmd, "p_fecha_revision", fechaRevision);
-
-            if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo cambiar el estado de la solicitud " + idSolicitud);
-            }
-        } finally {
-            TransactionsManager.liberar(conn);
-        }
-    }
-
-    // ------------------------------------------------------------------
     // Auditoria
     // ------------------------------------------------------------------
     @Override
@@ -429,7 +357,11 @@ public class CirugiaDAOImpl implements CirugiaDAO {
         cirugia.setActivo(rs.getBoolean("activo"));
 
         int idSolicitud = rs.getInt("id_solicitud_origen");
-        cirugia.setIdSolicitudOrigen(rs.wasNull() ? null : idSolicitud);
+        if (!rs.wasNull()) {
+            SolicitudCirugia solicitud = new SolicitudCirugia();
+            solicitud.setIdSolicitud(idSolicitud);
+            cirugia.setSolicitudOrigen(solicitud);
+        }
 
         mapearEquipo(rs, cirugia);
         mapearBandeja(rs, cirugia);

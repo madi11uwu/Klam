@@ -12,8 +12,8 @@
         <module>klam-dbmanager</module>
         <module>klam-modelo</module>
         <module>klam-accesodatos</module>
-        <module>klam-app</module>
         <module>klam-negocio</module>
+        <module>klam-rest</module>
     </modules>
 
     <properties>

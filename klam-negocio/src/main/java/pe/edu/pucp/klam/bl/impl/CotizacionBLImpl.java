@@ -101,20 +101,22 @@ public class CotizacionBLImpl implements CotizacionBL {
         resolver(id, EstadoCotizacion.VENCIDA);
     }
 
-    // La transicion EMITIDA -> ACEPTADA/RECHAZADA/VENCIDA la controla el modelo
+    // La transición de EMITIDA a un estado resuelto se valida en BL y en el setter del Modelo.
     private void resolver(Integer id, EstadoCotizacion nuevo) throws BLException {
         Cotizacion cotizacion = buscarCotizacion(id);
+        if (nuevo != EstadoCotizacion.ACEPTADA && nuevo != EstadoCotizacion.RECHAZADA
+                && nuevo != EstadoCotizacion.VENCIDA) {
+            throw new BLException("Estado de cotización no válido: " + nuevo);
+        }
+        if (cotizacion.estaResuelta()) {
+            throw new BLException("La cotización ya está " + cotizacion.getEstado()
+                    + " y no puede pasar a " + nuevo);
+        }
         try {
-            switch (nuevo) {
-                case ACEPTADA -> cotizacion.aceptar();
-                case RECHAZADA -> cotizacion.rechazar();
-                case VENCIDA -> cotizacion.vencer();
-                default -> throw new BLException("Estado de cotización no válido: " + nuevo);
-            }
+            cotizacion.setEstado(nuevo);
         } catch (IllegalStateException e) {
             throw new BLException(e.getMessage(), e);
         }
-
         try {
             cotizacionDAO.actualizarEstado(id, cotizacion.getEstado());
         } catch (SQLException e) {

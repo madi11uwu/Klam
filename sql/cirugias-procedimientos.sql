@@ -306,6 +306,7 @@ CREATE PROCEDURE insertar_solicitud_cirugia(
     OUT p_id INT,
     IN  p_id_clinica_solicitante INT,
     IN  p_id_paciente_solicitante INT,
+    IN  p_id_vendedor_registrador INT,
     IN  p_id_clinica_hospital INT,
     IN  p_paciente_nombre VARCHAR(150),
     IN  p_diagnostico VARCHAR(300),
@@ -316,11 +317,13 @@ CREATE PROCEDURE insertar_solicitud_cirugia(
     IN  p_fecha_registro DATETIME
 )
 BEGIN
-    INSERT INTO solicitud_cirugia (id_clinica_solicitante, id_paciente_solicitante, id_clinica_hospital,
+    INSERT INTO solicitud_cirugia (id_clinica_solicitante, id_paciente_solicitante,
+                                   id_vendedor_registrador, id_clinica_hospital,
                                    paciente_nombre, diagnostico, tipo_procedimiento, doctor_nombre,
                                    fecha_hora_solicitada, observaciones, estado_solicitud,
                                    fecha_registro, activo)
-    VALUES (p_id_clinica_solicitante, p_id_paciente_solicitante, p_id_clinica_hospital,
+    VALUES (p_id_clinica_solicitante, p_id_paciente_solicitante,
+            p_id_vendedor_registrador, p_id_clinica_hospital,
             p_paciente_nombre, p_diagnostico, p_tipo_procedimiento, p_doctor_nombre,
             p_fecha_hora_solicitada, p_observaciones, 'POR_REVISAR', p_fecha_registro, 1);
 
@@ -333,10 +336,12 @@ CREATE PROCEDURE buscar_solicitudes(
     IN p_id_solicitud INT,
     IN p_estado       VARCHAR(30),
     IN p_tipo_cliente VARCHAR(20),
-    IN p_id_cliente   INT
+    IN p_id_cliente   INT,
+    IN p_id_vendedor_registrador INT
 )
 BEGIN
     SELECT s.id_solicitud, s.id_clinica_solicitante, s.id_paciente_solicitante,
+           s.id_vendedor_registrador,
            s.id_clinica_hospital, s.paciente_nombre, s.diagnostico, s.tipo_procedimiento,
            s.doctor_nombre, s.fecha_hora_solicitada, s.observaciones, s.estado_solicitud,
            s.motivo_rechazo, s.fecha_registro, s.fecha_revision, s.activo,
@@ -353,6 +358,8 @@ BEGIN
      WHERE s.activo = 1
        AND (p_id_solicitud IS NULL OR s.id_solicitud = p_id_solicitud)
        AND (p_estado IS NULL OR s.estado_solicitud = p_estado)
+       AND (p_id_vendedor_registrador IS NULL
+            OR s.id_vendedor_registrador = p_id_vendedor_registrador)
        AND (p_tipo_cliente IS NULL
             OR (p_tipo_cliente = 'CLINICA_HOSPITAL'
                 AND s.id_clinica_solicitante IS NOT NULL

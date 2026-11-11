@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 
 public class Cotizacion {
-
     private int idCotizacion;
     private double precioPactado;
     private EstadoCotizacion estado;
@@ -19,7 +18,6 @@ public class Cotizacion {
     }
 
     public Cotizacion(Cirugia cirugia, double precioPactado, LocalDateTime fechaEmision) {
-        this();
         validarPrecioPactado(precioPactado);
         this.cirugia = cirugia;
         this.precioPactado = precioPactado;
@@ -39,22 +37,6 @@ public class Cotizacion {
         setActivo(cotizacion.isActivo());
     }
 
-    public void aceptar()  { this.transitar(EstadoCotizacion.ACEPTADA); }
-    public void rechazar() { this.transitar(EstadoCotizacion.RECHAZADA); }
-    public void vencer()   { this.transitar(EstadoCotizacion.VENCIDA); }
-
-    /**
-     * Una cotizacion solo se resuelve una vez: desde EMITIDA pasa a
-     * ACEPTADA, RECHAZADA o VENCIDA, y de ahi no se mueve.
-     */
-    private void transitar(EstadoCotizacion nuevo) {
-        if (this.estado != EstadoCotizacion.EMITIDA) {
-            throw new IllegalStateException(
-                    "La cotizacion ya esta " + this.estado + " y no puede pasar a " + nuevo);
-        }
-        this.estado = nuevo;
-    }
-
     public boolean estaResuelta() {
         return this.estado != EstadoCotizacion.EMITIDA;
     }
@@ -68,7 +50,6 @@ public class Cotizacion {
         this.precioPactado = precioPactado;
     }
 
-    /** Misma regla que el CHECK del script SQL: precio_pactado >= 0. */
     private static void validarPrecioPactado(double precioPactado) {
         if (precioPactado < 0) {
             throw new IllegalArgumentException("El precio pactado no puede ser negativo");
@@ -90,17 +71,9 @@ public class Cotizacion {
     public LocalDateTime getFechaEmision() { return fechaEmision; }
     public void setFechaEmision(LocalDateTime fechaEmision) { this.fechaEmision = fechaEmision; }
 
-    /** La relacion con la cirugia se modela con la referencia, no con su id. */
     public Cirugia getCirugia() { return cirugia; }
     public void setCirugia(Cirugia cirugia) { this.cirugia = cirugia; }
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
-
-    @Override
-    public String toString() {
-        return "Cotizacion{id=" + idCotizacion + ", precio=" + precioPactado
-                + ", estado=" + estado
-                + ", cirugia=" + (cirugia == null ? "sin cirugia" : cirugia.getIdCirugia()) + "}";
-    }
 }

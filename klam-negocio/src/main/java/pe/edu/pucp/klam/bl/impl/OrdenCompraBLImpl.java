@@ -18,8 +18,6 @@ public class OrdenCompraBLImpl implements OrdenCompraBL {
     @Override
     public void insert(OrdenCompra orden) throws BLException {
         validarOrdenCompra(orden);
-        
-        // Manejo de Transaccion en Capa Negocio (BL) para Cabecera + Lineas
         TransactionsManager.iniciar();
         try {
             ordenDAO.insert(orden);

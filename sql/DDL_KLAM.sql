@@ -128,13 +128,37 @@ CREATE TABLE IF NOT EXISTS `paciente_particular` (
                    UNIQUE KEY `uq_paciente_dni` (`dni`)
 );
 
--- Solicitud de cirugia (RF05, RF07, RF08). No tiene clase Java propia: se maneja
--- desde CirugiaBL/CirugiaDAO. El solicitante es una clinica/hospital O un paciente
--- particular (los ids de ambas tablas se solapan, por eso hay dos columnas).
+-- Cuenta de acceso independiente del registro comercial del cliente (RF05).
+CREATE TABLE IF NOT EXISTS `cuenta_usuario` (
+    `id_usuario` INT NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(50) NOT NULL,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(120) NULL,
+    `nombres` VARCHAR(150) NULL,
+    `apellidos` VARCHAR(100) NULL,
+    `activo` TINYINT(1) NOT NULL DEFAULT 1,
+    `id_paciente` INT NULL,
+    `id_clinica` INT NULL,
+    PRIMARY KEY (`id_usuario`),
+    UNIQUE KEY `uq_cuenta_username` (`username`),
+    KEY `idx_cuenta_paciente` (`id_paciente`),
+    KEY `idx_cuenta_clinica` (`id_clinica`),
+    CONSTRAINT `fk_cuenta_paciente` FOREIGN KEY (`id_paciente`)
+        REFERENCES `paciente_particular` (`id_cliente`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_cuenta_clinica` FOREIGN KEY (`id_clinica`)
+        REFERENCES `clinica_hospital` (`id_cliente`) ON DELETE RESTRICT,
+    CONSTRAINT `chk_cuenta_un_cliente` CHECK
+        ((`id_paciente` IS NOT NULL AND `id_clinica` IS NULL)
+         OR (`id_paciente` IS NULL AND `id_clinica` IS NOT NULL))
+);
+
+-- Solicitud de cirugía (RF05, RF07, RF08). El solicitante es una clínica/hospital
+-- o un paciente particular; la cirugía y el vendedor registrador son relaciones distintas.
 CREATE TABLE IF NOT EXISTS `solicitud_cirugia` (
        `id_solicitud` INT NOT NULL AUTO_INCREMENT,
        `id_clinica_solicitante` INT NULL,
        `id_paciente_solicitante` INT NULL,
+       `id_vendedor_registrador` INT NULL,
        `id_clinica_hospital` INT NOT NULL,
        `paciente_nombre` VARCHAR(150) NOT NULL,
        `diagnostico` VARCHAR(300) NOT NULL,
@@ -152,6 +176,7 @@ NOT NULL DEFAULT 'POR_REVISAR',
        KEY `idx_solicitud_estado` (`estado_solicitud`),
        KEY `idx_solicitud_clinica_solicitante` (`id_clinica_solicitante`),
        KEY `idx_solicitud_paciente_solicitante` (`id_paciente_solicitante`),
+       KEY `idx_solicitud_vendedor_registrador` (`id_vendedor_registrador`),
        KEY `idx_solicitud_destino` (`id_clinica_hospital`),
        KEY `idx_solicitud_fecha` (`fecha_hora_solicitada`),
        CONSTRAINT `fk_solicitud_clinica_solicitante`
@@ -159,6 +184,9 @@ NOT NULL DEFAULT 'POR_REVISAR',
                ON DELETE RESTRICT ON UPDATE RESTRICT,
        CONSTRAINT `fk_solicitud_paciente_solicitante`
            FOREIGN KEY (`id_paciente_solicitante`) REFERENCES `paciente_particular` (`id_cliente`)
+               ON DELETE RESTRICT ON UPDATE RESTRICT,
+       CONSTRAINT `fk_solicitud_vendedor_registrador`
+           FOREIGN KEY (`id_vendedor_registrador`) REFERENCES `vendedor` (`id_usuario`)
                ON DELETE RESTRICT ON UPDATE RESTRICT,
        CONSTRAINT `fk_solicitud_clinica_destino`
            FOREIGN KEY (`id_clinica_hospital`) REFERENCES `clinica_hospital` (`id_cliente`)
@@ -271,6 +299,7 @@ NOT NULL DEFAULT 'PENDIENTE',
                  `fecha_carga` DATETIME NOT NULL,
                  `fecha_validacion` DATETIME NULL,
                  `motivo_rechazo` VARCHAR(200) NULL,
+                 `habilitar_resubida` TINYINT(1) NOT NULL DEFAULT 0,
                  `version` INT NOT NULL DEFAULT 1,
                  `responsable` VARCHAR(150) NULL,
                  `id_solicitud` INT NULL,
@@ -280,6 +309,8 @@ NOT NULL DEFAULT 'PENDIENTE',
                  `id_administrador` INT NULL,
                  `id_vendedor` INT NULL,
                  `id_tecnico` INT NULL,
+                 -- cuenta de cliente (clínica o paciente) que presentó el documento de su propia solicitud
+                 `id_cuenta_usuario` INT NULL,
                  PRIMARY KEY (`id_documento`),
                  UNIQUE KEY `uq_documento_solicitud_version` (`id_solicitud`, `tipo_documento`, `version`),
                  UNIQUE KEY `uq_documento_cirugia_version` (`id_cirugia`, `tipo_documento`, `version`),
@@ -304,13 +335,17 @@ NOT NULL DEFAULT 'PENDIENTE',
                  CONSTRAINT `fk_documento_ingreso_tecnico`
                      FOREIGN KEY (`id_tecnico`) REFERENCES `tecnico_instrumentista` (`id_usuario`)
                          ON DELETE RESTRICT ON UPDATE RESTRICT,
+                 CONSTRAINT `fk_documento_ingreso_cuenta`
+                     FOREIGN KEY (`id_cuenta_usuario`) REFERENCES `cuenta_usuario` (`id_usuario`)
+                         ON DELETE RESTRICT ON UPDATE RESTRICT,
                  CONSTRAINT `chk_documento_version` CHECK (`version` >= 1),
                  -- los clientes no tienen usuario en la plataforma: a lo sumo un usuario
                  -- y, en su lugar, el nombre del responsable como texto
                  CONSTRAINT `chk_documento_ingreso_un_usuario` CHECK (
                      (`id_administrador` IS NOT NULL)
                          + (`id_vendedor` IS NOT NULL)
-                         + (`id_tecnico` IS NOT NULL) <= 1
+                         + (`id_tecnico` IS NOT NULL)
+                         + (`id_cuenta_usuario` IS NOT NULL) <= 1
                      )
 );
 

@@ -1,11 +1,9 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
-import pe.edu.pucp.klam.modelo.interfaces.Verificable;
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class BandejaInstrumental implements Verificable {
+public class BandejaInstrumental {
     private int idBandeja;
     private String tipo;
     private String procedimiento;   // procedimiento para el que se configura (cráneo, columna...)
@@ -134,10 +132,5 @@ public class BandejaInstrumental implements Verificable {
     /** Lo despachado menos lo consumido: lo que deberia regresar a inventario. */
     public int obtenerDiferencia(Consumible consumible) {
         return obtenerCantidadConsumible(consumible) - obtenerCantidadConsumida(consumible);
-    }
-
-    @Override
-    public boolean verificar() {
-        return esterilizado;
     }
 }

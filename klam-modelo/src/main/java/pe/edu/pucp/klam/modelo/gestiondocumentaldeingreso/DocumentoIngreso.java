@@ -1,11 +1,12 @@
 package pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso;
 
-import pe.edu.pucp.klam.modelo.interfaces.Validable;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 
 import java.time.LocalDateTime;
 
-public class DocumentoIngreso implements Validable {
+public class DocumentoIngreso {
     private int idDocumento;
     private TipoDocumentoIngreso tipoDocumento;
     private String archivoPath;
@@ -13,19 +14,20 @@ public class DocumentoIngreso implements Validable {
     private LocalDateTime fechaCarga;
     private OrdenCompra ordenCompra;
     private boolean activo;
-    private UsuarioPlataforma usuarioCarga; // quien subio el documento (admin, vendedor o tecnico)
-
-    // Trazabilidad y subsanacion (RF04, RF07, RF08)
-    private Integer idSolicitud;          // solicitud a la que pertenece (puede ser null)
-    private Integer idCirugia;            // cirugia a la que pertenece (puede ser null)
+    private UsuarioPlataforma usuarioCarga;
+   // Trazabilidad y subsanacion (RF04, RF07, RF08)
+    private SolicitudCirugia solicitud;          // solicitud a la que pertenece (puede ser null)
+    private Cirugia cirugia;            // cirugia a la que pertenece (puede ser null)
     private int version = 1;              // la resubida crea una version nueva, no sobrescribe
     private LocalDateTime fechaValidacion;
     private String motivoRechazo;
+    private boolean habilitarResubida;
     private String responsable;           // texto: los clientes no tienen usuario en la plataforma
 
     public DocumentoIngreso(){
         this.estadoValidacion = EstadoValidacionDocumento.PENDIENTE;
         this.activo = true;
+        this.habilitarResubida = false;
     }
     public OrdenCompra getOrdenCompra() {
         return ordenCompra!=null? new OrdenCompra(ordenCompra):null;
@@ -47,20 +49,26 @@ public class DocumentoIngreso implements Validable {
         setOrdenCompra(documentoIngreso.getOrdenCompra());
         setActivo(documentoIngreso.isActivo());
         setUsuarioCarga(documentoIngreso.getUsuarioCarga());
-        this.idSolicitud = documentoIngreso.getIdSolicitud();
-        this.idCirugia = documentoIngreso.getIdCirugia();
+        setSolicitud(documentoIngreso.getSolicitud());
+        setCirugia(documentoIngreso.getCirugia());
         this.version = documentoIngreso.getVersion();
         this.fechaValidacion = documentoIngreso.getFechaValidacion();
         this.motivoRechazo = documentoIngreso.getMotivoRechazo();
+        this.habilitarResubida = documentoIngreso.isHabilitarResubida();
         this.responsable = documentoIngreso.getResponsable();
     }
-
-    public Integer getIdSolicitud() { return idSolicitud; }
-    public void setIdSolicitud(Integer idSolicitud) { this.idSolicitud = idSolicitud; }
-
-    public Integer getIdCirugia() { return idCirugia; }
-    public void setIdCirugia(Integer idCirugia) { this.idCirugia = idCirugia; }
-
+    public SolicitudCirugia getSolicitud() {
+        return solicitud;
+    }
+    public void setSolicitud(SolicitudCirugia solicitud) {
+        this.solicitud = solicitud;
+    }
+    public Cirugia getCirugia() {
+        return cirugia;
+    }
+    public void setCirugia(Cirugia cirugia) {
+        this.cirugia = cirugia;
+    }
     public int getVersion() { return version; }
     public void setVersion(int version) {
         if (version < 1) {
@@ -68,12 +76,16 @@ public class DocumentoIngreso implements Validable {
         }
         this.version = version;
     }
-
     public LocalDateTime getFechaValidacion() { return fechaValidacion; }
     public void setFechaValidacion(LocalDateTime fechaValidacion) { this.fechaValidacion = fechaValidacion; }
 
     public String getMotivoRechazo() { return motivoRechazo; }
     public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
+
+    public boolean isHabilitarResubida() { return habilitarResubida; }
+    public void setHabilitarResubida(boolean habilitarResubida) {
+        this.habilitarResubida = habilitarResubida;
+    }
 
     public String getResponsable() { return responsable; }
     public void setResponsable(String responsable) { this.responsable = responsable; }
@@ -129,7 +141,6 @@ public class DocumentoIngreso implements Validable {
         this.estadoValidacion = estadoValidacion;
     }
 
-    /** Eliminacion logica: el documento se conserva aunque se dé de baja. */
     public boolean isActivo() {
         return activo;
     }
@@ -150,8 +161,4 @@ public class DocumentoIngreso implements Validable {
         this.fechaCarga = fechaCarga;
     }
 
-    @Override
-    public boolean validar() {
-        return this.estadoValidacion == EstadoValidacionDocumento.VALIDADO;
-    }
 }

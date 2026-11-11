@@ -1,11 +1,9 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
-import pe.edu.pucp.klam.modelo.interfaces.Verificable;
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class Equipo implements Verificable {
+public class Equipo {
     private int idEquipo;
     private String nombre;
     private CategoriaEquipo categoria;
@@ -89,10 +87,5 @@ public class Equipo implements Verificable {
     public Equipo() {
         this.especificaciones = new HashMap<>();
         this.activo = true;
-    }
-
-    @Override
-    public boolean verificar() {
-        return disponible && activo;
     }
 }
