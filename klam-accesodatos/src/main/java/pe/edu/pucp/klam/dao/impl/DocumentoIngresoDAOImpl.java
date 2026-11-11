@@ -16,6 +16,8 @@ import pe.edu.pucp.klam.dao.OrdenCompraDAO;
 import pe.edu.pucp.klam.dao.impl.compras.OrdenCompraDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.DocumentoIngreso;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocumento;
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.OrdenCompra;
@@ -36,7 +38,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         if (doc == null) {
             throw new IllegalArgumentException("El documento no puede ser nulo");
         }
-        String sql = "{CALL insertar_documento_ingreso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{CALL insertar_documento_ingreso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cs = conn.prepareCall(sql)) {
             cs.registerOutParameter("p_id", Types.INTEGER);
@@ -56,7 +58,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         if (doc == null) {
             throw new IllegalArgumentException("El documento no puede ser nulo");
         }
-        String sql = "{CALL modificar_documento_ingreso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{CALL modificar_documento_ingreso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cs = conn.prepareCall(sql)) {
             cs.setInt("p_id", doc.getIdDocumento());
@@ -80,8 +82,8 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         DBManager.setStringONulo(cs, "p_motivo_rechazo", doc.getMotivoRechazo());
         cs.setInt("p_version", doc.getVersion());
         DBManager.setStringONulo(cs, "p_responsable", doc.getResponsable());
-        DBManager.setIntONulo(cs, "p_id_solicitud", doc.getIdSolicitud());
-        DBManager.setIntONulo(cs, "p_id_cirugia", doc.getIdCirugia());
+        DBManager.setIntONulo(cs, "p_id_solicitud", doc.getSolicitud() != null ? doc.getSolicitud().getIdSolicitud() : null);
+        DBManager.setIntONulo(cs, "p_id_cirugia", doc.getCirugia() != null ? doc.getCirugia().getIdCirugia() : null);
 
         OrdenCompra orden = doc.getOrdenCompra();
         DBManager.setIntONulo(cs, "p_id_orden_compra",
@@ -194,15 +196,16 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
 
     @Override
     public void actualizarEstadoValidacion(int idDocumento, String estado, LocalDateTime fechaValidacion,
-                                           String motivoRechazo, String responsable) throws SQLException {
+                                           String motivoRechazo, String responsable, boolean habilitarResubida) throws SQLException {
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cs = conn.prepareCall(
-                "{CALL actualizar_estado_validacion_documento(?, ?, ?, ?, ?)}")) {
+                "{CALL actualizar_estado_validacion_documento(?, ?, ?, ?, ?, ?)}")) {
             cs.setInt("p_id", idDocumento);
             cs.setString("p_estado_validacion", estado);
             DBManager.setFechaONula(cs, "p_fecha_validacion", fechaValidacion);
             DBManager.setStringONulo(cs, "p_motivo_rechazo", motivoRechazo);
             DBManager.setStringONulo(cs, "p_responsable", responsable);
+            cs.setBoolean("p_habilitar_resubida", habilitarResubida);
 
             if (cs.executeUpdate() == 0) {
                 throw new SQLException("No se pudo actualizar el estado del documento " + idDocumento);
@@ -227,6 +230,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
                 fila.put("responsable", rs.getString("responsable"));
                 fila.put("estado", rs.getString("estado_validacion"));
                 fila.put("motivoRechazo", rs.getString("motivo_rechazo"));
+                fila.put("habilitarResubida", rs.getBoolean("habilitar_resubida"));
                 Timestamp validacion = rs.getTimestamp("fecha_validacion");
                 fila.put("fechaValidacion", validacion != null ? validacion.toLocalDateTime() : null);
                 fila.put("referencia", rs.getString("archivo_path"));
@@ -257,13 +261,22 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
         Timestamp validacion = rs.getTimestamp("fecha_validacion");
         doc.setFechaValidacion(validacion != null ? validacion.toLocalDateTime() : null);
         doc.setMotivoRechazo(rs.getString("motivo_rechazo"));
+        doc.setHabilitarResubida(rs.getBoolean("habilitar_resubida"));
         doc.setVersion(rs.getInt("version"));
         doc.setResponsable(rs.getString("responsable"));
 
         int idSolicitud = rs.getInt("id_solicitud");
-        doc.setIdSolicitud(rs.wasNull() ? null : idSolicitud);
+        if (!rs.wasNull()) {
+            SolicitudCirugia solicitud = new SolicitudCirugia();
+            solicitud.setIdSolicitud(idSolicitud);
+            doc.setSolicitud(solicitud);
+        }
         int idCirugia = rs.getInt("id_cirugia");
-        doc.setIdCirugia(rs.wasNull() ? null : idCirugia);
+        if (!rs.wasNull()) {
+            Cirugia cirugia = new Cirugia();
+            cirugia.setIdCirugia(idCirugia);
+            doc.setCirugia(cirugia);
+        }
 
         int idOrden = rs.getInt("id_orden_compra");
         if (!rs.wasNull()) {
@@ -296,6 +309,13 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
                 if (!rs.wasNull()) {
                     usuario = new TecnicoInstrumentista();
                     usuario.setIdUsuario(idTec);
+                } else {
+                    // Cuenta de cliente (clínica o paciente) que presentó el documento de su solicitud
+                    int idCuenta = rs.getInt("id_cuenta_usuario");
+                    if (!rs.wasNull()) {
+                        usuario = new pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario();
+                        usuario.setIdUsuario(idCuenta);
+                    }
                 }
             }
         }
@@ -309,5 +329,7 @@ public class DocumentoIngresoDAOImpl implements DocumentoIngresoDAO {
                 usuario instanceof Vendedor ? usuario.getIdUsuario() : null);
         DBManager.setIntONulo(cs, "p_id_tecnico",
                 usuario instanceof TecnicoInstrumentista ? usuario.getIdUsuario() : null);
+        DBManager.setIntONulo(cs, "p_id_cuenta_usuario",
+                usuario instanceof pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario ? usuario.getIdUsuario() : null);
     }
 }
