@@ -44,9 +44,12 @@ public class AuthResource {
             }
 
             SesionesRest.Credencial credencial = SesionesRest.emitir(usuario);
+            String nombreCompleto = ((usuario.getNombres() == null ? "" : usuario.getNombres())
+                    + " " + (usuario.getApellidos() == null ? "" : usuario.getApellidos())).trim();
             return Response.ok(Map.of(
                     "id", usuario.getIdUsuario(),
                     "userName", usuario.getUsername(),
+                    "nombreCompleto", nombreCompleto.isEmpty() ? usuario.getUsername() : nombreCompleto,
                     "rol", usuario.getRol(),
                     "token", credencial.token(),
                     "expiresAt", credencial.vence().toString()
