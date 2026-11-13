@@ -1,16 +1,17 @@
 # SQL de BIOKLAM
 
-## Alcance
+La carpeta `sql/` contiene cuatro partes para explicar e instalar la base desde cero:
 
-`DDL_KLAM.sql` define el esquema definitivo para una **instalación nueva**. Incluye las columnas y relaciones incorporadas anteriormente por RF05, RF07, RF08, RF13 y la identificación del paciente de la cirugía. `DML_KLAM.sql` contiene datos **solo de demostración académica**; ninguna fila del DML es indispensable para crear el esquema. Los nueve pacientes de ejemplo tienen identificadores y contactos ficticios. Como `paciente_particular` posee una sola columna `nombre`, allí se guarda el nombre completo; no se añadieron columnas de apellidos.
+| Archivo o carpeta | Contenido |
+| --- | --- |
+| `DDL_KLAM.sql` | Esquema completo: tablas, columnas, claves, índices y restricciones. |
+| `procedimientos/` | Procedimientos de usuarios, clientes, inventario, cirugías y documentos. Los dos archivos de inventario son complementarios y no repiten definiciones. |
+| `DML_KLAM.sql` | Datos de demostración: personal con hashes marcadores, nueve pacientes ficticios, clínicas ficticias, bandejas cortas y largas, consumibles estándar, cirugías, auditoría y otros ejemplos. |
+| `DROPS.sql` | **Destructivo**: elimina todas las tablas y sus datos. No forma parte de la instalación. |
 
-`procedimientos/` contiene las definiciones vigentes, separadas por responsabilidad. Los dos archivos de inventario son complementarios: el principal contiene CRUD de equipos, consumibles y bandejas; `inventario-procedimientos-extra.sql` contiene consultas de disponibilidad heredadas, despacho, retorno y consumo. Se mantienen separados porque no duplican definiciones.
+## Instalación desde cero
 
-`migrations/legacy/` conserva cambios para **bases anteriores**, además del script histórico de demostración `rol2_historial_auditoria.sql`. No forma parte de una instalación nueva. `clientes-credenciales.sql` incluye datos de acceso de demostración y operaciones que reemplazan contraseñas: **no ejecutarlo como preparación de una base actual**. `DROPS.sql` elimina las tablas y todos sus datos; es destructivo y nunca se ejecuta automáticamente.
-
-## Instalación nueva
-
-Se requiere MySQL 8.0.16 o posterior, InnoDB, un usuario con permisos para crear el esquema y procedimientos, y un cliente SQL que respete `DELIMITER` (por ejemplo, la consola `mysql`). Los comandos siguientes se ejecutan desde la raíz del repositorio, en una base vacía y aislada. `DDL_KLAM.sql` crea `klam` y activa ese esquema; cada archivo de procedimientos selecciona el mismo esquema.
+Se requiere MySQL 8.0.16 o posterior, InnoDB y permisos para crear el esquema `klam` y los procedimientos. Ejecutar desde la raíz del repositorio con el cliente `mysql`, que interpreta `DELIMITER`. Usar una base nueva y vacía; no ejecutar estos comandos sobre una instalación en uso.
 
 ```text
 mysql -u USUARIO -p < sql/DDL_KLAM.sql
@@ -22,30 +23,14 @@ mysql -u USUARIO -p < sql/procedimientos/cirugias-procedimientos.sql
 mysql -u USUARIO -p < sql/procedimientos/documentos-procedimientos.sql
 ```
 
-Para cargar los ejemplos, solo si la base está vacía:
+Para la demostración académica, cargar al final los datos de prueba:
 
 ```text
 mysql -u USUARIO -p < sql/DML_KLAM.sql
 ```
 
-El DML contiene marcadores de hash inválidos en las cuentas de personal, deliberadamente no utilizables para iniciar sesión. Aprovisionar credenciales reales por un mecanismo seguro y fuera del repositorio. El alta comercial de pacientes o clínicas no crea automáticamente una `cuenta_usuario`. Las rutas `/docs/...` del DML son referencias ilustrativas y no proporcionan archivos físicos.
+El DDL crea el esquema y las tablas en orden compatible con sus claves foráneas. Los procedimientos se instalan después de las tablas, y el DML inserta primero los registros referenciados. Ningún script adicional de modificación de tablas es necesario para una instalación nueva.
 
-El orden anterior primero crea todas las tablas, luego los procedimientos auxiliares y finalmente los datos. Los procedimientos del mismo archivo se crean en el orden de sus dependencias. Las claves foráneas del DML apuntan solo a filas insertadas antes en ese archivo. No se requieren migraciones históricas para una instalación nueva.
+Los hashes de personal del DML son marcadores inválidos: las credenciales utilizables deben aprovisionarse de forma segura fuera del repositorio. Registrar un cliente comercial no crea una cuenta de acceso. La columna `paciente_particular.nombre` guarda el nombre completo porque el esquema actual no tiene una columna separada de apellidos. Las rutas `/docs/...` del DML son referencias ilustrativas y no incluyen archivos físicos.
 
-## Actualizar una instalación existente
-
-No ejecutar el DDL completo ni el DML sobre una base con datos. Respaldar y comprobar la versión real del esquema y de cada procedimiento; después seleccionar **solo** las migraciones faltantes de `migrations/legacy/`, en el orden de sus dependencias, ajustándolas a esa versión. Algunas migraciones recrean procedimientos que ya han evolucionado; tras la estructura necesaria, instalar las definiciones vigentes desde `procedimientos/` con el orden anterior. No ejecutar `clientes-credenciales.sql` ni `rol2_historial_auditoria.sql` como migraciones automáticas. Verificar firmas con los DAO antes de desplegar Java. No se ejecutó ninguna migración ni se modificó la base conectada durante esta consolidación.
-
-## Migraciones históricas conservadas
-
-| Archivo | Cambio ya consolidado para una instalación nueva |
-| --- | --- |
-| `migracion-documentos-cliente.sql` | Relación opcional de `documento_ingreso` con `cuenta_usuario`. |
-| `rf08-vendedor-solicitud-migracion.sql` | Vendedor registrador y procedimientos de solicitud. |
-| `rf13-consumibles-previstos-migracion.sql` | Tabla de estándar y tabla de previstos por cirugía. Para bases antiguas, copia los despachos anteriores al estándar solo tras revisar los datos. |
-| `cirugia-plantillas-compartidas-migracion.sql` | Índice no único de bandeja y procedimientos de cirugía que permiten compartir la plantilla. |
-| `cirugia-paciente-migracion.sql` | Nombre y documento del paciente intervenido en `cirugia`. |
-| `clientes-credenciales.sql` | Tabla de cuentas de cliente; contiene carga de credenciales demostrativas que no debe ejecutarse en una base existente. |
-| `rol2_historial_auditoria.sql` | Demostración histórica con modificaciones de datos; no es migración de esquema. |
-
-Las comprobaciones de esta tarea son estáticas. La ejecución de instalación completa queda pendiente de una base temporal aislada y autorizada.
+El proyecto no contiene una ruta automática de actualización de bases existentes. Para una instalación en uso, respaldar y comparar primero su esquema con `DDL_KLAM.sql`; no volver a ejecutar el DDL, el DML ni `DROPS.sql` sobre ella. Las versiones anteriores de los scripts de desarrollo permanecen recuperables en el historial Git, en el commit `e3a0302`.
