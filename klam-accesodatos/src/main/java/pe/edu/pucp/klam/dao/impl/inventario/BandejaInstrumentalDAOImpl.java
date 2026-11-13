@@ -167,6 +167,20 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
     }
 
     @Override
+    public List<String> listarProcedimientos() throws SQLException {
+        String sql = "SELECT DISTINCT procedimiento FROM bandeja_instrumental "
+                + "WHERE activo = 1 AND procedimiento IS NOT NULL AND TRIM(procedimiento) <> '' "
+                + "ORDER BY procedimiento";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             PreparedStatement cmd = conn.prepareStatement(sql);
+             ResultSet rs = cmd.executeQuery()) {
+            List<String> procedimientos = new ArrayList<>();
+            while (rs.next()) procedimientos.add(rs.getString(1));
+            return procedimientos;
+        }
+    }
+
+    @Override
     public List<BandejaInstrumental> listarDisponibles(String procedimiento) throws SQLException {
         String sql = "{call listar_bandejas_disponibles(?)}";
         Connection conn = TransactionsManager.obtenerConexion();

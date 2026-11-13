@@ -57,14 +57,14 @@ import java.util.Set;
  * GET    /api/v1/cirugias                 -> lista filtrada (CirugiaResumenDTO)
  * GET    /api/v1/cirugias/calendario      -> cirugías de un mes (CirugiaResumenDTO)
  * GET    /api/v1/cirugias/{id}            -> detalle (CirugiaDetalleDTO)
- * GET    /api/v1/cirugias/opciones        -> listas del formulario (clientes, equipos y bandejas disponibles)
+ * GET    /api/v1/cirugias/opciones        -> listas del formulario (clientes, equipos, procedimientos y plantillas)
  * POST   /api/v1/cirugias                 -> registra (CirugiaFormDTO, responde CirugiaDTO)
  * PUT    /api/v1/cirugias/{id}            -> modifica datos (no el estado)
  * POST   /api/v1/cirugias/{id}/estado     -> PROGRAMADA -> EN_PROCESO -> FINALIZADA
  * POST   /api/v1/cirugias/{id}/cancelacion-> cancela con motivo
  * DELETE /api/v1/cirugias/{id}            -> eliminación lógica
  *
- * Las reglas (cruces de horario, esterilización, estados) están en CirugiaBL.
+ * Las reglas de integridad, compatibilidad y estados están en CirugiaBL.
  * BLException sin causa = regla de negocio (400); con causa = error de base de datos (500).
  */
 @Path("/cirugias")
@@ -263,7 +263,7 @@ public class CirugiasResource {
 
     // ---------------------------------------------------------------- RF02 (rol 5)
 
-    /** Listas del formulario: clientes, equipos disponibles y bandejas disponibles del procedimiento. */
+    /** Listas del formulario: clientes, equipos, procedimientos y plantillas compatibles. */
     @GET
     @Path("/opciones")
     public Response opciones(@QueryParam("procedimiento") String procedimiento) {
@@ -287,7 +287,9 @@ public class CirugiasResource {
                 dto.getEquipos().add(new OpcionDTO(equipo.getIdEquipo(), equipo.getNombre(),
                         equipo.getCategoria() != null ? equipo.getCategoria().name() : null));
             }
-            dto.setBandejas(BandejaMapper.toDTOs(bandejaBL.listarDisponibles(vacioANulo(procedimiento))));
+            dto.setProcedimientos(bandejaBL.listarProcedimientos());
+            dto.setBandejas(BandejaMapper.toDTOs(procedimiento == null || procedimiento.isBlank()
+                    ? bandejaBL.findAll() : bandejaBL.listarPorProcedimiento(procedimiento)));
             return Response.ok(dto).build();
         } catch (BLException ex) {
             return errorBL(ex);

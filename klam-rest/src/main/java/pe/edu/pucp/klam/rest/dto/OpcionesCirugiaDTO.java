@@ -8,6 +8,7 @@ public class OpcionesCirugiaDTO {
     private List<OpcionDTO> clientes = new ArrayList<>();
     private List<OpcionDTO> equipos = new ArrayList<>();
     private List<BandejaDTO> bandejas = new ArrayList<>();
+    private List<String> procedimientos = new ArrayList<>();
 
     public OpcionesCirugiaDTO() {
     }
@@ -34,5 +35,13 @@ public class OpcionesCirugiaDTO {
 
     public void setBandejas(List<BandejaDTO> bandejas) {
         this.bandejas = bandejas;
+    }
+
+    public List<String> getProcedimientos() {
+        return procedimientos;
+    }
+
+    public void setProcedimientos(List<String> procedimientos) {
+        this.procedimientos = procedimientos;
     }
 }

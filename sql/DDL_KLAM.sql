@@ -234,8 +234,7 @@ NOT NULL DEFAULT 'PROGRAMADA',
            CASE WHEN `activo` = 1 AND `estado` <> 'CANCELADA' THEN `id_solicitud_origen` ELSE NULL END
            ) STORED,
        PRIMARY KEY (`id_cirugia`),
-       -- una bandeja fisica no puede estar en dos cirugias (varios NULL permitidos)
-       UNIQUE KEY `uq_cirugia_bandeja` (`id_bandeja`),
+       KEY `idx_cirugia_bandeja` (`id_bandeja`),
        UNIQUE KEY `uq_cirugia_solicitud_vigente` (`solicitud_vigente`),
        KEY `idx_cirugia_fecha_inicio` (`fecha_hora_inicio`),
        KEY `idx_cirugia_estado` (`estado`),

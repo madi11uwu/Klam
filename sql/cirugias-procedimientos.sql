@@ -97,15 +97,7 @@ CREATE PROCEDURE insertar_cirugia(
     IN  p_activo TINYINT
 )
 BEGIN
-    DECLARE v_ocupada TINYINT DEFAULT 0;
     DECLARE v_cruce TINYINT DEFAULT 0;
-
-    IF p_id_bandeja IS NOT NULL THEN
-        CALL bandeja_asignada_a_otra_cirugia(p_id_bandeja, NULL, v_ocupada);
-        IF v_ocupada = 1 THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La bandeja ya esta asignada a otra cirugia';
-        END IF;
-    END IF;
 
     IF p_id_equipo IS NOT NULL AND p_estado IN ('PROGRAMADA', 'EN_PROCESO') THEN
         CALL existe_cruce_equipo(p_id_equipo, p_fecha_hora_inicio, p_fecha_hora_fin, NULL, v_cruce);
@@ -140,16 +132,7 @@ CREATE PROCEDURE modificar_cirugia(
     IN p_activo TINYINT
 )
 BEGIN
-    DECLARE v_ocupada TINYINT DEFAULT 0;
     DECLARE v_cruce TINYINT DEFAULT 0;
-
-    -- la propia cirugia se excluye de ambas validaciones
-    IF p_id_bandeja IS NOT NULL THEN
-        CALL bandeja_asignada_a_otra_cirugia(p_id_bandeja, p_id, v_ocupada);
-        IF v_ocupada = 1 THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La bandeja ya esta asignada a otra cirugia';
-        END IF;
-    END IF;
 
     IF p_id_equipo IS NOT NULL AND p_activo = 1 AND p_estado IN ('PROGRAMADA', 'EN_PROCESO') THEN
         CALL existe_cruce_equipo(p_id_equipo, p_fecha_hora_inicio, p_fecha_hora_fin, p_id, v_cruce);
@@ -174,18 +157,17 @@ BEGIN
      WHERE id_cirugia = p_id;
 END$$
 
--- Baja logica. Libera la bandeja fisica para que pueda usarse en otra cirugia.
+-- Baja lógica. Conserva la plantilla para el historial de la cirugía.
 CREATE PROCEDURE eliminar_cirugia(
     IN p_id INT
 )
 BEGIN
     UPDATE cirugia
-       SET activo = 0,
-           id_bandeja = NULL
+       SET activo = 0
      WHERE id_cirugia = p_id;
 END$$
 
--- Cancelar tambien libera la bandeja fisica.
+-- Cancelar conserva la plantilla asociada a la cirugía.
 CREATE PROCEDURE cancelar_cirugia(
     IN p_id INT,
     IN p_motivo_cancelacion VARCHAR(200)
@@ -193,8 +175,7 @@ CREATE PROCEDURE cancelar_cirugia(
 BEGIN
     UPDATE cirugia
        SET estado = 'CANCELADA',
-           motivo_cancelacion = p_motivo_cancelacion,
-           id_bandeja = NULL
+           motivo_cancelacion = p_motivo_cancelacion
      WHERE id_cirugia = p_id;
 END$$
 

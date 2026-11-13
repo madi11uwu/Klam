@@ -18,6 +18,7 @@ public interface BandejaInstrumentalBL extends BaseBL<BandejaInstrumental, Integ
     void actualizarCantidadDespachada(int idBandeja, int idConsumible, int cantDespachada) throws BLException;
     void quitarConsumible(int idBandeja, int idConsumible) throws BLException;
     List<BandejaInstrumental> listarPorProcedimiento(String procedimiento) throws BLException;
+    List<String> listarProcedimientos() throws BLException;
 
     /** Bandejas activas, esterilizadas y sin cirugia asignada. */
     List<BandejaInstrumental> listarDisponibles() throws BLException;
