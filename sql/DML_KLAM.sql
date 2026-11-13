@@ -1,6 +1,8 @@
 -- ============================================================
--- Klam - DML corregido
--- Compatible con el DDL usando Concrete Table Inheritance
+-- BIOKLAM - datos exclusivamente demostrativos para una instalacion nueva.
+-- No ejecutar sobre una base con datos. Las claves de personal son marcadores
+-- invalidos: antes de iniciar sesion deben aprovisionarse hashes seguros.
+-- No se crean cuentas de cliente automaticamente al registrar clientes.
 -- ============================================================
 
 USE `klam`;
@@ -61,14 +63,17 @@ VALUES
      'TECNICO_INSTRUMENTISTA',
      1,
      'Cirugía general');
--- bandeja_instrumental
+-- Catalogo de procedimientos: cráneo (bandeja corta) y columna (bandeja larga).
+-- Los procedimientos se identifican por bandeja_instrumental.procedimiento.
 
 INSERT INTO bandeja_instrumental
 (id_bandeja, tipo, procedimiento, esterilizado, activo)
 VALUES
     (1, 'Bandeja de craneotomía', 'Cirugía de cráneo', 1, 1),
     (2, 'Bandeja de microcirugía', 'Cirugía de cráneo', 1, 1),
-    (3, 'Bandeja de navegación estereotáxica', 'Cirugía de cráneo', 0, 1);
+    (3, 'Bandeja de navegación estereotáxica', 'Cirugía de cráneo', 0, 1),
+    (4, 'Bandeja larga de columna', 'Cirugía de columna', 1, 1),
+    (5, 'Bandeja larga de vértebras', 'Cirugía de columna', 1, 1);
 
 -- consumible
 
@@ -78,9 +83,19 @@ VALUES
     (1, 'Sutura de nylon',   'Ethicon',  '4-0',      1),
     (2, 'Gasa estéril',      'Medline',  '10x10cm',  1),
     (3, 'Clip de aneurisma', 'Aesculap', 'Mediano',  1),
-    (4, 'Cera para hueso',   'Ethicon',  '2.5g',     1);
+    (4, 'Cera para hueso',   'Ethicon',  '2.5g',     1),
+    (5, 'Tornillo pedicular', 'Demostración', '6 mm', 1);
 
--- bandeja_consumible
+-- Composicion estandar reutilizable: no representa despacho ni consumo real.
+INSERT INTO bandeja_consumible_estandar
+(id_bandeja, id_consumible, cantidad_estandar)
+VALUES
+    (1, 1, 10), (1, 3, 4),
+    (2, 2, 20), (3, 4, 5),
+    (4, 1, 8), (4, 2, 20), (4, 5, 6),
+    (5, 2, 16), (5, 5, 8);
+
+-- Datos historicos de demostracion de despacho/consumo, separados del estandar.
 
 INSERT INTO bandeja_consumible
 (id_bandeja, id_consumible, cantidad_despachada, cantidad_consumida)
@@ -116,19 +131,21 @@ VALUES
 -- CLIENTES
 -- ============================================================
 
--- paciente_particular
+-- La tabla tiene una sola columna nombre: contiene nombre y apellido completos.
+-- DNI, telefono, correo y direccion son valores sinteticos de laboratorio.
 
 INSERT INTO paciente_particular
 (id_cliente, nombre, direccion, email_contacto, telefono, activo, dni, pago_confirmado)
 VALUES
-    (1,
-     'Juan Pérez Alarcón',
-     'Av. Javier Prado 1234, San Isidro',
-     'juan.perez@gmail.com',
-     '987654321',
-     1,
-     '45678912',
-     1);
+    (1, 'Eric Huiza', 'Dirección ficticia 01', 'paciente01@example.test', '000000001', 1, '90000001', 1),
+    (2, 'Freddy Paz', 'Dirección ficticia 02', 'paciente02@example.test', '000000002', 1, '90000002', 0),
+    (3, 'Rony Cueva', 'Dirección ficticia 03', 'paciente03@example.test', '000000003', 1, '90000003', 0),
+    (4, 'Erasmo Gómez', 'Dirección ficticia 04', 'paciente04@example.test', '000000004', 1, '90000004', 0),
+    (5, 'David Allasi', 'Dirección ficticia 05', 'paciente05@example.test', '000000005', 1, '90000005', 0),
+    (6, 'José Luis Corcuera', 'Dirección ficticia 06', 'paciente06@example.test', '000000006', 1, '90000006', 0),
+    (7, 'Miguel Guanira', 'Dirección ficticia 07', 'paciente07@example.test', '000000007', 1, '90000007', 0),
+    (8, 'Viktor Khlebnikov', 'Dirección ficticia 08', 'paciente08@example.test', '000000008', 1, '90000008', 0),
+    (9, 'Luis Muroya', 'Dirección ficticia 09', 'paciente09@example.test', '000000009', 1, '90000009', 0);
 
 -- clinica_hospital
 
@@ -136,22 +153,22 @@ INSERT INTO clinica_hospital
 (id_cliente, nombre, direccion, email_contacto, telefono, activo, ruc, tiene_consignacion, periodo_credito)
 VALUES
     (2,
-     'Clínica San Felipe',
-     'Av. Gregorio Escobedo 650, Jesús María',
-     'contacto@sanfelipe.com.pe',
-     '014632424',
+     'Clínica Académica Norte',
+     'Dirección ficticia clínica 01',
+     'clinica01@example.test',
+     '000000010',
      1,
-     '20100123456',
+     '20900000001',
      1,
      '30 días'),
 
     (3,
-     'Hospital Nacional Dos de Mayo',
-     'Av. Grau 13, Cercado de Lima',
-     'logistica@hdosdemayo.gob.pe',
-     '014284700',
+     'Hospital Simulado Sur',
+     'Dirección ficticia hospital 02',
+     'hospital02@example.test',
+     '000000011',
      1,
-     '20131312955',
+     '20900000002',
      0,
      '60 días');
 -- orden_compra
@@ -174,7 +191,7 @@ INSERT INTO documento_ingreso
 VALUES
     (1,
      'DNI',
-     '/docs/ingreso/dni_juanperez.pdf',
+     '/docs/ingreso/demo_dni_eric.pdf',
      'VALIDADO',
      '2026-08-01 10:00:00',
      NULL,
@@ -183,7 +200,7 @@ VALUES
 
     (2,
      'ORDEN_COMPRA',
-     '/docs/ingreso/oc_sanfelipe.pdf',
+     '/docs/ingreso/demo_oc_clinica.pdf',
      'VALIDADO',
      '2026-08-09 16:30:00',
      1,
@@ -192,7 +209,7 @@ VALUES
 
     (3,
      'RECETA_MEDICA',
-     '/docs/ingreso/receta_2demayo.pdf',
+     '/docs/ingreso/demo_receta_hospital.pdf',
      'PENDIENTE',
      '2026-08-12 08:45:00',
      NULL,
@@ -203,16 +220,18 @@ VALUES
 -- ============================================================
 INSERT INTO cirugia
 (id_cirugia, fecha_hora_inicio, fecha_hora_fin,
- tipo_procedimiento, doctor_nombre, diagnostico, motivo_cancelacion,
+ tipo_procedimiento, doctor_nombre, diagnostico, paciente_nombre, paciente_documento, motivo_cancelacion,
  estado, id_equipo, id_bandeja,
  id_clinica_hospital, id_paciente_particular, activo)
 VALUES
     (1,
      '2026-08-15 08:00:00',
      '2026-08-15 11:30:00',
-     'Craneotomía por tumor',
+     'Cirugía de cráneo',
      'Dr. Alberto Núñez',
      'Tumor cerebral frontal',
+     'Eric Huiza',
+     '90000001',
      NULL,
      'FINALIZADA',
      1,
@@ -224,9 +243,11 @@ VALUES
     (2,
      '2026-08-20 14:00:00',
      NULL,
-     'Clipaje de aneurisma',
+     'Cirugía de cráneo',
      'Dra. Silvia Ramos',
      'Aneurisma de la arteria comunicante anterior',
+     'Freddy Paz',
+     '90000002',
      NULL,
      'PROGRAMADA',
      2,
@@ -238,9 +259,11 @@ VALUES
     (3,
      '2026-08-22 09:00:00',
      NULL,
-     'Descompresión microvascular',
+     'Cirugía de cráneo',
      'Dr. Raúl Ochoa',
      'Neuralgia del trigémino',
+     'Rony Cueva',
+     '90000003',
      'Paciente no se presentó',
      'CANCELADA',
      NULL,
@@ -248,6 +271,11 @@ VALUES
      3,
      NULL,
      1);
+
+-- Personalizacion prevista de una cirugia: no modifica la plantilla.
+INSERT INTO cirugia_consumible_previsto
+(id_cirugia, id_consumible, cantidad_prevista)
+VALUES (1, 1, 10), (1, 3, 4), (2, 4, 5);
 -- cotizacion
 
 INSERT INTO cotizacion
