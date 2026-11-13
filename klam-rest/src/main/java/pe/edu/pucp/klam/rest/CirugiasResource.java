@@ -44,8 +44,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Cirugías.
@@ -55,26 +57,99 @@ import java.util.Map;
  * GET    /api/v1/cirugias                 -> lista filtrada (CirugiaResumenDTO)
  * GET    /api/v1/cirugias/calendario      -> cirugías de un mes (CirugiaResumenDTO)
  * GET    /api/v1/cirugias/{id}            -> detalle (CirugiaDetalleDTO)
- * GET    /api/v1/cirugias/opciones        -> listas del formulario (clientes, equipos y bandejas disponibles)
+ * GET    /api/v1/cirugias/opciones        -> listas del formulario (clientes, equipos, procedimientos y plantillas)
  * POST   /api/v1/cirugias                 -> registra (CirugiaFormDTO, responde CirugiaDTO)
  * PUT    /api/v1/cirugias/{id}            -> modifica datos (no el estado)
  * POST   /api/v1/cirugias/{id}/estado     -> PROGRAMADA -> EN_PROCESO -> FINALIZADA
  * POST   /api/v1/cirugias/{id}/cancelacion-> cancela con motivo
  * DELETE /api/v1/cirugias/{id}            -> eliminación lógica
  *
- * Las reglas (cruces de horario, esterilización, estados) están en CirugiaBL.
+ * Las reglas de integridad, compatibilidad y estados están en CirugiaBL.
  * BLException sin causa = regla de negocio (400); con causa = error de base de datos (500).
  */
 @Path("/cirugias")
 @Produces("application/json")
 @Consumes("application/json")
 public class CirugiasResource {
+    private static final Set<String> ESTADOS_HISTORIAL = Set.of("FINALIZADA", "CANCELADA");
     @Context private HttpHeaders headers;
     private Response acceso(String rol) {
         SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (sesion == null) return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "Sesión inválida o expirada")).build();
         if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
         return null;
+    }
+
+    // ---------------------------------------------------------------- alcance por perfil (RF06, RF10)
+    // ADMINISTRADOR y TECNICO_INSTRUMENTISTA ven toda la agenda; el VENDEDOR, las cirugías que nacieron de
+    // solicitudes que él registró; el cliente, solo las suyas. La gestión (RF02) sigue siendo del administrador.
+    private static boolean esCliente(SesionesRest.Sesion s) {
+        return ("CLINICA_HOSPITAL".equals(s.rol()) || "PACIENTE_PARTICULAR".equals(s.rol()))
+                && s.idCliente() != null && s.tipoCliente() != null;
+    }
+
+    private static boolean puedeConsultarAgenda(SesionesRest.Sesion s) {
+        return "ADMINISTRADOR".equals(s.rol()) || "TECNICO_INSTRUMENTISTA".equals(s.rol())
+                || "VENDEDOR".equals(s.rol()) || esCliente(s);
+    }
+
+    private List<Map<String, Object>> visibles(List<Map<String, Object>> filas, SesionesRest.Sesion s)
+            throws BLException {
+        if ("ADMINISTRADOR".equals(s.rol()) || "TECNICO_INSTRUMENTISTA".equals(s.rol())) return filas;
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        if (esCliente(s)) {
+            for (Map<String, Object> f : filas) {
+                if (s.tipoCliente().equals(String.valueOf(f.get("tipoCliente")))
+                        && f.get("idCliente") instanceof Number n && n.intValue() == s.idCliente()) {
+                    resultado.add(f);
+                }
+            }
+            return resultado;
+        }
+        if ("VENDEDOR".equals(s.rol())) {
+            pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor vendedor = new pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor();
+            vendedor.setIdUsuario(s.idUsuario());
+            Set<Integer> solicitudes = new java.util.HashSet<>();
+            for (var sol : solicitudBL.listarSolicitudesPorVendedor(vendedor)) solicitudes.add(sol.getIdSolicitud());
+            for (Map<String, Object> f : filas) {
+                if (f.get("idSolicitudOrigen") instanceof Number n && solicitudes.contains(n.intValue())) {
+                    resultado.add(f);
+                }
+            }
+        }
+        return resultado;
+    }
+
+    private final pe.edu.pucp.klam.bl.SolicitudCirugiaBL solicitudBL = new pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl();
+
+    private String responsableAutenticado() {
+        return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION)).username();
+    }
+
+    @GET
+    @Path("/historial")
+    public Response historialPorCliente(@QueryParam("tipoCliente") String tipoCliente,
+                                        @QueryParam("idCliente") String idClienteTexto) {
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        String tipo;
+        int id;
+        if ("ADMINISTRADOR".equals(sesion.rol())) {
+            try { id = Integer.parseInt(idClienteTexto); }
+            catch (NumberFormatException ex) { return error(Response.Status.BAD_REQUEST, "Indique el cliente"); }
+            tipo = tipoCliente;
+        } else if ("PACIENTE_PARTICULAR".equals(sesion.rol()) || "CLINICA_HOSPITAL".equals(sesion.rol())) {
+            if (sesion.idCliente() == null) return error(Response.Status.FORBIDDEN, "Cuenta sin cliente asociado");
+            id = sesion.idCliente();
+            tipo = sesion.tipoCliente();
+        } else return error(Response.Status.FORBIDDEN, "Acceso denegado");
+        try {
+            List<Map<String, Object>> filas = cirugiaBL.buscarDetalle(null, null, tipo, id, null, null);
+            List<Map<String, Object>> historial = new ArrayList<>();
+            for (Map<String, Object> fila : filas)
+                if (ESTADOS_HISTORIAL.contains(String.valueOf(fila.get("estado")))) historial.add(fila);
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(historial)).build();
+        } catch (BLException ex) { return errorBL(ex); }
     }
 
     private final CirugiaBL cirugiaBL;
@@ -113,9 +188,15 @@ public class CirugiasResource {
                            @QueryParam("idCliente") Integer idCliente,
                            @QueryParam("idEquipo") Integer idEquipo,
                            @QueryParam("estado") String estado) {
-        Response acceso = acceso("ADMINISTRADOR");
-        if (acceso != null) return acceso;
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        if (!puedeConsultarAgenda(sesion)) return error(Response.Status.FORBIDDEN, "Acceso denegado");
         try {
+            // Un cliente solo consulta las suyas: su tipo e id vienen de la sesión, no de los parámetros.
+            if (esCliente(sesion)) {
+                tipoCliente = sesion.tipoCliente();
+                idCliente = sesion.idCliente();
+            }
             LocalDateTime inicio = parsearFecha(desde, false);
             LocalDateTime fin = parsearFecha(hasta, true);
             EstadoCirugia estadoCirugia = CirugiaConsultaMapper.parsearEstado(estado);
@@ -126,7 +207,7 @@ public class CirugiasResource {
 
             List<Map<String, Object>> filas =
                     cirugiaBL.buscarDetalle(inicio, fin, tipo, idCliente, idEquipo, estadoCirugia);
-            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(filas)).build();
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(visibles(filas, sesion))).build();
         } catch (IllegalArgumentException ex) {
             return error(Response.Status.BAD_REQUEST, ex.getMessage());
         } catch (BLException ex) {
@@ -139,14 +220,15 @@ public class CirugiasResource {
     @Path("/calendario")
     public Response calendario(@QueryParam("anio") Integer anio,
                                @QueryParam("mes") Integer mes) {
-        Response acceso = acceso(null);
-        if (acceso != null) return acceso;
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        if (!puedeConsultarAgenda(sesion)) return error(Response.Status.FORBIDDEN, "Acceso denegado");
         LocalDate hoy = LocalDate.now();
         int a = anio != null ? anio : hoy.getYear();
         int m = mes != null ? mes : hoy.getMonthValue();
         try {
             List<Map<String, Object>> filas = cirugiaBL.buscarCalendarioMensual(a, m);
-            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(filas)).build();
+            return Response.ok(CirugiaConsultaMapper.toResumenDTOs(visibles(filas, sesion))).build();
         } catch (DateTimeException ex) {
             return error(Response.Status.BAD_REQUEST, "Año o mes no válido: " + a + "/" + m);
         } catch (BLException ex) {
@@ -158,8 +240,9 @@ public class CirugiasResource {
     @GET
     @Path("/{id: \\d+}")
     public Response detalle(@PathParam("id") int id) {
-        Response acceso = acceso(null);
-        if (acceso != null) return acceso;
+        SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
+        if (!puedeConsultarAgenda(sesion)) return error(Response.Status.FORBIDDEN, "Acceso denegado");
         try {
             // findById devuelve la cirugía con equipo, bandeja y cliente ya cargados; no filtra por
             // 'activo', así que una cirugía eliminada lógicamente se trata como inexistente.
@@ -168,6 +251,9 @@ public class CirugiasResource {
                 return error(Response.Status.NOT_FOUND, "No existe una cirugía con id " + id);
             }
             Map<String, Object> detalle = cirugiaBL.obtenerDetalle(id);
+            if (visibles(List.of(detalle), sesion).isEmpty()) {
+                return error(Response.Status.FORBIDDEN, "La cirugía no pertenece a su cuenta");
+            }
             return Response.ok(CirugiaConsultaMapper.toDetalleDTO(
                     detalle, cirugia.getEquipo(), cirugia.getBandejaInstrumental())).build();
         } catch (BLException ex) {
@@ -177,7 +263,7 @@ public class CirugiasResource {
 
     // ---------------------------------------------------------------- RF02 (rol 5)
 
-    /** Listas del formulario: clientes, equipos disponibles y bandejas disponibles del procedimiento. */
+    /** Listas del formulario: clientes, equipos, procedimientos y plantillas compatibles. */
     @GET
     @Path("/opciones")
     public Response opciones(@QueryParam("procedimiento") String procedimiento) {
@@ -201,7 +287,9 @@ public class CirugiasResource {
                 dto.getEquipos().add(new OpcionDTO(equipo.getIdEquipo(), equipo.getNombre(),
                         equipo.getCategoria() != null ? equipo.getCategoria().name() : null));
             }
-            dto.setBandejas(BandejaMapper.toDTOs(bandejaBL.listarDisponibles(vacioANulo(procedimiento))));
+            dto.setProcedimientos(bandejaBL.listarProcedimientos());
+            dto.setBandejas(BandejaMapper.toDTOs(procedimiento == null || procedimiento.isBlank()
+                    ? bandejaBL.findAll() : bandejaBL.listarPorProcedimiento(procedimiento)));
             return Response.ok(dto).build();
         } catch (BLException ex) {
             return errorBL(ex);
@@ -217,7 +305,7 @@ public class CirugiasResource {
                 throw new BLException("Debe enviar los datos de la cirugía");
             }
             Cirugia cirugia = CirugiaMapper.toModelo(datos);
-            cirugiaBL.registrar(cirugia, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.registrar(cirugia, responsableAutenticado());
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(String.valueOf(cirugia.getIdCirugia()))
                     .build();
@@ -247,7 +335,7 @@ public class CirugiasResource {
             cirugia.setIdCirugia(id);
             cirugia.setEstado(existente.getEstado());
             cirugia.setMotivoCancelacion(existente.getMotivoCancelacion());
-            cirugiaBL.modificar(cirugia, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.modificar(cirugia, responsableAutenticado());
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (BLException ex) {
             return errorBL(ex);
@@ -265,7 +353,7 @@ public class CirugiasResource {
             if (nuevo == null) {
                 throw new BLException("Debe indicar el nuevo estado");
             }
-            cirugiaBL.cambiarEstado(id, nuevo, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.cambiarEstado(id, nuevo, responsableAutenticado());
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (IllegalArgumentException ex) {
             return error(Response.Status.BAD_REQUEST, ex.getMessage());
@@ -280,7 +368,7 @@ public class CirugiasResource {
         Response acceso = acceso("ADMINISTRADOR");
         if (acceso != null) return acceso;
         try {
-            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.cancelar(id, datos == null ? null : datos.getMotivo(), responsableAutenticado());
             return Response.ok(CirugiaMapper.toDTO(cirugiaBL.obtenerDetalle(id))).build();
         } catch (BLException ex) {
             return errorBL(ex);
@@ -294,7 +382,7 @@ public class CirugiasResource {
         Response acceso = acceso("ADMINISTRADOR");
         if (acceso != null) return acceso;
         try {
-            cirugiaBL.eliminar(id, CirugiaBL.RESPONSABLE_SISTEMA);
+            cirugiaBL.eliminar(id, responsableAutenticado());
             return Response.noContent().build();
         } catch (BLException ex) {
             return errorBL(ex);

@@ -240,6 +240,15 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
     }
 
     @Override
+    public List<String> listarProcedimientos() throws BLException {
+        try {
+            return bandejaInstrumentalDAO.listarProcedimientos();
+        } catch (SQLException e) {
+            throw new BLException("No se pudo listar los procedimientos configurados", e);
+        }
+    }
+
+    @Override
     public List<BandejaInstrumental> listarDisponibles() throws BLException {
         return listarDisponibles(null);
     }

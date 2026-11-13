@@ -457,12 +457,11 @@ public class CirugiaBLImpl implements CirugiaBL {
         String quien = textoResponsable(responsable);
         TransactionsManager.iniciar();
         try {
-            cirugiaDAO.cancelar(id, motivo.trim());   // también libera la bandeja fisica
+            cirugiaDAO.cancelar(id, motivo.trim());
 
             Map<String, String> despues = new LinkedHashMap<>(antes);
             despues.put("estado", EstadoCirugia.CANCELADA.name());
             despues.put("motivoCancelacion", motivo.trim());
-            despues.put("idBandeja", "");
             Map<String, String> a = new LinkedHashMap<>();
             Map<String, String> d = new LinkedHashMap<>();
             diferencias(antes, despues, Set.of(), a, d);
@@ -490,11 +489,11 @@ public class CirugiaBLImpl implements CirugiaBL {
         antes.put("idBandeja", valor(idBandeja(cirugia)));
         Map<String, String> despues = new LinkedHashMap<>();
         despues.put("activo", "false");
-        despues.put("idBandeja", "");
+        despues.put("idBandeja", valor(idBandeja(cirugia)));
 
         TransactionsManager.iniciar();
         try {
-            cirugiaDAO.delete(id);   // baja logica; libera la bandeja fisica
+            cirugiaDAO.delete(id);   // baja lógica; conserva la plantilla
             auditar(id, ACCION_ELIMINAR, quien, "Eliminación lógica de la cirugía", antes, despues);
             TransactionsManager.commit();
         } catch (SQLException e) {
@@ -643,28 +642,14 @@ public class CirugiaBLImpl implements CirugiaBL {
                 throw new BLException("No se pudo comprobar el instrumental requerido", e);
             }
         }
-        if (cirugia.getBandejaInstrumental() != null && cirugia.getEstado() != EstadoCirugia.CANCELADA) {
+        if (cirugia.getBandejaInstrumental() != null) {
             BandejaInstrumental bandeja = buscarBandeja(cirugia.getBandejaInstrumental().getIdBandeja());
             if (bandeja.getProcedimiento() == null || !bandeja.getProcedimiento().trim()
                     .equalsIgnoreCase(cirugia.getTipoProcedimiento().trim())) {
                 throw new BLException("La bandeja no es compatible con el procedimiento");
             }
-            if (vigente) {
-                if (!bandeja.isActivo()) {
-                    throw new BLException("La bandeja " + bandeja.getIdBandeja() + " está dada de baja");
-                }
-                if (!bandeja.isEsterilizado()) {
-                    throw new BLException("La bandeja " + bandeja.getTipo() + " no está esterilizada");
-                }
-            }
-            // Bandeja fisica: no puede pertenecer a otra cirugia (la propia se excluye)
-            try {
-                if (cirugiaDAO.bandejaAsignadaAOtraCirugia(bandeja.getIdBandeja(), idExcluir)) {
-                    throw new BLException("La bandeja " + bandeja.getIdBandeja()
-                            + " ya está asignada a otra cirugía");
-                }
-            } catch (SQLException e) {
-                throw new BLException("No se pudo verificar la asignación de la bandeja", e);
+            if (!bandeja.isActivo()) {
+                throw new BLException("La plantilla de bandeja no está activa");
             }
         }
         if (cirugia.getBandejaInstrumental() == null && !cirugia.getConsumiblesPrevistos().isEmpty()) {
@@ -677,7 +662,7 @@ public class CirugiaBLImpl implements CirugiaBL {
             try {
                 var consumible = consumibleDAO.findById(linea.getKey());
                 if (consumible == null || !consumible.isActivo()) {
-                    throw new BLException("El consumible " + linea.getKey() + " no está disponible");
+                    throw new BLException("El consumible " + linea.getKey() + " no existe o no está activo");
                 }
             } catch (SQLException e) {
                 throw new BLException("No se pudo validar el consumible " + linea.getKey(), e);

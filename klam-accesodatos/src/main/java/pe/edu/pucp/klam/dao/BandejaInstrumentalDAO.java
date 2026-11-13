@@ -24,6 +24,8 @@ public interface BandejaInstrumentalDAO extends DAO<BandejaInstrumental, Integer
 
     // ---- Consultas de bandejas ----
     List<BandejaInstrumental> listarPorProcedimiento(String procedimiento) throws SQLException;
+    /** Tipos de procedimiento configurados, sin depender del estado físico de las bandejas. */
+    List<String> listarProcedimientos() throws SQLException;
     /** Bandejas activas, esterilizadas y sin cirugia asignada (procedimiento opcional: null = todas). */
     List<BandejaInstrumental> listarDisponibles(String procedimiento) throws SQLException;
     /** Id de la cirugia a la que esta asignada la bandeja, o null si esta libre. */
