@@ -14,6 +14,14 @@ public class RegistroCirugiaAdminDTO {
     private String tipoCliente;       // CLINICA_HOSPITAL | PACIENTE_PARTICULAR
     private int idCliente;
     private Integer idEquipo;         // opcional
+    private Integer idBandeja;
+    private java.util.Map<Integer, Integer> consumiblesPrevistos = new java.util.HashMap<>();
+    public Integer getIdBandeja() { return idBandeja; }
+    public void setIdBandeja(Integer idBandeja) { this.idBandeja = idBandeja; }
+    public java.util.Map<Integer, Integer> getConsumiblesPrevistos() { return consumiblesPrevistos; }
+    public void setConsumiblesPrevistos(java.util.Map<Integer, Integer> valor) {
+        consumiblesPrevistos = valor == null ? new java.util.HashMap<>() : valor;
+    }
 
     public RegistroCirugiaAdminDTO() {
     }

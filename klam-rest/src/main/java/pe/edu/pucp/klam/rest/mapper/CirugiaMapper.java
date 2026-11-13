@@ -81,6 +81,11 @@ public final class CirugiaMapper {
         dto.setEquipoNombre(texto(fila.get("equipoNombre")));
         dto.setIdBandeja(enteroONulo(fila.get("idBandeja")));
         dto.setBandejaTipo(texto(fila.get("bandejaTipo")));
+        if (fila.get("consumiblesPrevistos") instanceof Map<?, ?> previstos) {
+            Map<Integer, Integer> cantidades = new java.util.LinkedHashMap<>();
+            previstos.forEach((id, cantidad) -> cantidades.put(Integer.parseInt(id.toString()), ((Number) cantidad).intValue()));
+            dto.setConsumiblesPrevistos(cantidades);
+        }
         dto.setIdSolicitudOrigen(enteroONulo(fila.get("idSolicitudOrigen")));
         dto.setPrecioPactado(fila.get("precioPactado") == null ? null : ((Number) fila.get("precioPactado")).doubleValue());
         dto.setEstadoCotizacion(texto(fila.get("estadoCotizacion")));
@@ -135,6 +140,7 @@ public final class CirugiaMapper {
         cirugia.setCliente(cliente);
         cirugia.setEquipo(equipo);
         cirugia.setBandejaInstrumental(bandeja);
+        cirugia.setConsumiblesPrevistos(dto.getConsumiblesPrevistos());
         return cirugia;
     }
 

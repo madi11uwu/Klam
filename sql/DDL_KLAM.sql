@@ -82,6 +82,16 @@ CREATE TABLE IF NOT EXISTS `bandeja_consumible` (
                   CONSTRAINT `chk_bandeja_consumo_vs_despacho` CHECK (`cantidad_consumida` <= `cantidad_despachada`)
 );
 
+CREATE TABLE IF NOT EXISTS `bandeja_consumible_estandar` (
+    `id_bandeja` INT NOT NULL,
+    `id_consumible` INT NOT NULL,
+    `cantidad_estandar` INT NOT NULL,
+    PRIMARY KEY (`id_bandeja`, `id_consumible`),
+    CONSTRAINT `fk_bce_bandeja` FOREIGN KEY (`id_bandeja`) REFERENCES `bandeja_instrumental` (`id_bandeja`),
+    CONSTRAINT `fk_bce_consumible` FOREIGN KEY (`id_consumible`) REFERENCES `consumible` (`id_consumible`),
+    CONSTRAINT `chk_bce_cantidad` CHECK (`cantidad_estandar` > 0)
+);
+
 CREATE TABLE IF NOT EXISTS `equipo` (
       `id_equipo` INT NOT NULL AUTO_INCREMENT,
       `nombre` VARCHAR(150) NOT NULL,
@@ -437,6 +447,16 @@ CREATE TABLE IF NOT EXISTS `despacho` (
 
 -- Bitacora de auditoria de cirugias (RF16). Sin clase Java: se maneja desde
 -- CirugiaBL/CirugiaDAO. Los valores anterior/posterior se guardan como lineas campo=valor.
+CREATE TABLE IF NOT EXISTS `cirugia_consumible_previsto` (
+    `id_cirugia` INT NOT NULL,
+    `id_consumible` INT NOT NULL,
+    `cantidad_prevista` INT NOT NULL,
+    PRIMARY KEY (`id_cirugia`, `id_consumible`),
+    CONSTRAINT `fk_ccp_cirugia` FOREIGN KEY (`id_cirugia`) REFERENCES `cirugia` (`id_cirugia`),
+    CONSTRAINT `fk_ccp_consumible` FOREIGN KEY (`id_consumible`) REFERENCES `consumible` (`id_consumible`),
+    CONSTRAINT `chk_ccp_cantidad` CHECK (`cantidad_prevista` > 0)
+);
+
 CREATE TABLE IF NOT EXISTS `auditoria_cirugia` (
             `id_auditoria` INT NOT NULL AUTO_INCREMENT,
             `id_cirugia` INT NOT NULL,

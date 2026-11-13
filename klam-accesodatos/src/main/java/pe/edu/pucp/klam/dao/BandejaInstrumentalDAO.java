@@ -19,6 +19,7 @@ public interface BandejaInstrumentalDAO extends DAO<BandejaInstrumental, Integer
     void actualizarCantidadDespachada(int idBandeja, int idConsumible, int cantDespachada) throws SQLException;
     void quitarConsumible(int idBandeja, int idConsumible) throws SQLException;
     void cargarConsumiblesPorBandeja(BandejaInstrumental bandeja) throws SQLException;
+    Map<pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible, Integer> listarConsumiblesEstandar(int idBandeja) throws SQLException;
     boolean tieneConsumoRegistrado(int idBandeja) throws SQLException;
 
     // ---- Consultas de bandejas ----

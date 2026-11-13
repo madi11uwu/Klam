@@ -58,7 +58,7 @@ public final class BandejaMapper {
             c.setIdConsumible(((Number) fila.get("idConsumible")).intValue());
             c.setNombreComercial((String) fila.get("nombreComercial"));
             c.setMedida((String) fila.get("medida"));
-            c.setCantidad(((Number) fila.get("cantidadDespachada")).intValue());
+            c.setCantidad(((Number) fila.get("cantidadEstandar")).intValue());
             dto.getConsumibles().add(c);
         }
         return dto;

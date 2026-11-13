@@ -15,12 +15,12 @@ import java.util.Map;
 public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
     @Override
     public void asociarConsumible(int idBandeja, int idConsumible, int cantDespachada) throws SQLException {
-        String sql = "{call asociar_consumible_bandeja(?, ?, ?)}";
+        String sql = "INSERT INTO bandeja_consumible_estandar (id_bandeja, id_consumible, cantidad_estandar) VALUES (?, ?, ?)";
         Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_bandeja", idBandeja);
-            cmd.setInt("p_id_consumible", idConsumible);
-            cmd.setInt("p_cantidad_despachada", cantDespachada);
+        try (PreparedStatement cmd = conn.prepareStatement(sql)) {
+            cmd.setInt(1, idBandeja);
+            cmd.setInt(2, idConsumible);
+            cmd.setInt(3, cantDespachada);
 
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo asociar el consumible " + idConsumible
@@ -33,12 +33,12 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
 
     @Override
     public void actualizarCantidadDespachada(int idBandeja, int idConsumible, int cantDespachada) throws SQLException {
-        String sql = "{call actualizar_cantidad_despachada(?, ?, ?)}";
+        String sql = "UPDATE bandeja_consumible_estandar SET cantidad_estandar = ? WHERE id_bandeja = ? AND id_consumible = ?";
         Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_bandeja", idBandeja);
-            cmd.setInt("p_id_consumible", idConsumible);
-            cmd.setInt("p_cantidad_despachada", cantDespachada);
+        try (PreparedStatement cmd = conn.prepareStatement(sql)) {
+            cmd.setInt(1, cantDespachada);
+            cmd.setInt(2, idBandeja);
+            cmd.setInt(3, idConsumible);
 
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("El consumible " + idConsumible + " no esta en la bandeja " + idBandeja);
@@ -50,14 +50,37 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
 
     @Override
     public void quitarConsumible(int idBandeja, int idConsumible) throws SQLException {
-        String sql = "{call quitar_consumible_bandeja(?, ?)}";
+        String sql = "DELETE FROM bandeja_consumible_estandar WHERE id_bandeja = ? AND id_consumible = ?";
         Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_bandeja", idBandeja);
-            cmd.setInt("p_id_consumible", idConsumible);
+        try (PreparedStatement cmd = conn.prepareStatement(sql)) {
+            cmd.setInt(1, idBandeja);
+            cmd.setInt(2, idConsumible);
 
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("El consumible " + idConsumible + " no esta en la bandeja " + idBandeja);
+            }
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
+
+    @Override
+    public Map<Consumible, Integer> listarConsumiblesEstandar(int idBandeja) throws SQLException {
+        String sql = "SELECT c.id_consumible, c.nombre_comercial, c.marca, c.medida, c.activo, e.cantidad_estandar "
+                + "FROM bandeja_consumible_estandar e JOIN consumible c ON c.id_consumible = e.id_consumible "
+                + "WHERE e.id_bandeja = ?";
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (PreparedStatement cmd = conn.prepareStatement(sql)) {
+            cmd.setInt(1, idBandeja);
+            try (ResultSet rs = cmd.executeQuery()) {
+                Map<Consumible, Integer> resultado = new java.util.LinkedHashMap<>();
+                while (rs.next()) {
+                    Consumible c = new Consumible(rs.getInt("id_consumible"), rs.getString("nombre_comercial"),
+                            rs.getString("marca"), rs.getString("medida"));
+                    c.setActivo(rs.getBoolean("activo"));
+                    resultado.put(c, rs.getInt("cantidad_estandar"));
+                }
+                return resultado;
             }
         } finally {
             TransactionsManager.liberar(conn);

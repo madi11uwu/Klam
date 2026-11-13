@@ -1,6 +1,8 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
 
 public class Cirugia {
@@ -14,6 +16,7 @@ public class Cirugia {
     private String motivoCancelacion;
     private Equipo equipo;
     private BandejaInstrumental bandejaInstrumental;
+    private Map<Integer, Integer> consumiblesPrevistos = new HashMap<>();
     private Cliente cliente;
 
     // Solicitud aprobada de la que nace la cirugia; null si el administrador la registro directamente
@@ -49,6 +52,7 @@ public class Cirugia {
         setEstado(cirugia.getEstado());
         setEquipo(cirugia.getEquipo());
         setBandejaInstrumental(cirugia.getBandejaInstrumental());
+        setConsumiblesPrevistos(cirugia.getConsumiblesPrevistos());
         setCliente(cirugia.getCliente());
         setSolicitudOrigen(cirugia.getSolicitudOrigen());
         setConsumoCompleto(cirugia.isConsumoCompleto());
@@ -147,6 +151,15 @@ public class Cirugia {
 
     public void setBandejaInstrumental(BandejaInstrumental bandejaInstrumental) {
         this.bandejaInstrumental = bandejaInstrumental;
+    }
+
+    public Map<Integer, Integer> getConsumiblesPrevistos() {
+        return new HashMap<>(consumiblesPrevistos);
+    }
+
+    public void setConsumiblesPrevistos(Map<Integer, Integer> consumiblesPrevistos) {
+        this.consumiblesPrevistos = consumiblesPrevistos == null
+                ? new HashMap<>() : new HashMap<>(consumiblesPrevistos);
     }
 
     /** Clinica/hospital o paciente particular al que pertenece la cirugia. */

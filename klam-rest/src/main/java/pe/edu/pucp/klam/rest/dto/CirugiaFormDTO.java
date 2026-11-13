@@ -2,6 +2,11 @@ package pe.edu.pucp.klam.rest.dto;
 
 // Datos que Blazor envía al registrar o modificar una cirugía
 public class CirugiaFormDTO {
+    private java.util.Map<Integer, Integer> consumiblesPrevistos = new java.util.HashMap<>();
+    public java.util.Map<Integer, Integer> getConsumiblesPrevistos() { return consumiblesPrevistos; }
+    public void setConsumiblesPrevistos(java.util.Map<Integer, Integer> valor) {
+        consumiblesPrevistos = valor == null ? new java.util.HashMap<>() : valor;
+    }
     private String fechaHoraInicio;   // ISO: 2026-11-20T08:00
     private String fechaHoraFin;      // opcional
     private String tipoProcedimiento;

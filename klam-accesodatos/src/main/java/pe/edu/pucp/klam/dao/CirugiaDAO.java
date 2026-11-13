@@ -30,6 +30,8 @@ public interface CirugiaDAO extends DAO<Cirugia, Integer> {
 
     // ---- Reglas de negocio con acceso a datos ----
     boolean bandejaAsignadaAOtraCirugia(int idBandeja, Integer idCirugiaExcluir) throws SQLException;
+    Map<Integer, Integer> buscarConsumiblesPrevistos(int idCirugia) throws SQLException;
+    void reemplazarConsumiblesPrevistos(int idCirugia, Map<Integer, Integer> cantidades) throws SQLException;
     boolean existeCruceEquipo(int idEquipo, LocalDateTime inicio, LocalDateTime fin,
                               Integer idCirugiaExcluir) throws SQLException;
     void cambiarEstado(int idCirugia, EstadoCirugia estado, LocalDateTime fechaHoraFin) throws SQLException;

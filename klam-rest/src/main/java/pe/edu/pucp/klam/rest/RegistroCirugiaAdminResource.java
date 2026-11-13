@@ -8,6 +8,7 @@ import pe.edu.pucp.klam.bl.CirugiaBL;
 import pe.edu.pucp.klam.bl.impl.CirugiaBLImpl;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Equipo;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
@@ -57,6 +58,12 @@ public class RegistroCirugiaAdminResource {
                 equipo.setIdEquipo(datos.getIdEquipo());
                 cirugia.setEquipo(equipo);
             }
+            if (datos.getIdBandeja() != null) {
+                BandejaInstrumental bandeja = new BandejaInstrumental();
+                bandeja.setIdBandeja(datos.getIdBandeja());
+                cirugia.setBandejaInstrumental(bandeja);
+            }
+            cirugia.setConsumiblesPrevistos(datos.getConsumiblesPrevistos());
             cirugiaBL.registrar(cirugia, sesion.username());
             return Response.created(URI.create("/cirugias/" + cirugia.getIdCirugia()))
                     .entity(Map.of("idCirugia", cirugia.getIdCirugia(), "estado", cirugia.getEstado().name()))

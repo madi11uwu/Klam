@@ -2,6 +2,11 @@ package pe.edu.pucp.klam.rest.dto;
 
 // Datos de una cirugía que se envían a Blazor (las fechas viajan como texto ISO)
 public class CirugiaDTO {
+    private java.util.Map<Integer, Integer> consumiblesPrevistos = new java.util.HashMap<>();
+    public java.util.Map<Integer, Integer> getConsumiblesPrevistos() { return consumiblesPrevistos; }
+    public void setConsumiblesPrevistos(java.util.Map<Integer, Integer> valor) {
+        consumiblesPrevistos = valor == null ? new java.util.HashMap<>() : valor;
+    }
     private int idCirugia;
     private String estado;
     private String fechaHoraInicio;

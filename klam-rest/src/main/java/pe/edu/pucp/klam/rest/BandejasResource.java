@@ -19,11 +19,14 @@ import pe.edu.pucp.klam.bl.BandejaInstrumentalBL;
 import pe.edu.pucp.klam.bl.impl.BandejaInstrumentalBLImpl;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
 import pe.edu.pucp.klam.rest.dto.BandejaFormDTO;
+import pe.edu.pucp.klam.rest.dto.BandejaDTO;
 import pe.edu.pucp.klam.rest.dto.ConsumibleBandejaDTO;
 import pe.edu.pucp.klam.rest.mapper.BandejaMapper;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 // RF13: plantillas de bandejas y sus consumibles por procedimiento. Las reglas están en BandejaInstrumentalBL.
 // BLException sin causa = regla de negocio (400); con causa = error de base de datos (500).
@@ -55,10 +58,10 @@ public class BandejasResource {
         if (acceso != null) return acceso;
         try {
             if (procedimiento != null && !procedimiento.isBlank()) {
-                return Response.ok(BandejaMapper.toDTOs(bandejaBL.listarPorProcedimiento(procedimiento)))
+                return Response.ok(conEstandares(bandejaBL.listarPorProcedimiento(procedimiento)))
                         .build();
             }
-            return Response.ok(BandejaMapper.toDTOs(bandejaBL.findAll()))
+            return Response.ok(conEstandares(bandejaBL.findAll()))
                     .build();
         }
         catch (BLException ex) {
@@ -80,7 +83,7 @@ public class BandejasResource {
         Response acceso = acceso(null);
         if (acceso != null) return acceso;
         try {
-            return Response.ok(BandejaMapper.toDTOs(bandejaBL.listarDisponibles(procedimiento)))
+            return Response.ok(conEstandares(bandejaBL.listarDisponibles(procedimiento)))
                     .build();
         }
         catch (BLException ex) {
@@ -93,6 +96,14 @@ public class BandejasResource {
                     .entity(Map.of("error", ex.getMessage()))
                     .build();
         }
+    }
+
+    private List<BandejaDTO> conEstandares(List<BandejaInstrumental> bandejas) throws BLException {
+        List<BandejaDTO> resultado = new ArrayList<>();
+        for (BandejaInstrumental bandeja : bandejas) {
+            resultado.add(BandejaMapper.toDTO(bandejaBL.consultarDetalle(bandeja.getIdBandeja())));
+        }
+        return resultado;
     }
 
     @GET
