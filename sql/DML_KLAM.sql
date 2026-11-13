@@ -270,12 +270,41 @@ VALUES
      NULL,
      3,
      NULL,
-     1);
+     1),
+
+    -- Ejemplos de historial y bitacora que antes estaban en rol2_historial_auditoria.sql.
+    (4, '2026-11-20 11:30:00', NULL, 'Cirugía de cráneo',
+     'Dra. Silvia Ramos', '[DEMO R2] Lesión craneal de prueba',
+     'Eric Huiza', '90000001', NULL, 'PROGRAMADA',
+     NULL, 1, NULL, 1, 1),
+    (5, '2026-11-12 08:00:00', NULL, 'Cirugía de cráneo',
+     'Dr. Alberto Núñez', '[DEMO R2] Diagnóstico de prueba',
+     'Eric Huiza', '90000001', 'Paciente no apto', 'CANCELADA',
+     NULL, 1, NULL, 1, 1);
 
 -- Personalizacion prevista de una cirugia: no modifica la plantilla.
 INSERT INTO cirugia_consumible_previsto
 (id_cirugia, id_consumible, cantidad_prevista)
 VALUES (1, 1, 10), (1, 3, 4), (2, 4, 5);
+
+-- Resultado final de la demostracion RF10/RF16. La bitacora conserva los
+-- pasos previos; no se ejecutan UPDATE ni DELETE sobre datos de prueba.
+INSERT INTO auditoria_cirugia
+(id_auditoria, id_cirugia, fecha_hora, accion, responsable, detalle,
+ valores_anteriores, valores_posteriores)
+VALUES
+    (1, 4, '2026-11-10 09:15:00', 'CREAR', 'Carlos Rojas Medina',
+     'Alta de programación', NULL,
+     'estado=PROGRAMADA; fechaHoraInicio=2026-11-20T10:00'),
+    (2, 4, '2026-11-10 09:40:00', 'EDITAR', 'Carlos Rojas Medina',
+     'Cambio de fecha y médico',
+     'fechaHoraInicio=2026-11-20T10:00; doctorNombre=Dr. Alberto Núñez',
+     'fechaHoraInicio=2026-11-20T11:30; doctorNombre=Dra. Silvia Ramos'),
+    (3, 5, '2026-11-10 09:20:00', 'CREAR', 'Carlos Rojas Medina',
+     'Alta de programación', NULL, 'estado=PROGRAMADA'),
+    (4, 5, '2026-11-10 10:05:00', 'CANCELAR', 'Carlos Rojas Medina',
+     'Cirugía cancelada: Paciente no apto',
+     'estado=PROGRAMADA', 'estado=CANCELADA; motivoCancelacion=Paciente no apto');
 -- cotizacion
 
 INSERT INTO cotizacion
