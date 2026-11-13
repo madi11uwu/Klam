@@ -1,3 +1,5 @@
+-- Instalacion nueva: esquema definitivo. No ejecutar sobre una base existente
+-- como sustituto de las migraciones historicas.
 CREATE SCHEMA IF NOT EXISTS `klam` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
 
 USE `klam`;
@@ -219,6 +221,8 @@ CREATE TABLE IF NOT EXISTS `cirugia` (
        `tipo_procedimiento` VARCHAR(100) NOT NULL,
        `doctor_nombre` VARCHAR(100) NOT NULL,
        `diagnostico` VARCHAR(300) NOT NULL,
+       `paciente_nombre` VARCHAR(150) NULL,
+       `paciente_documento` VARCHAR(20) NULL,
        `motivo_cancelacion` VARCHAR(200) NULL,
        `estado` ENUM('PROGRAMADA','EN_PROCESO','FINALIZADA','CANCELADA')
 NOT NULL DEFAULT 'PROGRAMADA',
