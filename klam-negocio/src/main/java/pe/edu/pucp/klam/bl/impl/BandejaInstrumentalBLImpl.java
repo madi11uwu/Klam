@@ -157,7 +157,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
         }
         validarExiste(bandeja.getIdBandeja());
         try {
-            bandejaInstrumentalDAO.cargarConsumiblesPorBandeja(bandeja);
+            bandeja.setConsumibles(bandejaInstrumentalDAO.listarConsumiblesEstandar(bandeja.getIdBandeja()));
         } catch (SQLException e) {
             throw new BLException("No se pudieron cargar los consumibles de la bandeja " + bandeja.getIdBandeja(), e);
         }
@@ -168,8 +168,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
         BandejaInstrumental bandeja = buscarBandejaActiva(idBandeja);
         validarConsumibleExiste(idConsumible);
         validarCantidadDespachada(cantDespachada);
-        validarSinConsumo(idBandeja);
-        if (bandeja.getConsumibles().containsKey(consumibleConId(idConsumible))) {
+        if (consumiblesEstandar(idBandeja).containsKey(consumibleConId(idConsumible))) {
             throw new BLException("El consumible " + idConsumible + " ya está en la bandeja " + idBandeja
                     + "; use actualizarCantidadDespachada");
         }
@@ -191,8 +190,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
     public void actualizarCantidadDespachada(int idBandeja, int idConsumible, int cantDespachada) throws BLException {
         BandejaInstrumental bandeja = buscarBandejaActiva(idBandeja);
         validarCantidadDespachada(cantDespachada);
-        validarSinConsumo(idBandeja);
-        if (!bandeja.getConsumibles().containsKey(consumibleConId(idConsumible))) {
+        if (!consumiblesEstandar(idBandeja).containsKey(consumibleConId(idConsumible))) {
             throw new BLException("El consumible " + idConsumible + " no pertenece a la bandeja " + idBandeja);
         }
 
@@ -212,8 +210,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
     @Override
     public void quitarConsumible(int idBandeja, int idConsumible) throws BLException {
         BandejaInstrumental bandeja = buscarBandejaActiva(idBandeja);
-        validarSinConsumo(idBandeja);
-        if (!bandeja.getConsumibles().containsKey(consumibleConId(idConsumible))) {
+        if (!consumiblesEstandar(idBandeja).containsKey(consumibleConId(idConsumible))) {
             throw new BLException("El consumible " + idConsumible + " no pertenece a la bandeja " + idBandeja);
         }
 
@@ -262,12 +259,12 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
         BandejaInstrumental bandeja = buscarBandeja(idBandeja);
 
         List<Map<String, Object>> consumibles = new ArrayList<>();
-        for (Map.Entry<Consumible, Integer> e : bandeja.getConsumibles().entrySet()) {
+        for (Map.Entry<Consumible, Integer> e : consumiblesEstandar(idBandeja).entrySet()) {
             Map<String, Object> fila = new LinkedHashMap<>();
             fila.put("idConsumible", e.getKey().getIdConsumible());
             fila.put("nombreComercial", e.getKey().getNombreComercial());
             fila.put("medida", e.getKey().getMedida());
-            fila.put("cantidadDespachada", e.getValue());
+            fila.put("cantidadEstandar", e.getValue());
             consumibles.add(fila);
         }
 
@@ -287,6 +284,14 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
         detalle.put("idCirugia", idCirugia);
         detalle.put("consumibles", consumibles);
         return detalle;
+    }
+
+    private Map<Consumible, Integer> consumiblesEstandar(int idBandeja) throws BLException {
+        try {
+            return bandejaInstrumentalDAO.listarConsumiblesEstandar(idBandeja);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo consultar la plantilla de la bandeja " + idBandeja, e);
+        }
     }
 
     // ------------------------------------------------------------------

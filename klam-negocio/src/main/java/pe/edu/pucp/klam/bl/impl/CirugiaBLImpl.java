@@ -6,6 +6,7 @@ import pe.edu.pucp.klam.bl.DocumentoIngresoBL;
 import pe.edu.pucp.klam.bl.NotificacionBL;
 import pe.edu.pucp.klam.dao.BandejaInstrumentalDAO;
 import pe.edu.pucp.klam.dao.CirugiaDAO;
+import pe.edu.pucp.klam.dao.ConsumibleDAO;
 import pe.edu.pucp.klam.dao.ClinicaHospitalDAO;
 import pe.edu.pucp.klam.dao.CotizacionDAO;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
@@ -19,6 +20,7 @@ import pe.edu.pucp.klam.dao.impl.DocumentoIngresoDAOImpl;
 import pe.edu.pucp.klam.dao.impl.PacienteParticularDAOImpl;
 import pe.edu.pucp.klam.dao.impl.SolicitudCirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.impl.inventario.BandejaInstrumentalDAOImpl;
+import pe.edu.pucp.klam.dao.impl.inventario.ConsumibleDAOImpl;
 import pe.edu.pucp.klam.dao.impl.inventario.EquipoDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
@@ -54,6 +56,7 @@ public class CirugiaBLImpl implements CirugiaBL {
     private final SolicitudCirugiaDAO solicitudDAO = new SolicitudCirugiaDAOImpl();
     private final EquipoDAO equipoDAO = new EquipoDAOImpl();
     private final BandejaInstrumentalDAO bandejaDAO = new BandejaInstrumentalDAOImpl();
+    private final ConsumibleDAO consumibleDAO = new ConsumibleDAOImpl();
     private final ClinicaHospitalDAO clinicaHospitalDAO = new ClinicaHospitalDAOImpl();
     private final PacienteParticularDAO pacienteParticularDAO = new PacienteParticularDAOImpl();
     private final CotizacionDAO cotizacionDAO = new CotizacionDAOImpl();
@@ -77,7 +80,9 @@ public class CirugiaBLImpl implements CirugiaBL {
     @Override
     public Cirugia findById(Integer id) throws BLException {
         try {
-            return cirugiaDAO.findById(id);
+            Cirugia cirugia = cirugiaDAO.findById(id);
+            if (cirugia != null) cirugia.setConsumiblesPrevistos(cirugiaDAO.buscarConsumiblesPrevistos(id));
+            return cirugia;
         } catch (SQLException e) {
             throw new BLException("No se pudo recuperar la cirugía", e);
         }
@@ -213,6 +218,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         d.put("bandejaTipo", c.getBandejaInstrumental() != null ? c.getBandejaInstrumental().getTipo() : null);
 
         try {
+            d.put("consumiblesPrevistos", cirugiaDAO.buscarConsumiblesPrevistos(idCirugia));
             // paciente y clinica salen de la solicitud de origen; sin solicitud, de la cirugia
             String pacienteNombre = null;
             String clinicaNombre = c.getCliente() instanceof ClinicaHospital ? c.getCliente().getNombre() : null;
@@ -309,6 +315,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         try {
             cirugiaDAO.insert(cirugia);
             int id = cirugia.getIdCirugia();
+            cirugiaDAO.reemplazarConsumiblesPrevistos(id, cirugia.getConsumiblesPrevistos());
 
             Map<String, String> despues = snapshot(cirugia);
             auditar(id, ACCION_CREAR, quien,
@@ -345,6 +352,11 @@ public class CirugiaBLImpl implements CirugiaBL {
             throw new BLException("La cirugía no puede ser nula");
         }
         Cirugia existente = buscarCirugia(cirugia.getIdCirugia());
+        try {
+            existente.setConsumiblesPrevistos(cirugiaDAO.buscarConsumiblesPrevistos(cirugia.getIdCirugia()));
+        } catch (SQLException e) {
+            throw new BLException("No se pudo consultar la previsión anterior", e);
+        }
         if (!existente.isActivo()) {
             throw new BLException("La cirugía " + cirugia.getIdCirugia() + " está dada de baja");
         }
@@ -353,6 +365,10 @@ public class CirugiaBLImpl implements CirugiaBL {
         }
         if (cirugia.getEstado() != existente.getEstado()) {
             throw new BLException("Para cambiar el estado de una cirugía use cambiarEstado o cancelar");
+        }
+        if (existente.getEstado() != EstadoCirugia.PROGRAMADA
+                && !existente.getConsumiblesPrevistos().equals(cirugia.getConsumiblesPrevistos())) {
+            throw new BLException("Los consumibles previstos solo pueden cambiarse mientras la cirugía está programada");
         }
         validarDatos(cirugia, existente);
 
@@ -377,6 +393,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         TransactionsManager.iniciar();
         try {
             cirugiaDAO.update(cirugia);
+            cirugiaDAO.reemplazarConsumiblesPrevistos(cirugia.getIdCirugia(), cirugia.getConsumiblesPrevistos());
             auditarCambios(existente, cirugia, quien);
             TransactionsManager.commit();
         } catch (SQLException e) {
@@ -582,6 +599,14 @@ public class CirugiaBLImpl implements CirugiaBL {
         }
         validarClienteExiste(cirugia.getCliente());
 
+        try {
+            if (existente == null && bandejaDAO.listarPorProcedimiento(cirugia.getTipoProcedimiento().trim()).isEmpty()) {
+                throw new BLException("El procedimiento no tiene una configuración de bandeja registrada");
+            }
+        } catch (SQLException e) {
+            throw new BLException("No se pudo verificar la configuración del procedimiento", e);
+        }
+
         // Los recursos solo deben estar operativos mientras la cirugia este vigente
         boolean vigente = cirugia.getEstado() == EstadoCirugia.PROGRAMADA
                 || cirugia.getEstado() == EstadoCirugia.EN_PROCESO;
@@ -609,11 +634,22 @@ public class CirugiaBLImpl implements CirugiaBL {
             }
         }
 
+        if (cirugia.getBandejaInstrumental() == null && vigente) {
+            try {
+                if (!bandejaDAO.listarPorProcedimiento(cirugia.getTipoProcedimiento().trim()).isEmpty()) {
+                    throw new BLException("Este procedimiento requiere una bandeja instrumental compatible");
+                }
+            } catch (SQLException e) {
+                throw new BLException("No se pudo comprobar el instrumental requerido", e);
+            }
+        }
         if (cirugia.getBandejaInstrumental() != null && cirugia.getEstado() != EstadoCirugia.CANCELADA) {
             BandejaInstrumental bandeja = buscarBandeja(cirugia.getBandejaInstrumental().getIdBandeja());
-            boolean bandejaCambio = existente == null || existente.getBandejaInstrumental() == null
-                    || existente.getBandejaInstrumental().getIdBandeja() != bandeja.getIdBandeja();
-            if (vigente && bandejaCambio) {
+            if (bandeja.getProcedimiento() == null || !bandeja.getProcedimiento().trim()
+                    .equalsIgnoreCase(cirugia.getTipoProcedimiento().trim())) {
+                throw new BLException("La bandeja no es compatible con el procedimiento");
+            }
+            if (vigente) {
                 if (!bandeja.isActivo()) {
                     throw new BLException("La bandeja " + bandeja.getIdBandeja() + " está dada de baja");
                 }
@@ -629,6 +665,22 @@ public class CirugiaBLImpl implements CirugiaBL {
                 }
             } catch (SQLException e) {
                 throw new BLException("No se pudo verificar la asignación de la bandeja", e);
+            }
+        }
+        if (cirugia.getBandejaInstrumental() == null && !cirugia.getConsumiblesPrevistos().isEmpty()) {
+            throw new BLException("No se pueden prever consumibles sin una bandeja asignada");
+        }
+        for (Map.Entry<Integer, Integer> linea : cirugia.getConsumiblesPrevistos().entrySet()) {
+            if (linea.getKey() == null || linea.getKey() <= 0 || linea.getValue() == null || linea.getValue() <= 0) {
+                throw new BLException("Los consumibles previstos deben tener un identificador y cantidad positivos");
+            }
+            try {
+                var consumible = consumibleDAO.findById(linea.getKey());
+                if (consumible == null || !consumible.isActivo()) {
+                    throw new BLException("El consumible " + linea.getKey() + " no está disponible");
+                }
+            } catch (SQLException e) {
+                throw new BLException("No se pudo validar el consumible " + linea.getKey(), e);
             }
         }
     }
@@ -738,6 +790,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         s.put("estado", valor(c.getEstado()));
         s.put("idEquipo", valor(c.getEquipo() != null ? c.getEquipo().getIdEquipo() : null));
         s.put("idBandeja", valor(idBandeja(c)));
+        s.put("consumiblesPrevistos", new java.util.TreeMap<>(c.getConsumiblesPrevistos()).toString());
         s.put("tipoCliente", c.getCliente() instanceof ClinicaHospital ? TIPO_CLIENTE_CLINICA : TIPO_CLIENTE_PARTICULAR);
         s.put("idCliente", valor(c.getCliente() != null ? c.getCliente().getIdCliente() : null));
         s.put("activo", valor(c.isActivo()));

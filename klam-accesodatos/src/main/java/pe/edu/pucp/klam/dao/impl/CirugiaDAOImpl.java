@@ -14,12 +14,14 @@ import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -28,6 +30,43 @@ import java.util.Map;
  * misma transaccion. Sin transaccion activa usan una conexion propia.
  */
 public class CirugiaDAOImpl implements CirugiaDAO {
+    @Override
+    public Map<Integer, Integer> buscarConsumiblesPrevistos(int idCirugia) throws SQLException {
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (PreparedStatement cmd = conn.prepareStatement(
+                "SELECT id_consumible, cantidad_prevista FROM cirugia_consumible_previsto WHERE id_cirugia = ?")) {
+            cmd.setInt(1, idCirugia);
+            try (ResultSet rs = cmd.executeQuery()) {
+                Map<Integer, Integer> cantidades = new LinkedHashMap<>();
+                while (rs.next()) cantidades.put(rs.getInt(1), rs.getInt(2));
+                return cantidades;
+            }
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
+
+    @Override
+    public void reemplazarConsumiblesPrevistos(int idCirugia, Map<Integer, Integer> cantidades) throws SQLException {
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (PreparedStatement borrar = conn.prepareStatement(
+                "DELETE FROM cirugia_consumible_previsto WHERE id_cirugia = ?")) {
+            borrar.setInt(1, idCirugia);
+            borrar.executeUpdate();
+            try (PreparedStatement insertar = conn.prepareStatement(
+                    "INSERT INTO cirugia_consumible_previsto (id_cirugia, id_consumible, cantidad_prevista) VALUES (?, ?, ?)")) {
+                for (Map.Entry<Integer, Integer> linea : cantidades.entrySet()) {
+                    insertar.setInt(1, idCirugia);
+                    insertar.setInt(2, linea.getKey());
+                    insertar.setInt(3, linea.getValue());
+                    insertar.addBatch();
+                }
+                insertar.executeBatch();
+            }
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
     @Override
     public List<Cirugia> findAll() throws SQLException {
         return buscar(null, null, null, null, null, null);
