@@ -169,9 +169,12 @@ BEGIN
     DECLARE v_completo TINYINT;
     DECLARE v_despachada INT;
 
+    -- La bandeja puede estar asignada a varias cirugias: se toma la finalizada mas reciente
     SELECT estado, consumo_completo INTO v_estado, v_completo
       FROM cirugia
-     WHERE id_bandeja = p_id_bandeja AND activo = 1;
+     WHERE id_bandeja = p_id_bandeja AND activo = 1
+     ORDER BY (estado = 'FINALIZADA') DESC, consumo_completo ASC, fecha_hora_inicio DESC, id_cirugia DESC
+     LIMIT 1;
 
     IF v_estado IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La bandeja no esta asignada a ninguna cirugia';
