@@ -13,6 +13,7 @@ import pe.edu.pucp.klam.bl.NotificacionBL;
 import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
 
 import pe.edu.pucp.klam.dao.CirugiaDAO;
+import pe.edu.pucp.klam.dao.AuditoriaDocumentalDAO;
 import pe.edu.pucp.klam.dao.ClinicaHospitalDAO;
 import pe.edu.pucp.klam.dao.PacienteParticularDAO;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
@@ -20,6 +21,7 @@ import pe.edu.pucp.klam.dao.SolicitudCirugiaDAO;
 import pe.edu.pucp.klam.dao.VendedorDAO;
 
 import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
+import pe.edu.pucp.klam.dao.impl.AuditoriaDocumentalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.ClinicaHospitalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.DocumentoIngresoDAOImpl;
 import pe.edu.pucp.klam.dao.impl.PacienteParticularDAOImpl;
@@ -42,6 +44,7 @@ import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.EstadoValidacionDocume
 import pe.edu.pucp.klam.modelo.gestiondocumentaldeingreso.TipoDocumentoIngreso;
 
 public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
+    private final AuditoriaDocumentalDAO auditoriaDocumentalDAO = new AuditoriaDocumentalDAOImpl();
 
     private static final int MAX_PROCEDIMIENTO = 100;
     private static final int MAX_DOCTOR = 100;
@@ -77,6 +80,12 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
     @Override
     public int registrarSolicitud(
             SolicitudCirugia solicitud) throws BLException {
+        return registrarSolicitud(solicitud, null, null, null);
+    }
+
+    @Override
+    public int registrarSolicitud(SolicitudCirugia solicitud, String responsable,
+            Integer idUsuario, String rol) throws BLException {
 
         if (solicitud == null) {
             throw new BLException(
@@ -177,6 +186,8 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
 
         try {
             solicitudDAO.insert(solicitud);
+            registrarEventoSolicitud(solicitud.getIdSolicitud(), "REGISTRO", null,
+                    EstadoSolicitudCirugia.POR_REVISAR.name(), responsable, idUsuario, rol);
 
             String resumen = "Solicitud " + solicitud.getIdSolicitud()
                     + " · Cliente: " + cliente.getNombre()
@@ -287,6 +298,11 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
     @Override
     public void aprobarSolicitud(
             int idSolicitud) throws BLException {
+        aprobarSolicitud(idSolicitud, null, 0);
+    }
+
+    @Override
+    public void aprobarSolicitud(int idSolicitud, String responsable, int idAdministrador) throws BLException {
 
         TransactionsManager.iniciar();
 
@@ -315,6 +331,9 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
             solicitud.setFechaRespuesta(LocalDateTime.now());
 
             solicitudDAO.cambiarEstado(solicitud);
+            registrarEventoSolicitud(idSolicitud, "APROBACION", EstadoSolicitudCirugia.POR_REVISAR.name(),
+                    EstadoSolicitudCirugia.APROBADA.name(), responsable,
+                    idAdministrador > 0 ? idAdministrador : null, "ADMINISTRADOR");
 
             TransactionsManager.commit();
 
@@ -333,6 +352,12 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
     public void rechazarSolicitud(
             int idSolicitud,
             String motivo) throws BLException {
+        rechazarSolicitud(idSolicitud, motivo, null, 0);
+    }
+
+    @Override
+    public void rechazarSolicitud(int idSolicitud, String motivo,
+            String responsable, int idAdministrador) throws BLException {
 
         textoObligatorio(motivo,
                 "El motivo de rechazo", MAX_MOTIVO);
@@ -352,6 +377,7 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
                         "Solo se puede rechazar una solicitud pendiente de revisión");
             }
 
+            String estadoAnterior = solicitud.getEstado().name();
             solicitud.setEstado(
                     EstadoSolicitudCirugia.RECHAZADA);
 
@@ -359,6 +385,19 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
             solicitud.setFechaRespuesta(LocalDateTime.now());
 
             solicitudDAO.cambiarEstado(solicitud);
+            registrarEventoSolicitud(idSolicitud, "RECHAZO_SOLICITUD", estadoAnterior,
+                    EstadoSolicitudCirugia.RECHAZADA.name(), responsable,
+                    idAdministrador > 0 ? idAdministrador : null, "ADMINISTRADOR");
+
+            // Si la registró un vendedor, le llega el aviso con el motivo (misma transacción que el rechazo).
+            Vendedor registrador = solicitud.getVendedorRegistrador();
+            if (registrador != null) {
+                notificacionBL.notificarVendedor(
+                        registrador.getIdUsuario(),
+                        "Solicitud " + idSolicitud + " rechazada",
+                        "Se rechazó la solicitud " + idSolicitud + " (" + solicitud.getTipoProcedimiento()
+                                + "). Motivo: " + motivo.trim());
+            }
 
             TransactionsManager.commit();
 
@@ -411,12 +450,15 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
                 }
             }
 
+            String estadoAnterior = solicitud.getEstado().name();
             solicitud.setEstado(
                     EstadoSolicitudCirugia.POR_REVISAR);
 
             solicitud.setFechaRespuesta(null);
 
             solicitudDAO.cambiarEstado(solicitud);
+            registrarEventoSolicitud(idSolicitud, "REENVIO", estadoAnterior,
+                    EstadoSolicitudCirugia.POR_REVISAR.name(), null, null, null);
 
             TransactionsManager.commit();
 
@@ -615,6 +657,14 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         } catch (SQLException e) {
             throw new BLException("No se pudo verificar el vendedor registrador", e);
         }
+    }
+
+    private void registrarEventoSolicitud(int idSolicitud, String accion, String estadoAnterior,
+            String estadoNuevo, String responsable, Integer idUsuario, String rol) throws SQLException {
+        auditoriaDocumentalDAO.registrar(null, idSolicitud, null, "SOLICITUD", accion,
+                responsable == null || responsable.isBlank() ? "SISTEMA" : responsable.trim(),
+                rol, idUsuario, estadoAnterior, estadoNuevo,
+                "Solicitud de cirugía: " + accion.toLowerCase(java.util.Locale.ROOT));
     }
 
     private void textoObligatorio(

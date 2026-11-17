@@ -13,6 +13,8 @@ public interface SolicitudCirugiaBL {
     int registrarSolicitud(
             SolicitudCirugia solicitud
     ) throws BLException;
+    int registrarSolicitud(SolicitudCirugia solicitud, String responsable,
+            Integer idUsuario, String rol) throws BLException;
 
     SolicitudCirugia findSolicitudById(
             int idSolicitud
@@ -33,11 +35,14 @@ public interface SolicitudCirugiaBL {
     void aprobarSolicitud(
             int idSolicitud
     ) throws BLException;
+    void aprobarSolicitud(int idSolicitud, String responsable, int idAdministrador) throws BLException;
 
     void rechazarSolicitud(
             int idSolicitud,
             String motivo
     ) throws BLException;
+    void rechazarSolicitud(int idSolicitud, String motivo,
+            String responsable, int idAdministrador) throws BLException;
 
     void reenviarSolicitud(
             int idSolicitud

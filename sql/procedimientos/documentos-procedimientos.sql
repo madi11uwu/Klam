@@ -21,6 +21,8 @@ DROP PROCEDURE IF EXISTS listar_documentos_por_orden_compra;
 DROP PROCEDURE IF EXISTS listar_documentos_por_estado;
 DROP PROCEDURE IF EXISTS listar_documentos_origen;
 DROP PROCEDURE IF EXISTS siguiente_version_documento;
+DROP PROCEDURE IF EXISTS insertar_auditoria_documental;
+DROP PROCEDURE IF EXISTS buscar_auditoria_documental;
 
 DELIMITER $$
 
@@ -298,6 +300,70 @@ BEGIN
      WHERE tipo_documento = p_tipo_documento
        AND id_solicitud <=> p_id_solicitud
        AND id_cirugia   <=> p_id_cirugia;
+END$$
+
+-- RF04. No expone operaciones para modificar o borrar eventos historicos.
+CREATE PROCEDURE insertar_auditoria_documental(
+    IN p_id_documento INT, IN p_id_solicitud INT, IN p_id_cirugia INT,
+    IN p_tipo_documento VARCHAR(40), IN p_accion VARCHAR(40),
+    IN p_responsable VARCHAR(150), IN p_rol_responsable VARCHAR(40),
+    IN p_id_usuario_responsable INT, IN p_estado_anterior VARCHAR(40),
+    IN p_estado_nuevo VARCHAR(40), IN p_descripcion VARCHAR(255)
+)
+BEGIN
+    INSERT INTO auditoria_documental
+        (id_documento, id_solicitud, id_cirugia, tipo_documento, accion,
+         responsable, rol_responsable, id_usuario_responsable,
+         estado_anterior, estado_nuevo, descripcion)
+    VALUES
+        (p_id_documento, p_id_solicitud, p_id_cirugia, p_tipo_documento, p_accion,
+         p_responsable, p_rol_responsable, p_id_usuario_responsable,
+         p_estado_anterior, p_estado_nuevo, p_descripcion);
+END$$
+
+CREATE PROCEDURE buscar_auditoria_documental(
+    IN p_id_evento INT, IN p_cliente VARCHAR(150), IN p_paciente VARCHAR(150),
+    IN p_desde DATETIME, IN p_hasta DATETIME,
+    IN p_tipo_documento VARCHAR(40), IN p_accion VARCHAR(40),
+    IN p_responsable VARCHAR(150), IN p_id_solicitud INT, IN p_id_cirugia INT,
+    IN p_limite INT, IN p_desplazamiento INT
+)
+BEGIN
+    SELECT a.id_evento, a.id_documento, a.id_solicitud, a.id_cirugia,
+           a.fecha_hora, a.tipo_documento, a.accion, a.responsable,
+           a.rol_responsable, a.id_usuario_responsable,
+           a.estado_anterior, a.estado_nuevo, a.descripcion,
+           d.archivo_path,
+           COALESCE(cs.nombre, ps.nombre, cc.nombre, pc.nombre) AS cliente,
+           COALESCE(s.paciente_nombre, c.paciente_nombre) AS paciente
+      FROM auditoria_documental a
+      LEFT JOIN documento_ingreso d ON d.id_documento = a.id_documento
+      LEFT JOIN solicitud_cirugia s ON s.id_solicitud = a.id_solicitud
+      LEFT JOIN cirugia c ON c.id_cirugia = a.id_cirugia
+      LEFT JOIN clinica_hospital cs ON cs.id_cliente = s.id_clinica_solicitante
+      LEFT JOIN paciente_particular ps ON ps.id_cliente = s.id_paciente_solicitante
+      LEFT JOIN clinica_hospital cc ON cc.id_cliente = c.id_clinica_hospital
+      LEFT JOIN paciente_particular pc ON pc.id_cliente = c.id_paciente_particular
+     WHERE (p_id_evento IS NULL OR a.id_evento = p_id_evento)
+       AND (p_cliente IS NULL OR COALESCE(cs.nombre, ps.nombre, cc.nombre, pc.nombre)
+            LIKE CONCAT('%', p_cliente, '%'))
+       AND (p_paciente IS NULL OR COALESCE(s.paciente_nombre, c.paciente_nombre)
+            LIKE CONCAT('%', p_paciente, '%'))
+       AND (p_desde IS NULL OR a.fecha_hora >= p_desde)
+       AND (p_hasta IS NULL OR a.fecha_hora <= p_hasta)
+       AND (p_tipo_documento IS NULL OR a.tipo_documento = p_tipo_documento)
+       AND (p_accion IS NULL OR a.accion = p_accion)
+       AND (p_responsable IS NULL OR a.responsable LIKE CONCAT('%', p_responsable, '%'))
+       AND (p_id_solicitud IS NULL OR a.id_solicitud = p_id_solicitud
+            OR EXISTS (SELECT 1 FROM cirugia sx
+                       WHERE sx.id_cirugia = a.id_cirugia
+                         AND sx.id_solicitud_origen = p_id_solicitud))
+       AND (p_id_cirugia IS NULL OR a.id_cirugia = p_id_cirugia
+            OR EXISTS (SELECT 1 FROM cirugia cx
+                       WHERE cx.id_cirugia = p_id_cirugia
+                         AND cx.id_solicitud_origen = a.id_solicitud))
+     ORDER BY a.fecha_hora DESC, a.id_evento DESC
+     LIMIT p_limite OFFSET p_desplazamiento;
 END$$
 
 DELIMITER ;

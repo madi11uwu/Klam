@@ -35,16 +35,30 @@ public interface DocumentoIngresoBL extends BaseBL<DocumentoIngreso,Integer> {
             String rolAutenticado) throws BLException;
 
     /** Verifica estado, versión, autorización e identidad antes de recibir una nueva versión. */
+    /**
+     * Igual que verificarResubida, pero también acepta al cliente dueño de la solicitud (clienteSesion,
+     * con el tipo e id del cliente de la sesión) aunque el documento lo haya presentado el vendedor.
+     */
+    DocumentoIngreso verificarResubida(int idDocumento, int idUsuarioAutenticado, String rolAutenticado,
+            pe.edu.pucp.klam.modelo.clientes.Cliente clienteSesion) throws BLException;
+
+    DocumentoIngreso resubirDocumento(int idDocumentoRechazado, String nuevoArchivoPath, int idUsuarioAutenticado,
+            String rolAutenticado, String responsable, pe.edu.pucp.klam.modelo.clientes.Cliente clienteSesion)
+            throws BLException;
+
     DocumentoIngreso verificarResubida(int idDocumento, int idUsuarioAutenticado,
             String rolAutenticado) throws BLException;
 
     // ---- Validacion y subsanacion ----
     void validarDocumento(int idDocumento, String responsable) throws BLException;
+    void validarDocumento(int idDocumento, String responsable, int idAdministrador) throws BLException;
 
     /** El motivo es obligatorio. Si el documento es de una solicitud, esta pasa a DOCUMENTACION_INCOMPLETA. */
     void rechazarDocumento(int idDocumento, String motivo, String responsable) throws BLException;
     void rechazarDocumento(int idDocumento, String motivo, boolean habilitarResubida,
                            String responsable) throws BLException;
+    void rechazarDocumento(int idDocumento, String motivo, boolean habilitarResubida,
+                           String responsable, int idAdministrador) throws BLException;
 
     /** Sube una nueva version de un documento RECHAZADO; la anterior se conserva. */
     DocumentoIngreso resubirDocumento(int idDocumentoRechazado, String nuevoArchivoPath,
