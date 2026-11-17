@@ -360,6 +360,10 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
             TransactionsManager.commit();
         } catch (SQLException e) {
             TransactionsManager.rollbackSiActiva();
+            // SQLSTATE 45000: regla de negocio lanzada por el procedimiento (SIGNAL) con mensaje para el usuario
+            if ("45000".equals(e.getSQLState())) {
+                throw new ValidacionException(e.getMessage());
+            }
             throw new BLException("No se pudo guardar el consumo: " + e.getMessage(), e);
         } catch (RuntimeException e) {
             TransactionsManager.rollbackSiActiva();

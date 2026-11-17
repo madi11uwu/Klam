@@ -21,6 +21,8 @@ import pe.edu.pucp.klam.rest.mapper.ConsumoMapper;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * RF15: consumo real y cierre por cirugía. Solo administración.
@@ -42,6 +44,8 @@ public class ConsumosResource {
         if (rol != null && !rol.equals(sesion.rol())) return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "Acceso denegado")).build();
         return null;
     }
+
+    private static final Logger LOG = Logger.getLogger(ConsumosResource.class.getName());
 
     private final ConsumoBL consumoBL;
 
@@ -66,7 +70,7 @@ public class ConsumosResource {
             return RespuestaRest.badRequest(ex.getMessage());
         }
         catch (BLException ex) {
-            return Errores.desde(ex);
+            return responder(ex);
         }
     }
 
@@ -87,7 +91,7 @@ public class ConsumosResource {
             return RespuestaRest.badRequest(ex.getMessage());
         }
         catch (BLException ex) {
-            return Errores.desde(ex);
+            return responder(ex);
         }
     }
 
@@ -113,7 +117,15 @@ public class ConsumosResource {
             return RespuestaRest.badRequest(ex.getMessage());
         }
         catch (BLException ex) {
-            return Errores.desde(ex);
+            return responder(ex);
         }
+    }
+
+    // Errores técnicos (base de datos): al usuario un mensaje genérico, pero la causa real queda en el log del servidor
+    private Response responder(BLException ex) {
+        if (ex.getCause() != null) {
+            LOG.log(Level.SEVERE, "Error en /consumos: " + ex.getMessage(), ex);
+        }
+        return Errores.desde(ex);
     }
 }
