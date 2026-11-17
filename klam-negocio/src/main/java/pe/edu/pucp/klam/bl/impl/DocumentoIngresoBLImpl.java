@@ -11,10 +11,12 @@ import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CirugiaBL;
 import pe.edu.pucp.klam.bl.DocumentoIngresoBL;
 import pe.edu.pucp.klam.dao.CirugiaDAO;
+import pe.edu.pucp.klam.dao.AuditoriaDocumentalDAO;
 import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
 import pe.edu.pucp.klam.dao.OrdenCompraDAO;
 import pe.edu.pucp.klam.dao.SolicitudCirugiaDAO;
 import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
+import pe.edu.pucp.klam.dao.impl.AuditoriaDocumentalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.DocumentoIngresoDAOImpl;
 import pe.edu.pucp.klam.dao.impl.compras.OrdenCompraDAOImpl;
 import pe.edu.pucp.klam.dao.impl.SolicitudCirugiaDAOImpl;
@@ -36,6 +38,7 @@ import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
 
     private final DocumentoIngresoDAO documentoDAO = new DocumentoIngresoDAOImpl();
+    private final AuditoriaDocumentalDAO auditoriaDAO = new AuditoriaDocumentalDAOImpl();
     private final OrdenCompraDAO ordenCompraDAO = new OrdenCompraDAOImpl();
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
     private final SolicitudCirugiaDAO solicitudDAO = new SolicitudCirugiaDAOImpl();
@@ -91,6 +94,11 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         }
         doc.setVersion(documentoDAO.siguienteVersion(doc.getSolicitud() != null ? doc.getSolicitud().getIdSolicitud() : null, doc.getCirugia() != null ? doc.getCirugia().getIdCirugia() : null, doc.getTipoDocumento()));
         documentoDAO.insert(doc);
+        if (!resubidaAutenticada) {
+            registrarEvento(doc, "CARGA", null, doc.getEstadoValidacion().name(),
+                    doc.getResponsable(), doc.getUsuarioCarga() == null ? null : doc.getUsuarioCarga().getIdUsuario(),
+                    doc.getUsuarioCarga() == null ? null : doc.getUsuarioCarga().getRol());
+        }
     }
 
     @Override
@@ -374,6 +382,11 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     // ------------------------------------------------------------------
     @Override
     public void validarDocumento(int idDocumento, String responsable) throws BLException {
+        validarDocumento(idDocumento, responsable, 0);
+    }
+
+    @Override
+    public void validarDocumento(int idDocumento, String responsable, int idAdministrador) throws BLException {
         DocumentoIngreso doc = buscarDocumento(idDocumento);
         validarEsVigente(doc);
         if (doc.getEstadoValidacion() != EstadoValidacionDocumento.PENDIENTE) {
@@ -386,6 +399,8 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         try {
             documentoDAO.actualizarEstadoValidacion(idDocumento, EstadoValidacionDocumento.VALIDADO.name(),
                     LocalDateTime.now(), null, textoResponsable(responsable), false);
+            registrarEvento(doc, "VALIDACION", EstadoValidacionDocumento.PENDIENTE.name(),
+                    EstadoValidacionDocumento.VALIDADO.name(), responsable, idAdministrador);
             TransactionsManager.commit();
         } catch (SQLException e) {
             TransactionsManager.rollbackSiActiva();
@@ -399,6 +414,12 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     @Override
     public void rechazarDocumento(int idDocumento, String motivo, boolean habilitarResubida,
                                   String responsable) throws BLException {
+        rechazarDocumento(idDocumento, motivo, habilitarResubida, responsable, 0);
+    }
+
+    @Override
+    public void rechazarDocumento(int idDocumento, String motivo, boolean habilitarResubida,
+                                  String responsable, int idAdministrador) throws BLException {
         if (motivo == null || motivo.isBlank()) {
             throw new BLException("El rechazo de un documento exige un motivo");
         }
@@ -419,6 +440,8 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
             LocalDateTime ahora = LocalDateTime.now();
             documentoDAO.actualizarEstadoValidacion(idDocumento, EstadoValidacionDocumento.RECHAZADO.name(),
                     ahora, motivo.trim(), textoResponsable(responsable), habilitarResubida);
+            registrarEvento(doc, "RECHAZO", EstadoValidacionDocumento.PENDIENTE.name(),
+                    EstadoValidacionDocumento.RECHAZADO.name(), responsable, idAdministrador);
 
             if (doc.getSolicitud() != null) {
                 SolicitudCirugia solicitud = buscarSolicitud(doc.getSolicitud().getIdSolicitud());
@@ -427,6 +450,12 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
                     solicitud.setMotivoRechazo(motivo.trim());
                     solicitud.setFechaRespuesta(ahora);
                     solicitudDAO.cambiarEstado(solicitud);
+                    auditoriaDAO.registrar(null, solicitud.getIdSolicitud(), null, "SOLICITUD",
+                            "CAMBIO_ESTADO", textoResponsable(responsable), "ADMINISTRADOR",
+                            idAdministrador > 0 ? idAdministrador : null,
+                            EstadoSolicitudCirugia.POR_REVISAR.name(),
+                            EstadoSolicitudCirugia.DOCUMENTACION_INCOMPLETA.name(),
+                            "Solicitud: documentación incompleta tras rechazo documental");
                 }
                 // Aviso al vendedor que registró la solicitud, con el motivo (misma transacción que el rechazo).
                 pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor registrador = solicitud.getVendedorRegistrador();
@@ -495,6 +524,8 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
                 nuevo.setOrdenCompra(crearOrdenCompra(nuevo.getArchivoPath()));
             }
             insertarConVersion(nuevo, true);
+            registrarEvento(nuevo, "RESUBIDA", EstadoValidacionDocumento.RECHAZADO.name(),
+                    EstadoValidacionDocumento.PENDIENTE.name(), responsable, idUsuarioAutenticado, rolAutenticado);
 
             if (anterior.getSolicitud() != null) {
                 SolicitudCirugia solicitud = buscarSolicitud(anterior.getSolicitud().getIdSolicitud());
@@ -791,6 +822,23 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
 
     private String textoResponsable(String responsable) {
         return (responsable == null || responsable.isBlank()) ? CirugiaBL.RESPONSABLE_SISTEMA : responsable.trim();
+    }
+
+    private void registrarEvento(DocumentoIngreso doc, String accion, String estadoAnterior,
+            String estadoNuevo, String responsable, Integer idUsuario, String rol) throws SQLException {
+        auditoriaDAO.registrar(doc.getIdDocumento(),
+                doc.getSolicitud() == null ? null : doc.getSolicitud().getIdSolicitud(),
+                doc.getCirugia() == null ? null : doc.getCirugia().getIdCirugia(),
+                doc.getTipoDocumento().name(), accion, textoResponsable(responsable), rol,
+                idUsuario != null && idUsuario > 0 ? idUsuario : null,
+                estadoAnterior, estadoNuevo, "Documento " + doc.getTipoDocumento().name()
+                        + ": " + accion.toLowerCase(java.util.Locale.ROOT));
+    }
+
+    private void registrarEvento(DocumentoIngreso doc, String accion, String estadoAnterior,
+            String estadoNuevo, String responsable, int idAdministrador) throws SQLException {
+        registrarEvento(doc, accion, estadoAnterior, estadoNuevo, responsable,
+                idAdministrador > 0 ? idAdministrador : null, "ADMINISTRADOR");
     }
 
     private void validarId(int id, String entidad) throws BLException {

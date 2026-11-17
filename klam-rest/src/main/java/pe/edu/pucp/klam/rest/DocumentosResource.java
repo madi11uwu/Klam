@@ -250,7 +250,7 @@ public class DocumentosResource {
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            documentoBL.validarDocumento(id, sesion.username());
+            documentoBL.validarDocumento(id, sesion.username(), sesion.idUsuario());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
@@ -271,7 +271,8 @@ public class DocumentosResource {
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            documentoBL.rechazarDocumento(id, datos.getMotivo(), datos.isHabilitarResubida(), sesion.username());
+            documentoBL.rechazarDocumento(id, datos.getMotivo(), datos.isHabilitarResubida(),
+                    sesion.username(), sesion.idUsuario());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);

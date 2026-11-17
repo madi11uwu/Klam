@@ -70,7 +70,7 @@ public class SolicitudesResource {
             if (datos.getFechaHoraSolicitada() != null) {
                 solicitud.setFechaHoraSolicitada(LocalDateTime.parse(datos.getFechaHoraSolicitada()));
             }
-            solicitudBL.registrarSolicitud(solicitud);
+            solicitudBL.registrarSolicitud(solicitud, sesion.username(), sesion.idUsuario(), sesion.rol());
             return Response.status(Response.Status.CREATED)
                     .entity(new SolicitudCirugiaDTO(solicitud)).build();
         } catch (DateTimeParseException ex) {
@@ -136,7 +136,7 @@ public class SolicitudesResource {
             if (solicitudBL.findSolicitudById(id) == null) {
                 return error(Response.Status.NOT_FOUND, "No existe la solicitud");
             }
-            solicitudBL.aprobarSolicitud(id);
+            solicitudBL.aprobarSolicitud(id, sesion.username(), sesion.idUsuario());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
@@ -158,7 +158,7 @@ public class SolicitudesResource {
             if (solicitudBL.findSolicitudById(id) == null) {
                 return error(Response.Status.NOT_FOUND, "No existe la solicitud");
             }
-            solicitudBL.rechazarSolicitud(id, datos.getMotivo());
+            solicitudBL.rechazarSolicitud(id, datos.getMotivo(), sesion.username(), sesion.idUsuario());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);

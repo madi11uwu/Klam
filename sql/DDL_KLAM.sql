@@ -362,6 +362,35 @@ NOT NULL DEFAULT 'PENDIENTE',
                      )
 );
 
+-- RF04: cada cambio documental genera un evento inmutable, separado de la bitacora RF16.
+-- El responsable procede de la sesion REST; no se almacena contenido clinico ni tokens.
+CREATE TABLE IF NOT EXISTS `auditoria_documental` (
+    `id_evento` INT NOT NULL AUTO_INCREMENT,
+    `id_documento` INT NULL,
+    `id_solicitud` INT NULL,
+    `id_cirugia` INT NULL,
+    `fecha_hora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `tipo_documento` VARCHAR(40) NOT NULL,
+    `accion` VARCHAR(40) NOT NULL,
+    `responsable` VARCHAR(150) NOT NULL,
+    `rol_responsable` VARCHAR(40) NULL,
+    `id_usuario_responsable` INT NULL,
+    `estado_anterior` VARCHAR(40) NULL,
+    `estado_nuevo` VARCHAR(40) NULL,
+    `descripcion` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id_evento`),
+    KEY `idx_auditoria_documental_fecha` (`fecha_hora`, `id_evento`),
+    KEY `idx_auditoria_documental_solicitud` (`id_solicitud`, `fecha_hora`),
+    KEY `idx_auditoria_documental_cirugia` (`id_cirugia`, `fecha_hora`),
+    KEY `idx_auditoria_documental_documento` (`id_documento`, `fecha_hora`),
+    CONSTRAINT `fk_auditoria_documental_documento` FOREIGN KEY (`id_documento`)
+        REFERENCES `documento_ingreso` (`id_documento`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_auditoria_documental_solicitud` FOREIGN KEY (`id_solicitud`)
+        REFERENCES `solicitud_cirugia` (`id_solicitud`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_auditoria_documental_cirugia` FOREIGN KEY (`id_cirugia`)
+        REFERENCES `cirugia` (`id_cirugia`) ON DELETE RESTRICT
+);
+
 CREATE TABLE IF NOT EXISTS `linea_orden_compra` (
                   `id_linea` INT NOT NULL AUTO_INCREMENT,
                   `id_orden_compra` INT NOT NULL,

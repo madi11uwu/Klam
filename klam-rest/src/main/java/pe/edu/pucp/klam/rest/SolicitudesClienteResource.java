@@ -65,7 +65,7 @@ public class SolicitudesClienteResource {
             if (datos.getFechaHoraSolicitada() != null && !datos.getFechaHoraSolicitada().isBlank()) {
                 solicitud.setFechaHoraSolicitada(LocalDateTime.parse(datos.getFechaHoraSolicitada().trim()));
             }
-            int id = solicitudBL.registrarSolicitud(solicitud);
+            int id = solicitudBL.registrarSolicitud(solicitud, sesion.username(), sesion.idUsuario(), sesion.rol());
             SolicitudCirugia creada = solicitudBL.findSolicitudById(id);
             return Response.created(URI.create("/solicitudes/" + id)).entity(new SolicitudCirugiaDTO(creada)).build();
         } catch (DateTimeParseException ex) {

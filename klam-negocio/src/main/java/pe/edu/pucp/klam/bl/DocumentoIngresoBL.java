@@ -51,11 +51,14 @@ public interface DocumentoIngresoBL extends BaseBL<DocumentoIngreso,Integer> {
 
     // ---- Validacion y subsanacion ----
     void validarDocumento(int idDocumento, String responsable) throws BLException;
+    void validarDocumento(int idDocumento, String responsable, int idAdministrador) throws BLException;
 
     /** El motivo es obligatorio. Si el documento es de una solicitud, esta pasa a DOCUMENTACION_INCOMPLETA. */
     void rechazarDocumento(int idDocumento, String motivo, String responsable) throws BLException;
     void rechazarDocumento(int idDocumento, String motivo, boolean habilitarResubida,
                            String responsable) throws BLException;
+    void rechazarDocumento(int idDocumento, String motivo, boolean habilitarResubida,
+                           String responsable, int idAdministrador) throws BLException;
 
     /** Sube una nueva version de un documento RECHAZADO; la anterior se conserva. */
     DocumentoIngreso resubirDocumento(int idDocumentoRechazado, String nuevoArchivoPath,
