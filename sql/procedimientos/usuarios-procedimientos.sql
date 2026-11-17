@@ -90,7 +90,7 @@ BEGIN
 SELECT id_usuario, username, password_hash, email,
        nombres, apellidos, rol, activo
 FROM administrador
-WHERE activo = 1;
+ORDER BY id_usuario;
 END //
 
 CREATE PROCEDURE buscar_administrador_por_id(
@@ -180,7 +180,7 @@ SELECT id_usuario, username, password_hash, email,
        nombres, apellidos, rol, comision_acumulada,
        activo
 FROM vendedor
-WHERE activo = 1;
+ORDER BY id_usuario;
 END //
 
 CREATE PROCEDURE buscar_vendedor_por_id(
@@ -273,7 +273,7 @@ SELECT id_usuario, username, password_hash, email,
        nombres, apellidos, rol, especialidad,
        activo
 FROM tecnico_instrumentista
-WHERE activo = 1;
+ORDER BY id_usuario;
 END //
 
 CREATE PROCEDURE buscar_tecnico_por_id(
