@@ -85,18 +85,19 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
         if (usuario == null) {
             throw new BLException("La contraseña actual es incorrecta");
         }
+        String nuevoHash = Contrasenas.hashear(passwordNueva);
         if (usuario instanceof Administrador a) {
-            a.setPasswordHash(passwordNueva);
+            a.setPasswordHash(nuevoHash);
             administradorBL.update(a);
         } else if (usuario instanceof Vendedor v) {
-            v.setPasswordHash(passwordNueva);
+            v.setPasswordHash(nuevoHash);
             vendedorBL.update(v);
         } else if (usuario instanceof TecnicoInstrumentista t) {
-            t.setPasswordHash(passwordNueva);
+            t.setPasswordHash(nuevoHash);
             tecnicoBL.update(t);
         } else if (usuario instanceof CuentaUsuario cuenta) {
             try {
-                cuentaDAO.cambiarPassword(cuenta.getIdUsuario(), passwordNueva);
+                cuentaDAO.cambiarPassword(cuenta.getIdUsuario(), nuevoHash);
             } catch (SQLException ex) {
                 throw new BLException("No se pudo actualizar la cuenta", ex);
             }
@@ -104,11 +105,7 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
             throw new BLException("Tipo de usuario no soportado");
         }
     }
-    /**
-     * Comprueba, sin guardar nada, que un usuario y una contraseña sirven para una cuenta nueva de cliente:
-     * usuario de 4 a 50 caracteres (letras, números, punto, guion y guion bajo), contraseña con el formato de la
-     * plataforma y nombre de usuario que no esté en uso (personal ni otras cuentas).
-     */
+
     public void validarCredencialesNuevas(String username, String password) throws BLException {
         if (username == null || username.isBlank()) {
             throw new BLException("El usuario es obligatorio");
@@ -163,7 +160,7 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
             CuentaUsuario cuenta = new CuentaUsuario();
             cuenta.setCliente(cliente);
             cuenta.setUsername(nombreUsuario);
-            cuenta.setPasswordHash(password);
+            cuenta.setPasswordHash(Contrasenas.hashear(password));
             cuenta.setEmail(cliente.getEmailContacto());
             cuenta.setNombres(cliente.getNombre());
             cuenta.setApellidos("");
