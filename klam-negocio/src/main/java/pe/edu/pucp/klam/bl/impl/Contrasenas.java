@@ -1,11 +1,15 @@
 package pe.edu.pucp.klam.bl.impl;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import pe.edu.pucp.klam.bl.BLException;
 
-/**
- * Política de formato de las contraseñas de la plataforma. Se guardan y comparan en texto plano
- * (columna password_hash, igual que las cuentas de administrador, vendedor y técnico).
- */
+
 final class Contrasenas {
 
     static final int MIN = 8;
@@ -13,10 +17,17 @@ final class Contrasenas {
     static final String REGLA = "La contraseña debe tener entre " + MIN + " y " + MAX
             + " caracteres, con al menos una letra y un número, sin espacios";
 
+    static final String ETIQUETA = "pbkdf2-sha256";
+
+    private static final String ALGORITMO = "PBKDF2WithHmacSHA256";
+    private static final int ITERACIONES = 600_000;
+    private static final int BYTES_SAL = 16;
+    private static final int BITS_CLAVE = 256;
+    private static final SecureRandom ALEATORIO = new SecureRandom();
+
     private Contrasenas() {
     }
 
-    /** Política de formato (la misma que muestra la pantalla). */
     static void validarFormato(String password) throws BLException {
         if (password == null || password.isEmpty()) {
             throw new BLException("La contraseña es obligatoria");
@@ -30,8 +41,54 @@ final class Contrasenas {
         }
     }
 
-    /** true si la contraseña escrita es igual a la guardada. */
+    static String hashear(String password) throws BLException {
+        if (password == null || password.isEmpty()) {
+            throw new BLException("La contraseña es obligatoria");
+        }
+        byte[] sal = new byte[BYTES_SAL];
+        ALEATORIO.nextBytes(sal);
+        byte[] hash = derivar(password, sal, ITERACIONES);
+        Base64.Encoder base64 = Base64.getEncoder();
+        return ETIQUETA + "$" + ITERACIONES
+                + "$" + base64.encodeToString(sal)
+                + "$" + base64.encodeToString(hash);
+    }
+
+    /** true si la contraseña escrita corresponde al valor guardado. */
     static boolean coincide(String password, String guardada) {
-        return password != null && password.equals(guardada);
+        if (password == null || guardada == null || guardada.isEmpty()) {
+            return false;
+        }
+        if (requiereMigracion(guardada)) {
+            return password.equals(guardada);
+        }
+        String[] partes = guardada.split("\\$");
+        if (partes.length != 4) {
+            return false;
+        }
+        try {
+            int iteraciones = Integer.parseInt(partes[1]);
+            byte[] sal = Base64.getDecoder().decode(partes[2]);
+            byte[] esperado = Base64.getDecoder().decode(partes[3]);
+            byte[] obtenido = derivar(password, sal, iteraciones);
+            return MessageDigest.isEqual(esperado, obtenido);
+        } catch (RuntimeException ex) {
+            return false;
+        }
+    }
+
+    static boolean requiereMigracion(String guardada) {
+        return guardada == null || !guardada.startsWith(ETIQUETA + "$");
+    }
+
+    private static byte[] derivar(String password, byte[] sal, int iteraciones) throws BLException {
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), sal, iteraciones, BITS_CLAVE);
+        try {
+            return SecretKeyFactory.getInstance(ALGORITMO).generateSecret(spec).getEncoded();
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            throw new BLException("No se pudo procesar la contraseña", ex);
+        } finally {
+            spec.clearPassword();
+        }
     }
 }
