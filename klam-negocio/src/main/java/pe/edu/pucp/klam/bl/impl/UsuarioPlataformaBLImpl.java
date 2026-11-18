@@ -200,6 +200,9 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
             if (cliente == null || !cliente.isActivo()) {
                 throw new BLException("El cliente no existe o está inactivo");
             }
+            if (cuentaDAO.existePorCliente(tipo, idCliente)) {
+                throw new BLException("El cliente ya tiene una cuenta de acceso");
+            }
             CuentaUsuario cuenta = new CuentaUsuario();
             cuenta.setCliente(cliente);
             cuenta.setUsername(nombreUsuario);

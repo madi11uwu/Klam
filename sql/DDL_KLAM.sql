@@ -153,8 +153,8 @@ CREATE TABLE IF NOT EXISTS `cuenta_usuario` (
     `id_clinica` INT NULL,
     PRIMARY KEY (`id_usuario`),
     UNIQUE KEY `uq_cuenta_username` (`username`),
-    KEY `idx_cuenta_paciente` (`id_paciente`),
-    KEY `idx_cuenta_clinica` (`id_clinica`),
+    UNIQUE KEY `uq_cuenta_paciente` (`id_paciente`),
+    UNIQUE KEY `uq_cuenta_clinica` (`id_clinica`),
     CONSTRAINT `fk_cuenta_paciente` FOREIGN KEY (`id_paciente`)
         REFERENCES `paciente_particular` (`id_cliente`) ON DELETE RESTRICT,
     CONSTRAINT `fk_cuenta_clinica` FOREIGN KEY (`id_clinica`)
