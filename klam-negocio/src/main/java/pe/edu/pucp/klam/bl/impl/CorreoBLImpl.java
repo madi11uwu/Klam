@@ -55,6 +55,9 @@ public class CorreoBLImpl implements CorreoBL {
             propiedades.put("mail.smtp.port", puerto);
             propiedades.put("mail.smtp.auth", "true");
             propiedades.put("mail.smtp.starttls.enable", "true");
+            // Evita "Could not convert socket to TLS" con Gmail en JDK recientes
+            propiedades.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+            propiedades.put("mail.smtp.ssl.trust", host);
             propiedades.put("mail.smtp.connectiontimeout", "10000");
             propiedades.put("mail.smtp.timeout", "10000");
 
