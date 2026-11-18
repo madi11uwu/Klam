@@ -154,13 +154,60 @@ public class DocumentosResource {
     public Response listarPorCirugia(@PathParam("idCirugia") int idCirugia) {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
-        if (!esAdministrador(sesion)) return sinPermiso();
+        if (!esAdministrador(sesion) && !esCliente(sesion)) return sinPermiso();
         if (idCirugia <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la cirugía no es válido");
         try {
-            if (cirugiaBL.findById(idCirugia) == null) return error(Response.Status.NOT_FOUND, "No existe la cirugía");
+            pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia cirugia = cirugiaBL.findById(idCirugia);
+            if (cirugia == null) return error(Response.Status.NOT_FOUND, "No existe la cirugía");
+            // El cliente solo ve los documentos de sus propias cirugías.
+            if (!esAdministrador(sesion) && !esCirugiaDelCliente(cirugia, sesion)) {
+                return error(Response.Status.FORBIDDEN, "La cirugía no pertenece a su cuenta");
+            }
             return Response.ok(respuestaDocumentos(documentoBL.listarPorCirugia(idCirugia))).build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * RF14/RF15: la clínica u hospital adjunta la orden de compra de una cirugía ya
+     * culminada. El administrador también puede hacerlo si la recibe por otro medio.
+     * Las reglas de negocio (solo clínica, solo cirugía FINALIZADA) las impone la BL.
+     */
+    @POST
+    @Path("/cirugia/{idCirugia}/orden-compra")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response adjuntarOrdenCompra(@PathParam("idCirugia") int idCirugia,
+            @FormParam("archivo") EntityPart archivo) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion) && !esCliente(sesion)) return sinPermiso();
+        if (idCirugia <= 0) return error(Response.Status.BAD_REQUEST, "El ID de la cirugía no es válido");
+        if (archivo == null) return error(Response.Status.BAD_REQUEST, "Debe adjuntar el archivo de la orden de compra");
+        try {
+            pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia cirugia = cirugiaBL.findById(idCirugia);
+            if (cirugia == null || !cirugia.isActivo()) return error(Response.Status.NOT_FOUND, "No existe la cirugía");
+            if (!esAdministrador(sesion) && !esCirugiaDelCliente(cirugia, sesion)) {
+                return error(Response.Status.FORBIDDEN, "Solo puede adjuntar la orden de compra de sus propias cirugías");
+            }
+            String clave = ArchivoDocumentoStorage.guardar(archivo);
+            try {
+                DocumentoIngreso doc = documentoBL.adjuntarOrdenCompra(idCirugia, clave, sesion.username());
+                return Response.status(Response.Status.CREATED)
+                        .entity(Map.of("idDocumento", doc.getIdDocumento(), "version", doc.getVersion(),
+                                "estadoValidacion", doc.getEstadoValidacion().name())).build();
+            } catch (RuntimeException ex) {
+                limpiarArchivo(clave, ex);
+                throw ex;
+            }
+        } catch (IllegalArgumentException ex) {
+            return error(Response.Status.BAD_REQUEST, ex.getMessage());
+        } catch (SecurityException ex) {
+            return error(Response.Status.FORBIDDEN, ex.getMessage());
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.CONFLICT);
+        } catch (IOException ex) {
+            return error(Response.Status.INTERNAL_SERVER_ERROR, "No se pudo almacenar el archivo");
         }
     }
 
@@ -250,7 +297,7 @@ public class DocumentosResource {
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            documentoBL.validarDocumento(id, sesion.username());
+            documentoBL.validarDocumento(id, sesion.username(), sesion.idUsuario());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
@@ -271,7 +318,8 @@ public class DocumentosResource {
         try {
             DocumentoIngreso doc = documentoBL.findById(id);
             if (doc == null || !doc.isActivo()) return error(Response.Status.NOT_FOUND, "No existe el documento");
-            documentoBL.rechazarDocumento(id, datos.getMotivo(), datos.isHabilitarResubida(), sesion.username());
+            documentoBL.rechazarDocumento(id, datos.getMotivo(), datos.isHabilitarResubida(),
+                    sesion.username(), sesion.idUsuario());
             return Response.noContent().build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.CONFLICT);
@@ -309,6 +357,15 @@ public class DocumentosResource {
         } catch (IOException ex) {
             return error(Response.Status.INTERNAL_SERVER_ERROR, "No se pudo almacenar el archivo");
         }
+    }
+
+    // La cirugía es del cliente si su cliente coincide en tipo e id con el de la sesión.
+    private static boolean esCirugiaDelCliente(pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia cirugia,
+                                               SesionesRest.Sesion sesion) {
+        var cliente = cirugia.getCliente();
+        if (cliente == null || cliente.getIdCliente() != sesion.idCliente()) return false;
+        boolean esClinica = cliente instanceof pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
+        return esClinica == "CLINICA_HOSPITAL".equals(sesion.tipoCliente());
     }
 
     private void limpiarArchivo(String clave, RuntimeException original) {
