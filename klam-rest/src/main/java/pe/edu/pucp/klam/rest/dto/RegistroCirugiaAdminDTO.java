@@ -11,6 +11,8 @@ public class RegistroCirugiaAdminDTO {
     private String tipoProcedimiento;
     private String doctorNombre;
     private String diagnostico;
+    private String pacienteNombre;
+    private String pacienteDocumento;
     private String tipoCliente;       // CLINICA_HOSPITAL | PACIENTE_PARTICULAR
     private int idCliente;
     private Integer idEquipo;         // opcional
@@ -34,6 +36,10 @@ public class RegistroCirugiaAdminDTO {
     public void setTipoProcedimiento(String tipoProcedimiento) { this.tipoProcedimiento = tipoProcedimiento; }
     public String getDoctorNombre() { return doctorNombre; }
     public void setDoctorNombre(String doctorNombre) { this.doctorNombre = doctorNombre; }
+    public String getPacienteNombre() { return pacienteNombre; }
+    public void setPacienteNombre(String pacienteNombre) { this.pacienteNombre = pacienteNombre; }
+    public String getPacienteDocumento() { return pacienteDocumento; }
+    public void setPacienteDocumento(String pacienteDocumento) { this.pacienteDocumento = pacienteDocumento; }
     public String getDiagnostico() { return diagnostico; }
     public void setDiagnostico(String diagnostico) { this.diagnostico = diagnostico; }
     public String getTipoCliente() { return tipoCliente; }

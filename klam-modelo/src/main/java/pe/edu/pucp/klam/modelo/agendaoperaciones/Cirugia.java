@@ -12,6 +12,9 @@ public class Cirugia {
     private String tipoProcedimiento;
     private String doctorNombre;
     private String diagnostico;
+    /** Persona que se opera (distinta del cliente que contrata). */
+    private String pacienteNombre;
+    private String pacienteDocumento;
     private EstadoCirugia estado;
     private String motivoCancelacion;
     private Equipo equipo;
@@ -49,6 +52,8 @@ public class Cirugia {
         setTipoProcedimiento(cirugia.getTipoProcedimiento());
         setDoctorNombre(cirugia.getDoctorNombre());
         setDiagnostico(cirugia.getDiagnostico());
+        setPacienteNombre(cirugia.getPacienteNombre());
+        setPacienteDocumento(cirugia.getPacienteDocumento());
         setEstado(cirugia.getEstado());
         setEquipo(cirugia.getEquipo());
         setBandejaInstrumental(cirugia.getBandejaInstrumental());
@@ -100,6 +105,22 @@ public class Cirugia {
 
     public void setDoctorNombre(String doctorNombre) {
         this.doctorNombre = doctorNombre;
+    }
+
+    public String getPacienteNombre() {
+        return pacienteNombre;
+    }
+
+    public void setPacienteNombre(String pacienteNombre) {
+        this.pacienteNombre = pacienteNombre;
+    }
+
+    public String getPacienteDocumento() {
+        return pacienteDocumento;
+    }
+
+    public void setPacienteDocumento(String pacienteDocumento) {
+        this.pacienteDocumento = pacienteDocumento;
     }
 
     public String getDiagnostico() {

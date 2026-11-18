@@ -47,6 +47,8 @@ public class RegistroCirugiaAdminResource {
             Cirugia cirugia = new Cirugia();   // nace PROGRAMADA y activa
             cirugia.setCliente(clienteDe(datos));
             cirugia.setDiagnostico(datos.getDiagnostico());
+            cirugia.setPacienteNombre(datos.getPacienteNombre());
+            cirugia.setPacienteDocumento(datos.getPacienteDocumento());
             cirugia.setTipoProcedimiento(datos.getTipoProcedimiento());
             cirugia.setDoctorNombre(datos.getDoctorNombre());
             cirugia.setFechaHoraInicio(fecha(datos.getFechaHoraInicio(), "La fecha y hora de inicio"));

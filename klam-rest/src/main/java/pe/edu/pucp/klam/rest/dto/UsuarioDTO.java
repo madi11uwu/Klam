@@ -17,6 +17,8 @@ public class UsuarioDTO {
     private String especialidad;
     private Double comisionAcumulada;
     private String iniciales;
+    private Integer idCliente;
+    private String tipoCliente;
 
     public UsuarioDTO() {
     }
@@ -39,8 +41,17 @@ public class UsuarioDTO {
                 this.rol = "Vendedor";
             } else if ("TECNICO_INSTRUMENTISTA".equals(r) || "INSTRUMENTISTA".equals(r)) {
                 this.rol = "Instrumentista";
+            } else if ("CLINICA_HOSPITAL".equals(r)) {
+                this.rol = "Clínica / Hospital";
+                this.tipoCliente = "CLINICA_HOSPITAL";
+            } else if ("PACIENTE_PARTICULAR".equals(r)) {
+                this.rol = "Paciente particular";
+                this.tipoCliente = "PACIENTE_PARTICULAR";
             } else {
                 this.rol = u.getRol();
+            }
+            if (u instanceof pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario c && c.getCliente() != null) {
+                this.idCliente = c.getCliente().getIdCliente();
             }
 
             if (u instanceof TecnicoInstrumentista t) {
@@ -62,6 +73,22 @@ public class UsuarioDTO {
                 this.iniciales = "U";
             }
         }
+    }
+
+    public Integer getIdCliente() {
+        return idCliente;
+    }
+
+    public void setIdCliente(Integer idCliente) {
+        this.idCliente = idCliente;
+    }
+
+    public String getTipoCliente() {
+        return tipoCliente;
+    }
+
+    public void setTipoCliente(String tipoCliente) {
+        this.tipoCliente = tipoCliente;
     }
 
     public Integer getId() {

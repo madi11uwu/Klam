@@ -76,6 +76,7 @@ public final class CirugiaMapper {
         dto.setIdCliente(enteroONulo(fila.get("idCliente")));
         dto.setClienteNombre(texto(fila.get("clienteNombre")));
         dto.setPacienteNombre(texto(fila.get("pacienteNombre")));
+        dto.setPacienteDocumento(texto(fila.get("pacienteDocumento")));
         dto.setClinicaNombre(texto(fila.get("clinicaNombre")));
         dto.setIdEquipo(enteroONulo(fila.get("idEquipo")));
         dto.setEquipoNombre(texto(fila.get("equipoNombre")));
@@ -137,6 +138,8 @@ public final class CirugiaMapper {
         cirugia.setTipoProcedimiento(dto.getTipoProcedimiento());
         cirugia.setDoctorNombre(dto.getDoctorNombre());
         cirugia.setDiagnostico(dto.getDiagnostico());
+        cirugia.setPacienteNombre(dto.getPacienteNombre());
+        cirugia.setPacienteDocumento(dto.getPacienteDocumento());
         cirugia.setCliente(cliente);
         cirugia.setEquipo(equipo);
         cirugia.setBandejaInstrumental(bandeja);

@@ -87,6 +87,8 @@ CREATE PROCEDURE insertar_cirugia(
     IN  p_tipo_procedimiento VARCHAR(100),
     IN  p_doctor_nombre VARCHAR(100),
     IN  p_diagnostico VARCHAR(300),
+    IN  p_paciente_nombre VARCHAR(150),
+    IN  p_paciente_documento VARCHAR(20),
     IN  p_motivo_cancelacion VARCHAR(200),
     IN  p_estado VARCHAR(20),
     IN  p_id_equipo INT,
@@ -107,9 +109,11 @@ BEGIN
     END IF;
 
     INSERT INTO cirugia (fecha_hora_inicio, fecha_hora_fin, tipo_procedimiento, doctor_nombre, diagnostico,
+                         paciente_nombre, paciente_documento,
                          motivo_cancelacion, estado, id_equipo, id_bandeja, id_clinica_hospital,
                          id_paciente_particular, id_solicitud_origen, activo)
     VALUES (p_fecha_hora_inicio, p_fecha_hora_fin, p_tipo_procedimiento, p_doctor_nombre, p_diagnostico,
+            p_paciente_nombre, p_paciente_documento,
             p_motivo_cancelacion, p_estado, p_id_equipo, p_id_bandeja, p_id_clinica_hospital,
             p_id_paciente_particular, p_id_solicitud_origen, p_activo);
 
@@ -123,6 +127,8 @@ CREATE PROCEDURE modificar_cirugia(
     IN p_tipo_procedimiento VARCHAR(100),
     IN p_doctor_nombre VARCHAR(100),
     IN p_diagnostico VARCHAR(300),
+    IN p_paciente_nombre VARCHAR(150),
+    IN p_paciente_documento VARCHAR(20),
     IN p_motivo_cancelacion VARCHAR(200),
     IN p_estado VARCHAR(20),
     IN p_id_equipo INT,
@@ -147,6 +153,8 @@ BEGIN
            tipo_procedimiento = p_tipo_procedimiento,
            doctor_nombre = p_doctor_nombre,
            diagnostico = p_diagnostico,
+           paciente_nombre = p_paciente_nombre,
+           paciente_documento = p_paciente_documento,
            motivo_cancelacion = p_motivo_cancelacion,
            estado = p_estado,
            id_equipo = p_id_equipo,
@@ -209,7 +217,8 @@ CREATE PROCEDURE buscar_cirugia_por_id(
 )
 BEGIN
     SELECT id_cirugia, fecha_hora_inicio, fecha_hora_fin, tipo_procedimiento,
-           doctor_nombre, diagnostico, motivo_cancelacion, estado, id_equipo,
+           doctor_nombre, diagnostico, paciente_nombre, paciente_documento,
+           motivo_cancelacion, estado, id_equipo,
            id_bandeja, id_clinica_hospital, id_paciente_particular,
            id_solicitud_origen, consumo_completo, activo
       FROM cirugia
@@ -239,7 +248,8 @@ BEGIN
            COALESCE(ch.nombre, pp.nombre)                            AS cliente_nombre,
            e.nombre                                                  AS equipo_nombre,
            b.tipo                                                    AS bandeja_tipo,
-           s.paciente_nombre                                         AS paciente_nombre,
+           COALESCE(s.paciente_nombre, c.paciente_nombre)            AS paciente_nombre,
+           c.paciente_documento                                      AS paciente_documento,
            COALESCE(sch.nombre, ch.nombre)                           AS clinica_nombre,
            (SELECT k.precio_pactado FROM cotizacion k
              WHERE k.id_cirugia = c.id_cirugia AND k.activo = 1

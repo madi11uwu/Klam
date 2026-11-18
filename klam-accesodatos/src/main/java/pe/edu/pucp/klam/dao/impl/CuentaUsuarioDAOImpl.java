@@ -49,6 +49,52 @@ public class CuentaUsuarioDAOImpl implements CuentaUsuarioDAO {
         }
     }
 
+    /** Todas las cuentas de clientes, con el nombre del cliente al que pertenecen. */
+    @Override
+    public java.util.List<CuentaUsuario> findAll() throws SQLException {
+        String sql = "SELECT c.id_usuario, c.username, c.email, c.nombres, c.apellidos, c.activo, "
+                + "c.id_paciente, c.id_clinica, p.nombre AS nombre_paciente, h.nombre AS nombre_clinica "
+                + "FROM cuenta_usuario c "
+                + "LEFT JOIN paciente_particular p ON p.id_cliente = c.id_paciente "
+                + "LEFT JOIN clinica_hospital h ON h.id_cliente = c.id_clinica "
+                + "ORDER BY c.id_usuario";
+        java.util.List<CuentaUsuario> cuentas = new java.util.ArrayList<>();
+        try (Connection conn = DBManager.getInstance().getConnection();
+             PreparedStatement cmd = conn.prepareStatement(sql);
+             ResultSet rs = cmd.executeQuery()) {
+            while (rs.next()) {
+                CuentaUsuario cuenta = new CuentaUsuario();
+                cuenta.setIdUsuario(rs.getInt("id_usuario"));
+                cuenta.setUsername(rs.getString("username"));
+                cuenta.setEmail(rs.getString("email"));
+                cuenta.setActivo(rs.getBoolean("activo"));
+                String nombres = rs.getString("nombres");
+                String apellidos = rs.getString("apellidos");
+                int idPaciente = rs.getInt("id_paciente");
+                if (!rs.wasNull()) {
+                    PacienteParticular paciente = new PacienteParticular();
+                    paciente.setIdCliente(idPaciente);
+                    paciente.setNombre(rs.getString("nombre_paciente"));
+                    cuenta.setCliente(paciente);
+                    cuenta.setRol("PACIENTE_PARTICULAR");
+                    if (nombres == null || nombres.isBlank()) nombres = rs.getString("nombre_paciente");
+                } else {
+                    int idClinica = rs.getInt("id_clinica");
+                    ClinicaHospital clinica = new ClinicaHospital();
+                    clinica.setIdCliente(idClinica);
+                    clinica.setNombre(rs.getString("nombre_clinica"));
+                    cuenta.setCliente(clinica);
+                    cuenta.setRol("CLINICA_HOSPITAL");
+                    if (nombres == null || nombres.isBlank()) nombres = rs.getString("nombre_clinica");
+                }
+                cuenta.setNombres(nombres == null ? "" : nombres);
+                cuenta.setApellidos(apellidos == null ? "" : apellidos);
+                cuentas.add(cuenta);
+            }
+        }
+        return cuentas;
+    }
+
     @Override
     public void insert(CuentaUsuario cuenta) throws SQLException {
         String sql = "INSERT INTO cuenta_usuario (username, password_hash, email, nombres, apellidos, "

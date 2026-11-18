@@ -19,6 +19,7 @@ public class CirugiaDTO {
     private Integer idCliente;
     private String clienteNombre;
     private String pacienteNombre;
+    private String pacienteDocumento;
     private String clinicaNombre;
     private Integer idEquipo;
     private String equipoNombre;
@@ -198,5 +199,13 @@ public class CirugiaDTO {
 
     public void setActivo(boolean activo) {
         this.activo = activo;
+    }
+
+    public String getPacienteDocumento() {
+        return pacienteDocumento;
+    }
+
+    public void setPacienteDocumento(String pacienteDocumento) {
+        this.pacienteDocumento = pacienteDocumento;
     }
 }

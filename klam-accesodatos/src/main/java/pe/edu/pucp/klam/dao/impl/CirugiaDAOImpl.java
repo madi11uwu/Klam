@@ -156,7 +156,7 @@ public class CirugiaDAOImpl implements CirugiaDAO {
             throw new IllegalArgumentException("La cirugia no puede ser nula");
         }
 
-        String sql = "{call insertar_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{call insertar_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.registerOutParameter("p_id", Types.INTEGER);
@@ -179,7 +179,7 @@ public class CirugiaDAOImpl implements CirugiaDAO {
             throw new IllegalArgumentException("La cirugia no puede ser nula");
         }
 
-        String sql = "{call modificar_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{call modificar_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cmd = conn.prepareCall(sql)) {
             asignarDatos(cmd, cirugia);
@@ -200,6 +200,8 @@ public class CirugiaDAOImpl implements CirugiaDAO {
         cmd.setString("p_tipo_procedimiento", cirugia.getTipoProcedimiento());
         cmd.setString("p_doctor_nombre", cirugia.getDoctorNombre());
         cmd.setString("p_diagnostico", cirugia.getDiagnostico());
+        DBManager.setStringONulo(cmd, "p_paciente_nombre", cirugia.getPacienteNombre());
+        DBManager.setStringONulo(cmd, "p_paciente_documento", cirugia.getPacienteDocumento());
         DBManager.setStringONulo(cmd, "p_motivo_cancelacion", cirugia.getMotivoCancelacion());
         cmd.setString("p_estado", cirugia.getEstado().name());
         DBManager.setIntONulo(cmd, "p_id_equipo",
@@ -390,6 +392,8 @@ public class CirugiaDAOImpl implements CirugiaDAO {
         cirugia.setTipoProcedimiento(rs.getString("tipo_procedimiento"));
         cirugia.setDoctorNombre(rs.getString("doctor_nombre"));
         cirugia.setDiagnostico(rs.getString("diagnostico"));
+        cirugia.setPacienteNombre(textoOpcional(rs, "paciente_nombre"));
+        cirugia.setPacienteDocumento(textoOpcional(rs, "paciente_documento"));
         cirugia.setMotivoCancelacion(rs.getString("motivo_cancelacion"));
         cirugia.setEstado(Enum.valueOf(EstadoCirugia.class, rs.getString("estado")));
         cirugia.setConsumoCompleto(rs.getBoolean("consumo_completo"));
@@ -421,6 +425,15 @@ public class CirugiaDAOImpl implements CirugiaDAO {
             cmd.setInt("p_id_paciente_particular", paciente.getIdCliente());
         } else {
             cmd.setNull("p_id_paciente_particular", Types.INTEGER);
+        }
+    }
+
+    // Algunas consultas de cirugia no traen estas columnas
+    private static String textoOpcional(ResultSet rs, String columna) throws SQLException {
+        try {
+            return rs.getString(columna);
+        } catch (SQLException e) {
+            return null;
         }
     }
 

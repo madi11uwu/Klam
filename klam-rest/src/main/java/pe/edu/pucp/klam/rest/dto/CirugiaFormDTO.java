@@ -12,6 +12,8 @@ public class CirugiaFormDTO {
     private String tipoProcedimiento;
     private String doctorNombre;
     private String diagnostico;
+    private String pacienteNombre;
+    private String pacienteDocumento;
     private String tipoCliente;       // CLINICA_HOSPITAL o PACIENTE_PARTICULAR
     private int idCliente;
     private Integer idEquipo;         // opcional
@@ -90,5 +92,21 @@ public class CirugiaFormDTO {
 
     public void setIdBandeja(Integer idBandeja) {
         this.idBandeja = idBandeja;
+    }
+
+    public String getPacienteNombre() {
+        return pacienteNombre;
+    }
+
+    public void setPacienteNombre(String pacienteNombre) {
+        this.pacienteNombre = pacienteNombre;
+    }
+
+    public String getPacienteDocumento() {
+        return pacienteDocumento;
+    }
+
+    public void setPacienteDocumento(String pacienteDocumento) {
+        this.pacienteDocumento = pacienteDocumento;
     }
 }

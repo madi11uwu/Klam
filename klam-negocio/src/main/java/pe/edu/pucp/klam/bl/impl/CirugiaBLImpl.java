@@ -50,6 +50,8 @@ public class CirugiaBLImpl implements CirugiaBL {
     private static final int MAX_PROCEDIMIENTO = 100;
     private static final int MAX_DOCTOR = 100;
     private static final int MAX_DIAGNOSTICO = 300;
+    private static final int MAX_PACIENTE = 150;
+    private static final int MAX_DOCUMENTO_PACIENTE = 20;
     private static final int MAX_MOTIVO = 200;
 
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
@@ -228,10 +230,13 @@ public class CirugiaBLImpl implements CirugiaBL {
                     pacienteNombre = solicitud.getPacienteNombre();
                     clinicaNombre = solicitud.getClinicaDestino().getNombre();
                 }
+            } else if (c.getPacienteNombre() != null && !c.getPacienteNombre().isBlank()) {
+                pacienteNombre = c.getPacienteNombre();
             } else if (c.getCliente() instanceof PacienteParticular) {
                 pacienteNombre = c.getCliente().getNombre();
             }
             d.put("pacienteNombre", pacienteNombre);
+            d.put("pacienteDocumento", c.getPacienteDocumento());
             d.put("clinicaNombre", clinicaNombre);
 
             // estado documental: version vigente de cada documento de la solicitud y de la cirugia
@@ -376,6 +381,12 @@ public class CirugiaBLImpl implements CirugiaBL {
         cirugia.setSolicitudOrigen(existente.getSolicitudOrigen());
         cirugia.setConsumoCompleto(existente.isConsumoCompleto());
         cirugia.setActivo(true);
+        if (cirugia.getPacienteNombre() == null) {
+            cirugia.setPacienteNombre(existente.getPacienteNombre());
+        }
+        if (cirugia.getPacienteDocumento() == null) {
+            cirugia.setPacienteDocumento(existente.getPacienteDocumento());
+        }
 
         Integer idBandejaAntes = idBandeja(existente);
         Integer idBandejaDespues = idBandeja(cirugia);
@@ -563,6 +574,27 @@ public class CirugiaBLImpl implements CirugiaBL {
     // Validaciones de la cirugia
     // existente = cirugia guardada (en una edicion) o null (en un registro)
     // ------------------------------------------------------------------
+    // El paciente es obligatorio al registrar una cirugía sin solicitud de origen (con solicitud, sale de ella).
+    // En una edición que no lo envía se conserva el guardado.
+    private void validarPaciente(Cirugia cirugia, Cirugia existente) throws BLException {
+        String nombre = cirugia.getPacienteNombre() == null ? "" : cirugia.getPacienteNombre().trim();
+        String documento = cirugia.getPacienteDocumento() == null ? "" : cirugia.getPacienteDocumento().trim();
+        boolean sinSolicitud = existente == null
+                ? cirugia.getSolicitudOrigen() == null
+                : existente.getSolicitudOrigen() == null;
+        if (existente == null && sinSolicitud && nombre.isEmpty()) {
+            throw new BLException("El nombre del paciente es obligatorio");
+        }
+        if (nombre.length() > MAX_PACIENTE) {
+            throw new BLException("El nombre del paciente no puede superar los " + MAX_PACIENTE + " caracteres");
+        }
+        if (documento.length() > MAX_DOCUMENTO_PACIENTE) {
+            throw new BLException("El documento del paciente no puede superar los " + MAX_DOCUMENTO_PACIENTE + " caracteres");
+        }
+        cirugia.setPacienteNombre(nombre.isEmpty() ? null : nombre);
+        cirugia.setPacienteDocumento(documento.isEmpty() ? null : documento);
+    }
+
     private void validarDatos(Cirugia cirugia, Cirugia existente) throws BLException {
         if (cirugia == null) {
             throw new BLException("La cirugía no puede ser nula");
@@ -572,6 +604,7 @@ public class CirugiaBLImpl implements CirugiaBL {
         textoObligatorio(cirugia.getTipoProcedimiento(), "El tipo de procedimiento", MAX_PROCEDIMIENTO);
         textoObligatorio(cirugia.getDoctorNombre(), "El nombre del doctor", MAX_DOCTOR);
         textoObligatorio(cirugia.getDiagnostico(), "El diagnóstico", MAX_DIAGNOSTICO);
+        validarPaciente(cirugia, existente);
         if (cirugia.getMotivoCancelacion() != null && cirugia.getMotivoCancelacion().trim().length() > MAX_MOTIVO) {
             throw new BLException("El motivo de cancelación no puede superar los " + MAX_MOTIVO + " caracteres");
         }
@@ -771,6 +804,8 @@ public class CirugiaBLImpl implements CirugiaBL {
         s.put("tipoProcedimiento", valor(c.getTipoProcedimiento()));
         s.put("doctorNombre", valor(c.getDoctorNombre()));
         s.put("diagnostico", valor(c.getDiagnostico()));
+        s.put("pacienteNombre", valor(c.getPacienteNombre()));
+        s.put("pacienteDocumento", valor(c.getPacienteDocumento()));
         s.put("motivoCancelacion", valor(c.getMotivoCancelacion()));
         s.put("estado", valor(c.getEstado()));
         s.put("idEquipo", valor(c.getEquipo() != null ? c.getEquipo().getIdEquipo() : null));
