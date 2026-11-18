@@ -38,15 +38,8 @@ public final class GeneradorHashPassword {
 
     private static void comprobaciones() {
         String password = "Klam2026segura";
-        String primero;
-        String segundo;
-        try {
-            primero = Contrasenas.hashear(password);
-            segundo = Contrasenas.hashear(password);
-        } catch (BLException e) {
-            System.out.println("Error al hashear: " + e.getMessage());
-            return;
-        }
+        String primero = Contrasenas.hashear(password);
+        String segundo = Contrasenas.hashear(password);
 
         System.out.println("=== Comprobaciones del bloque 2 (RF01) ===");
         System.out.println("valor 1 : " + primero);

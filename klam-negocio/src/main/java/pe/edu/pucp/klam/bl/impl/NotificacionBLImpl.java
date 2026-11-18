@@ -1,6 +1,7 @@
 package pe.edu.pucp.klam.bl.impl;
 
 import pe.edu.pucp.klam.bl.BLException;
+import pe.edu.pucp.klam.bl.CorreoBL;
 import pe.edu.pucp.klam.bl.NotificacionBL;
 import pe.edu.pucp.klam.dao.AdministradorDAO;
 import pe.edu.pucp.klam.dao.NotificacionDAO;
@@ -19,8 +20,12 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class NotificacionBLImpl implements NotificacionBL {
+
+    private static final Logger LOG = Logger.getLogger(NotificacionBLImpl.class.getName());
+    private final CorreoBL correoBL = new CorreoBLImpl();
 
     private final NotificacionDAO notificacionDAO = new NotificacionDAOImpl();
     private final AdministradorDAO administradorDAO = new AdministradorDAOImpl();
@@ -172,6 +177,21 @@ public class NotificacionBLImpl implements NotificacionBL {
             }
         } catch (SQLException e) {
             throw new BLException("No se pudo notificar al vendedor", e);
+        }
+    }
+
+    @Override
+    public void enviarCorreoAdministradores(String asunto, String mensaje) {
+        try {
+            for (Administrador administrador : administradorDAO.findAll()) {
+                if (administrador.isActivo() && administrador.getEmail() != null
+                        && !administrador.getEmail().isBlank()) {
+                    correoBL.enviar(administrador.getEmail(), asunto, mensaje);
+                }
+            }
+        } catch (SQLException e) {
+            // La solicitud ya quedó registrada: sin correo, el aviso interno sigue en la bandeja
+            LOG.warning("No se pudo leer los administradores para enviar el correo: " + e.getMessage());
         }
     }
 

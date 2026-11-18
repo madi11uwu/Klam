@@ -12,4 +12,7 @@ public interface NotificacionBL extends BaseBL<Notificacion, Integer> {
 
     /** Avisa a un vendedor concreto (p. ej. cuando se rechaza una solicitud o un documento que él registró). */
     void notificarVendedor(Integer idVendedor, String titulo, String mensaje) throws BLException;
+
+    /** RF11: correo automático a los administradores activos. No lanza excepción: un fallo de correo solo queda en el log. */
+    void enviarCorreoAdministradores(String asunto, String mensaje);
 }

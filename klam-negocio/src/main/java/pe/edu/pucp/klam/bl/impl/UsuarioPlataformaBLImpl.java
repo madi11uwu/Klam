@@ -105,11 +105,7 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
             throw new BLException("Tipo de usuario no soportado");
         }
     }
-    /**
-     * Comprueba, sin guardar nada, que un usuario y una contraseña sirven para una cuenta nueva de cliente:
-     * usuario de 4 a 50 caracteres (letras, números, punto, guion y guion bajo), contraseña con el formato de la
-     * plataforma y nombre de usuario que no esté en uso (personal ni otras cuentas).
-     */
+
     public void validarCredencialesNuevas(String username, String password) throws BLException {
         if (username == null || username.isBlank()) {
             throw new BLException("El usuario es obligatorio");
