@@ -7,18 +7,21 @@ import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
 import pe.edu.pucp.klam.db.DBManager;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoCirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -27,6 +30,43 @@ import java.util.Map;
  * misma transaccion. Sin transaccion activa usan una conexion propia.
  */
 public class CirugiaDAOImpl implements CirugiaDAO {
+    @Override
+    public Map<Integer, Integer> buscarConsumiblesPrevistos(int idCirugia) throws SQLException {
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (PreparedStatement cmd = conn.prepareStatement(
+                "SELECT id_consumible, cantidad_prevista FROM cirugia_consumible_previsto WHERE id_cirugia = ?")) {
+            cmd.setInt(1, idCirugia);
+            try (ResultSet rs = cmd.executeQuery()) {
+                Map<Integer, Integer> cantidades = new LinkedHashMap<>();
+                while (rs.next()) cantidades.put(rs.getInt(1), rs.getInt(2));
+                return cantidades;
+            }
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
+
+    @Override
+    public void reemplazarConsumiblesPrevistos(int idCirugia, Map<Integer, Integer> cantidades) throws SQLException {
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (PreparedStatement borrar = conn.prepareStatement(
+                "DELETE FROM cirugia_consumible_previsto WHERE id_cirugia = ?")) {
+            borrar.setInt(1, idCirugia);
+            borrar.executeUpdate();
+            try (PreparedStatement insertar = conn.prepareStatement(
+                    "INSERT INTO cirugia_consumible_previsto (id_cirugia, id_consumible, cantidad_prevista) VALUES (?, ?, ?)")) {
+                for (Map.Entry<Integer, Integer> linea : cantidades.entrySet()) {
+                    insertar.setInt(1, idCirugia);
+                    insertar.setInt(2, linea.getKey());
+                    insertar.setInt(3, linea.getValue());
+                    insertar.addBatch();
+                }
+                insertar.executeBatch();
+            }
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
     @Override
     public List<Cirugia> findAll() throws SQLException {
         return buscar(null, null, null, null, null, null);
@@ -116,12 +156,12 @@ public class CirugiaDAOImpl implements CirugiaDAO {
             throw new IllegalArgumentException("La cirugia no puede ser nula");
         }
 
-        String sql = "{call insertar_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{call insertar_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cmd = conn.prepareCall(sql)) {
             cmd.registerOutParameter("p_id", Types.INTEGER);
             asignarDatos(cmd, cirugia);
-            DBManager.setIntONulo(cmd, "p_id_solicitud_origen", cirugia.getIdSolicitudOrigen());
+            DBManager.setIntONulo(cmd, "p_id_solicitud_origen", cirugia.getSolicitudOrigen() != null ? cirugia.getSolicitudOrigen().getIdSolicitud() : null);
 
             if (cmd.executeUpdate() == 0) {
                 throw new SQLException("No se pudo insertar la cirugia");
@@ -139,7 +179,7 @@ public class CirugiaDAOImpl implements CirugiaDAO {
             throw new IllegalArgumentException("La cirugia no puede ser nula");
         }
 
-        String sql = "{call modificar_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{call modificar_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cmd = conn.prepareCall(sql)) {
             asignarDatos(cmd, cirugia);
@@ -160,6 +200,8 @@ public class CirugiaDAOImpl implements CirugiaDAO {
         cmd.setString("p_tipo_procedimiento", cirugia.getTipoProcedimiento());
         cmd.setString("p_doctor_nombre", cirugia.getDoctorNombre());
         cmd.setString("p_diagnostico", cirugia.getDiagnostico());
+        DBManager.setStringONulo(cmd, "p_paciente_nombre", cirugia.getPacienteNombre());
+        DBManager.setStringONulo(cmd, "p_paciente_documento", cirugia.getPacienteDocumento());
         DBManager.setStringONulo(cmd, "p_motivo_cancelacion", cirugia.getMotivoCancelacion());
         cmd.setString("p_estado", cirugia.getEstado().name());
         DBManager.setIntONulo(cmd, "p_id_equipo",
@@ -289,79 +331,6 @@ public class CirugiaDAOImpl implements CirugiaDAO {
     }
 
     // ------------------------------------------------------------------
-    // Solicitudes de cirugia
-    // ------------------------------------------------------------------
-    @Override
-    public int insertSolicitud(Cirugia datos, int idClinicaDestino, String pacienteNombre,
-                               String observaciones, LocalDateTime fechaRegistro) throws SQLException {
-        if (datos == null) {
-            throw new IllegalArgumentException("Los datos de la solicitud no pueden ser nulos");
-        }
-
-        String sql = "{call insertar_solicitud_cirugia(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-        Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.registerOutParameter("p_id", Types.INTEGER);
-            DBManager.setIntONulo(cmd, "p_id_clinica_solicitante",
-                    datos.getCliente() instanceof ClinicaHospital c ? c.getIdCliente() : null);
-            DBManager.setIntONulo(cmd, "p_id_paciente_solicitante",
-                    datos.getCliente() instanceof PacienteParticular p ? p.getIdCliente() : null);
-            cmd.setInt("p_id_clinica_hospital", idClinicaDestino);
-            cmd.setString("p_paciente_nombre", pacienteNombre);
-            cmd.setString("p_diagnostico", datos.getDiagnostico());
-            cmd.setString("p_tipo_procedimiento", datos.getTipoProcedimiento());
-            cmd.setString("p_doctor_nombre", datos.getDoctorNombre());
-            cmd.setTimestamp("p_fecha_hora_solicitada", Timestamp.valueOf(datos.getFechaHoraInicio()));
-            DBManager.setStringONulo(cmd, "p_observaciones", observaciones);
-            cmd.setTimestamp("p_fecha_registro", Timestamp.valueOf(fechaRegistro));
-
-            if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo insertar la solicitud de cirugia");
-            }
-            return cmd.getInt("p_id");
-        } finally {
-            TransactionsManager.liberar(conn);
-        }
-    }
-
-    @Override
-    public List<Map<String, Object>> buscarSolicitudes(Integer idSolicitud, String estado,
-                                                       String tipoCliente, Integer idCliente) throws SQLException {
-        String sql = "{call buscar_solicitudes(?, ?, ?, ?)}";
-        Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            DBManager.setIntONulo(cmd, "p_id_solicitud", idSolicitud);
-            DBManager.setStringONulo(cmd, "p_estado", estado);
-            DBManager.setStringONulo(cmd, "p_tipo_cliente", tipoCliente);
-            DBManager.setIntONulo(cmd, "p_id_cliente", idCliente);
-            try (ResultSet rs = cmd.executeQuery()) {
-                return DBManager.filasAMapas(rs);
-            }
-        } finally {
-            TransactionsManager.liberar(conn);
-        }
-    }
-
-    @Override
-    public void cambiarEstadoSolicitud(int idSolicitud, String estado, String motivoRechazo,
-                                       LocalDateTime fechaRevision) throws SQLException {
-        String sql = "{call cambiar_estado_solicitud(?, ?, ?, ?)}";
-        Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id", idSolicitud);
-            cmd.setString("p_estado", estado);
-            DBManager.setStringONulo(cmd, "p_motivo_rechazo", motivoRechazo);
-            DBManager.setFechaONula(cmd, "p_fecha_revision", fechaRevision);
-
-            if (cmd.executeUpdate() == 0) {
-                throw new SQLException("No se pudo cambiar el estado de la solicitud " + idSolicitud);
-            }
-        } finally {
-            TransactionsManager.liberar(conn);
-        }
-    }
-
-    // ------------------------------------------------------------------
     // Auditoria
     // ------------------------------------------------------------------
     @Override
@@ -423,13 +392,19 @@ public class CirugiaDAOImpl implements CirugiaDAO {
         cirugia.setTipoProcedimiento(rs.getString("tipo_procedimiento"));
         cirugia.setDoctorNombre(rs.getString("doctor_nombre"));
         cirugia.setDiagnostico(rs.getString("diagnostico"));
+        cirugia.setPacienteNombre(textoOpcional(rs, "paciente_nombre"));
+        cirugia.setPacienteDocumento(textoOpcional(rs, "paciente_documento"));
         cirugia.setMotivoCancelacion(rs.getString("motivo_cancelacion"));
         cirugia.setEstado(Enum.valueOf(EstadoCirugia.class, rs.getString("estado")));
         cirugia.setConsumoCompleto(rs.getBoolean("consumo_completo"));
         cirugia.setActivo(rs.getBoolean("activo"));
 
         int idSolicitud = rs.getInt("id_solicitud_origen");
-        cirugia.setIdSolicitudOrigen(rs.wasNull() ? null : idSolicitud);
+        if (!rs.wasNull()) {
+            SolicitudCirugia solicitud = new SolicitudCirugia();
+            solicitud.setIdSolicitud(idSolicitud);
+            cirugia.setSolicitudOrigen(solicitud);
+        }
 
         mapearEquipo(rs, cirugia);
         mapearBandeja(rs, cirugia);
@@ -450,6 +425,15 @@ public class CirugiaDAOImpl implements CirugiaDAO {
             cmd.setInt("p_id_paciente_particular", paciente.getIdCliente());
         } else {
             cmd.setNull("p_id_paciente_particular", Types.INTEGER);
+        }
+    }
+
+    // Algunas consultas de cirugia no traen estas columnas
+    private static String textoOpcional(ResultSet rs, String columna) throws SQLException {
+        try {
+            return rs.getString(columna);
+        } catch (SQLException e) {
+            return null;
         }
     }
 

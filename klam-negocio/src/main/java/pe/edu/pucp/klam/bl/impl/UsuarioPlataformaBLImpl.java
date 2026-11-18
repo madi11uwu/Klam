@@ -221,6 +221,12 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
         todos.addAll(administradorBL.findAll());
         todos.addAll(vendedorBL.findAll());
         todos.addAll(tecnicoBL.findAll());
+        // Clientes (clínicas y pacientes particulares) que ya tienen cuenta de acceso
+        try {
+            todos.addAll(cuentaDAO.findAll());
+        } catch (SQLException ex) {
+            throw new BLException("No se pudieron consultar las cuentas de clientes", ex);
+        }
 
         String rolNorm = rol != null ? rol.trim().toUpperCase() : "";
         if ("INSTRUMENTISTA".equals(rolNorm)) {
@@ -235,7 +241,8 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
             if (!rolNorm.isEmpty() && !rolNorm.equalsIgnoreCase("TODOS") && !rolNorm.equalsIgnoreCase("TODOS LOS ROLES")) {
                 String uRol = u.getRol() != null ? u.getRol().toUpperCase() : "";
                 if ("INSTRUMENTISTA".equals(uRol)) uRol = "TECNICO_INSTRUMENTISTA";
-                if (!rolNorm.equals(uRol)) {
+                boolean esCliente = "CLINICA_HOSPITAL".equals(uRol) || "PACIENTE_PARTICULAR".equals(uRol);
+                if ("CLIENTE".equals(rolNorm) ? !esCliente : !rolNorm.equals(uRol)) {
                     continue;
                 }
             }

@@ -1,25 +1,29 @@
 package pe.edu.pucp.klam.modelo.agendaoperaciones;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
-import pe.edu.pucp.klam.modelo.interfaces.Agendable;
-import pe.edu.pucp.klam.modelo.interfaces.Cancelable;
 
-public class Cirugia implements Agendable, Cancelable {
+public class Cirugia {
     private int idCirugia;
     private LocalDateTime fechaHoraInicio;
     private LocalDateTime fechaHoraFin;
     private String tipoProcedimiento;
-    private String motivoCancelacion;
     private String doctorNombre;
     private String diagnostico;
+    /** Persona que se opera (distinta del cliente que contrata). */
+    private String pacienteNombre;
+    private String pacienteDocumento;
     private EstadoCirugia estado;
+    private String motivoCancelacion;
     private Equipo equipo;
     private BandejaInstrumental bandejaInstrumental;
+    private Map<Integer, Integer> consumiblesPrevistos = new HashMap<>();
     private Cliente cliente;
 
     // Solicitud aprobada de la que nace la cirugia; null si el administrador la registro directamente
-    private Integer idSolicitudOrigen;
+    private SolicitudCirugia solicitudOrigen;
 
     // true cuando el administrador cerro el registro de consumos (RF15)
     private boolean consumoCompleto;
@@ -31,7 +35,13 @@ public class Cirugia implements Agendable, Cancelable {
         this.estado = EstadoCirugia.PROGRAMADA;
         this.activo = true;
     }
+    public String getMotivoCancelacion() {
+        return motivoCancelacion;
+    }
 
+    public void setMotivoCancelacion(String motivoCancelacion) {
+        this.motivoCancelacion = motivoCancelacion;
+    }
     public Cirugia(final Cirugia cirugia) {
         if (cirugia == null) {
             throw new IllegalArgumentException("cirugia no puede ser nula");
@@ -40,14 +50,16 @@ public class Cirugia implements Agendable, Cancelable {
         setFechaHoraInicio(cirugia.getFechaHoraInicio());
         setFechaHoraFin(cirugia.getFechaHoraFin());
         setTipoProcedimiento(cirugia.getTipoProcedimiento());
-        setMotivoCancelacion(cirugia.getMotivoCancelacion());
         setDoctorNombre(cirugia.getDoctorNombre());
         setDiagnostico(cirugia.getDiagnostico());
+        setPacienteNombre(cirugia.getPacienteNombre());
+        setPacienteDocumento(cirugia.getPacienteDocumento());
         setEstado(cirugia.getEstado());
         setEquipo(cirugia.getEquipo());
         setBandejaInstrumental(cirugia.getBandejaInstrumental());
+        setConsumiblesPrevistos(cirugia.getConsumiblesPrevistos());
         setCliente(cirugia.getCliente());
-        setIdSolicitudOrigen(cirugia.getIdSolicitudOrigen());
+        setSolicitudOrigen(cirugia.getSolicitudOrigen());
         setConsumoCompleto(cirugia.isConsumoCompleto());
         setActivo(cirugia.isActivo());
     }
@@ -87,20 +99,28 @@ public class Cirugia implements Agendable, Cancelable {
         this.tipoProcedimiento = tipoProcedimiento;
     }
 
-    public String getMotivoCancelacion() {
-        return motivoCancelacion;
-    }
-
-    public void setMotivoCancelacion(String motivoCancelacion) {
-        this.motivoCancelacion = motivoCancelacion;
-    }
-
     public String getDoctorNombre() {
         return doctorNombre;
     }
 
     public void setDoctorNombre(String doctorNombre) {
         this.doctorNombre = doctorNombre;
+    }
+
+    public String getPacienteNombre() {
+        return pacienteNombre;
+    }
+
+    public void setPacienteNombre(String pacienteNombre) {
+        this.pacienteNombre = pacienteNombre;
+    }
+
+    public String getPacienteDocumento() {
+        return pacienteDocumento;
+    }
+
+    public void setPacienteDocumento(String pacienteDocumento) {
+        this.pacienteDocumento = pacienteDocumento;
     }
 
     public String getDiagnostico() {
@@ -111,12 +131,12 @@ public class Cirugia implements Agendable, Cancelable {
         this.diagnostico = diagnostico;
     }
 
-    public Integer getIdSolicitudOrigen() {
-        return idSolicitudOrigen;
+    public SolicitudCirugia getSolicitudOrigen() {
+        return solicitudOrigen;
     }
 
-    public void setIdSolicitudOrigen(Integer idSolicitudOrigen) {
-        this.idSolicitudOrigen = idSolicitudOrigen;
+    public void setSolicitudOrigen(SolicitudCirugia solicitudOrigen) {
+        this.solicitudOrigen = solicitudOrigen;
     }
 
     public boolean isConsumoCompleto() {
@@ -154,6 +174,15 @@ public class Cirugia implements Agendable, Cancelable {
         this.bandejaInstrumental = bandejaInstrumental;
     }
 
+    public Map<Integer, Integer> getConsumiblesPrevistos() {
+        return new HashMap<>(consumiblesPrevistos);
+    }
+
+    public void setConsumiblesPrevistos(Map<Integer, Integer> consumiblesPrevistos) {
+        this.consumiblesPrevistos = consumiblesPrevistos == null
+                ? new HashMap<>() : new HashMap<>(consumiblesPrevistos);
+    }
+
     /** Clinica/hospital o paciente particular al que pertenece la cirugia. */
     public Cliente getCliente() {
         return cliente;
@@ -170,17 +199,5 @@ public class Cirugia implements Agendable, Cancelable {
 
     public void setActivo(boolean activo) {
         this.activo = activo;
-    }
-
-    //metodos de la interfaz Agendable, Cancelable
-    @Override
-    public String getIdentificador() {
-        return String.valueOf(idCirugia);
-    }
-
-    @Override
-    public void cancelar(String motivo) {
-        this.estado = EstadoCirugia.CANCELADA;
-        this.motivoCancelacion = motivo;
     }
 }
