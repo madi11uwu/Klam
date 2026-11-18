@@ -4,7 +4,8 @@ package pe.edu.pucp.klam.rest.dto;
  * Alta y modificación de datos comerciales en /gestion-clientes.
  * Clínica: ruc, tieneConsignacion, periodoCredito. Paciente particular: dni, pagoConfirmado.
  * También es la forma del detalle (GET) y de la modificación (PUT).
- * La cuenta de acceso se habilita por separado.
+ * La cuenta de acceso NO se crea aqui: se habilita por separado desde
+ * POST /clientes/{tipo}/{id}/cuenta, que es lo que avisa al cliente por correo.
  */
 public class ClienteRegistroDTO {
     private int idCliente;          // solo en respuestas de detalle
@@ -19,8 +20,6 @@ public class ClienteRegistroDTO {
     private String periodoCredito;
     private String dni;
     private boolean pagoConfirmado;
-    private String username;     // solo en el alta (obligatorio)
-    private String password;     // solo en el alta (obligatorio); nunca se devuelve
 
     public ClienteRegistroDTO() {
     }
@@ -49,9 +48,4 @@ public class ClienteRegistroDTO {
     public void setDni(String dni) { this.dni = dni; }
     public boolean isPagoConfirmado() { return pagoConfirmado; }
     public void setPagoConfirmado(boolean pagoConfirmado) { this.pagoConfirmado = pagoConfirmado; }
-
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
 }

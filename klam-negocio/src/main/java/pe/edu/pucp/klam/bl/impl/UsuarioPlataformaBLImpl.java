@@ -130,6 +130,49 @@ public class UsuarioPlataformaBLImpl implements UsuarioPlataformaBL {
     }
 
     @Override
+    public CredencialInicial habilitarCuentaClienteConCorreo(String tipo, int idCliente, String username)
+            throws BLException {
+        Cliente cliente = buscarCliente(tipo, idCliente);
+        String nombreUsuario = (username == null || username.isBlank())
+                ? documentoDe(cliente)
+                : username.trim();
+        if (nombreUsuario == null || nombreUsuario.isBlank()) {
+            throw new BLException("El cliente no tiene documento: indique un nombre de usuario");
+        }
+        String temporal = CuentaInicialCliente.passwordTemporal();
+        int idCuenta = habilitarCuentaCliente(tipo, idCliente, nombreUsuario, temporal);
+        // El correo es el canal oficial; si no sale, la contrasena igual vuelve en la respuesta.
+        CuentaInicialCliente.avisarPorCorreo(cliente.getNombre(), cliente.getEmailContacto(),
+                nombreUsuario, temporal);
+        return new CredencialInicial(idCuenta, nombreUsuario, temporal);
+    }
+
+    private Cliente buscarCliente(String tipo, int idCliente) throws BLException {
+        Cliente cliente;
+        if ("PACIENTE_PARTICULAR".equals(tipo)) {
+            cliente = new PacienteParticularBLImpl().findById(idCliente);
+        } else if ("CLINICA_HOSPITAL".equals(tipo)) {
+            cliente = new ClinicaHospitalBLImpl().findById(idCliente);
+        } else {
+            throw new BLException("Tipo de cliente inválido");
+        }
+        if (cliente == null || !cliente.isActivo()) {
+            throw new BLException("El cliente no existe o está inactivo");
+        }
+        return cliente;
+    }
+
+    private static String documentoDe(Cliente cliente) {
+        if (cliente instanceof PacienteParticular paciente) {
+            return CuentaInicialCliente.usuarioInicial(paciente.getDni());
+        }
+        if (cliente instanceof ClinicaHospital clinica) {
+            return CuentaInicialCliente.usuarioInicial(clinica.getRuc());
+        }
+        return null;
+    }
+
+    @Override
     public int habilitarCuentaCliente(String tipo, int idCliente, String username, String password)
             throws BLException {
         if (idCliente <= 0 || username == null || username.isBlank() || username.trim().length() > 50) {
