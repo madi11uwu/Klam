@@ -12,7 +12,7 @@ INSERT INTO administrador
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo)
 VALUES
     (1, 'admin.rojas',
-     '2y10$examplehash0000000000000000000001',
+     'pbkdf2-sha256$600000$g+7HUqedKQGQwrg9cQcPAg==$VJb2Hy2G1/yJ4U4W3d8c289hdYI3j4qGOtdwDNiyB4w=',
      'crojas@bioklam.com',
      'Carlos',
      'Rojas Medina',
@@ -25,7 +25,7 @@ INSERT INTO vendedor
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo, comision_acumulada)
 VALUES
     (2, 'vend.torres',
-     '2y10$examplehash0000000000000000000002',
+     'pbkdf2-sha256$600000$Z/Ylq7vHuL6zTNNfq+IDKw==$QDUaRy15j4QI+PDwjLgzMj9BSpGXeVPsW3Rw3uvd+XQ=',
      'ltorres@bioklam.com',
      'Lucía',
      'Torres Vega',
@@ -34,7 +34,7 @@ VALUES
      1250.50),
 
     (3, 'vend.quispe',
-     '$2y$10$examplehash0000000000000000000003',
+     'pbkdf2-sha256$600000$hTur049uWPg2LGHCHqshEQ==$H2C7dimUmZnjhnzUxnu+IX2xaVKTDBM/nBj9Gwtu8uA=',
      'mquispe@bioklam.com',
      'Miguel',
      'Quispe Huamán',
@@ -47,7 +47,7 @@ INSERT INTO tecnico_instrumentista
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo, especialidad)
 VALUES
     (4, 'tec.fernandez',
-     '2y10$examplehash0000000000000000000004',
+     'pbkdf2-sha256$600000$OBuOz0/y/qfQeuP5G5xKow==$KR03C/bScqZL9wir/Ucg+v2dYmUxrZ6MdkeeHZUMIK8=',
      'jfernandez@bioklam.com',
      'José',
      'Fernández Castro',
@@ -56,7 +56,7 @@ VALUES
      'Neurocirugía'),
 
     (5, 'tec.salazar',
-     '$2y$10$examplehash0000000000000000000005',
+     'pbkdf2-sha256$600000$JRdUMqnM2CpRG5NUTstwOw==$3Uy85jP7NaaR9TxXx7asDlxjFKv/JZScqlG9y880rTM=',
      'psalazar@bioklam.com',
      'Paola',
      'Salazar Díaz',
