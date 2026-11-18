@@ -1,7 +1,6 @@
 package pe.edu.pucp.klam.bl.impl;
 
 import java.security.SecureRandom;
-import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CorreoBL;
 
 
@@ -54,11 +53,4 @@ final class CuentaInicialCliente {
                 + "Este es un mensaje automático; por favor no responda a este correo.";
     }
 
-    static void validar(String username, String password) throws BLException {
-        new UsuarioPlataformaBLImpl().validarCredencialesNuevas(username, password);
-    }
-
-    static void crear(String tipoCliente, int idCliente, String username, String password) throws BLException {
-        new UsuarioPlataformaBLImpl().habilitarCuentaCliente(tipoCliente, idCliente, username, password);
-    }
 }

@@ -88,43 +88,20 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
         }
     }
 
+    /**
+     * Da de alta a la clinica u hospital en la tabla de clientes, nada mas.
+     * La cuenta de acceso no se crea aqui: es el administrador quien la habilita
+     * despues (RF03), y es ese acto el que genera la contrasena temporal y el
+     * correo al cliente (RF01).
+     */
     @Override
     public void insert(ClinicaHospital cliente) throws BLException {
-        insertConCuentaInicial(cliente);
-    }
-
-    @Override
-    public String insertConCuentaInicial(ClinicaHospital cliente) throws BLException {
-        validarDatos(cliente);
-        String documento = CuentaInicialCliente.usuarioInicial(cliente.getRuc());
-        String temporal = CuentaInicialCliente.passwordTemporal();
-        insert(cliente, documento, temporal);
-        CuentaInicialCliente.avisarPorCorreo(cliente.getNombre(), cliente.getEmailContacto(), documento, temporal);
-        return temporal;
-    }
-
-    @Override
-    public void insert(ClinicaHospital cliente, String username, String password) throws BLException {
         validarDatos(cliente);
         validarDocumentoUnico(cliente, false);
-        CuentaInicialCliente.validar(username, password);
         try {
             clinicaHospitalDAO.insert(cliente);
         } catch (SQLException e) {
             throw new BLException("No se pudo registrar " + "la clínica u hospital", e);
-        }
-        try {
-            CuentaInicialCliente.crear("CLINICA_HOSPITAL", cliente.getIdCliente(), username, password);
-        } catch (BLException e) {
-            deshacerAlta(cliente.getIdCliente());
-            throw new BLException("No se registró el cliente: no se pudo crear su cuenta de acceso. " + e.getMessage(), e);
-        }
-    }
-
-    private void deshacerAlta(int id) {
-        try {
-            delete(id);
-        } catch (BLException ignorada) {
         }
     }
 

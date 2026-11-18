@@ -78,11 +78,10 @@ public class ClientesResource {
             p.setNombre(datos.getNombre()); p.setDireccion(datos.getDireccion());
             p.setEmailContacto(datos.getEmailContacto()); p.setTelefono(datos.getTelefono());
             p.setDni(datos.getDni()); p.setPagoConfirmado(false);
-            String temporal = pacientes.insertConCuentaInicial(p);
-            return Response.status(Response.Status.CREATED)
-                    .entity(credencialInicial(particular(p), p.getDni(), temporal))
-                    .header("Cache-Control", "no-store")
-                    .build();
+            // RF08: el vendedor solo registra al cliente. La cuenta de acceso la
+            // habilita despues el administrador (POST /clientes/{tipo}/{id}/cuenta).
+            pacientes.insert(p);
+            return Response.status(Response.Status.CREATED).entity(particular(p)).build();
         } catch (BLException e) { return fallo(e); }
     }
 
@@ -110,11 +109,10 @@ public class ClientesResource {
             c.setEmailContacto(datos.getEmailContacto()); c.setTelefono(datos.getTelefono());
             c.setRuc(datos.getRuc()); c.setTieneConsignacion(datos.isTieneConsignacion());
             c.setPeriodoCredito(datos.getPeriodoCredito());
-            String temporal = clinicas.insertConCuentaInicial(c);
-            return Response.status(Response.Status.CREATED)
-                    .entity(credencialInicial(clinica(c), c.getRuc(), temporal))
-                    .header("Cache-Control", "no-store")
-                    .build();
+            // RF08: el vendedor solo registra al cliente. La cuenta de acceso la
+            // habilita despues el administrador (POST /clientes/{tipo}/{id}/cuenta).
+            clinicas.insert(c);
+            return Response.status(Response.Status.CREATED).entity(clinica(c)).build();
         } catch (BLException e) { return fallo(e); }
     }
 
@@ -130,12 +128,6 @@ public class ClientesResource {
         return Response.status(status).entity(Map.of("error", message)).build();
     }
 
-    private Map<String,Object> credencialInicial(Map<String,Object> cliente, String usuario, String passwordTemporal) {
-        Map<String,Object> respuesta = new java.util.LinkedHashMap<>(cliente);
-        respuesta.put("usuario", usuario);
-        respuesta.put("passwordTemporal", passwordTemporal);
-        return respuesta;
-    }
     private Map<String,Object> particular(PacienteParticular p) {
         return Map.of("idCliente",p.getIdCliente(),"nombre",p.getNombre(),"dni",p.getDni());
     }
@@ -150,14 +142,22 @@ public class ClientesResource {
         if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
         if (!"ADMINISTRADOR".equals(sesion.rol()))
             return error(Response.Status.FORBIDDEN, "Solo el administrador puede habilitar cuentas");
-        if (datos == null) return error(Response.Status.BAD_REQUEST, "Datos de cuenta obligatorios");
         try {
+            // RF01 + RF03: el administrador habilita la cuenta; el sistema genera la
+            // contrasena temporal y se la envia al cliente por correo. Se devuelve una
+            // sola vez para poder mostrarla en pantalla si el correo no llega.
             UsuarioPlataformaBL usuarios = new UsuarioPlataformaBLImpl();
-            int idCuenta = usuarios.habilitarCuentaCliente(tipo, id,
-                    datos.get("userName"), datos.get("password"));
-            return Response.status(Response.Status.CREATED).entity(Map.of(
-                    "id", idCuenta, "userName", datos.get("userName").trim(),
-                    "tipoCliente", tipo, "idCliente", id)).build();
+            String usuarioPedido = datos == null ? null : datos.get("userName");
+            UsuarioPlataformaBL.CredencialInicial credencial =
+                    usuarios.habilitarCuentaClienteConCorreo(tipo, id, usuarioPedido);
+            return Response.status(Response.Status.CREATED)
+                    .entity(Map.of(
+                            "id", credencial.idCuenta(),
+                            "userName", credencial.usuario(),
+                            "passwordTemporal", credencial.passwordTemporal(),
+                            "tipoCliente", tipo, "idCliente", id))
+                    .header("Cache-Control", "no-store")
+                    .build();
         } catch (BLException ex) { return fallo(ex); }
     }
 }

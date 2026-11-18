@@ -8,8 +8,4 @@ public interface ClinicaHospitalBL extends BaseBL<ClinicaHospital, Integer> {
     void validarDatosCliente(String nombre, String direccion, String correo, String telefono) throws BLException;
     void validarLongitud(String valor, int maximo, String campo) throws BLException;
     void validarId(Integer ID) throws BLException;
-
-    void insert(ClinicaHospital cliente, String username, String password) throws BLException;
-
-    String insertConCuentaInicial(ClinicaHospital cliente) throws BLException;
 }
