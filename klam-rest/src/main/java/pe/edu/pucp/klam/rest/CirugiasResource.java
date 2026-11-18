@@ -280,7 +280,7 @@ public class CirugiasResource {
             for (PacienteParticular paciente : pacienteBL.findAll()) {
                 if (paciente.isActivo()) {
                     dto.getClientes().add(new OpcionDTO(paciente.getIdCliente(), paciente.getNombre(),
-                            CirugiaBL.TIPO_CLIENTE_PARTICULAR));
+                            CirugiaBL.TIPO_CLIENTE_PARTICULAR, paciente.getDni()));
                 }
             }
             for (Equipo equipo : equipoBL.listarDisponibles()) {

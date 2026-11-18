@@ -5,8 +5,14 @@ public class OpcionDTO {
     private int id;
     private String nombre;
     private String tipo;
+    private String documento;   // DNI (pacientes particulares)
 
     public OpcionDTO() {
+    }
+
+    public OpcionDTO(int id, String nombre, String tipo, String documento) {
+        this(id, nombre, tipo);
+        this.documento = documento;
     }
 
     public OpcionDTO(int id, String nombre, String tipo) {
@@ -37,5 +43,13 @@ public class OpcionDTO {
 
     public void setTipo(String tipo) {
         this.tipo = tipo;
+    }
+
+    public String getDocumento() {
+        return documento;
+    }
+
+    public void setDocumento(String documento) {
+        this.documento = documento;
     }
 }
