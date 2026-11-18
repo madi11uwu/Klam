@@ -54,13 +54,12 @@ final class Contrasenas {
                 + "$" + base64.encodeToString(hash);
     }
 
-    /** true si la contraseña escrita corresponde al valor guardado. */
     static boolean coincide(String password, String guardada) {
         if (password == null || guardada == null || guardada.isEmpty()) {
             return false;
         }
         if (requiereMigracion(guardada)) {
-            return password.equals(guardada);
+            return false;
         }
         String[] partes = guardada.split("\\$");
         if (partes.length != 4) {
