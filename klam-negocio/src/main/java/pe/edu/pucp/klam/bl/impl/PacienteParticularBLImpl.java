@@ -79,17 +79,22 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
 
     @Override
     public void insert(PacienteParticular cliente) throws BLException {
-        // Sin credenciales indicadas (p. ej. alta del vendedor): cuenta inicial con el documento del cliente.
+        insertConCuentaInicial(cliente);
+    }
+
+    @Override
+    public String insertConCuentaInicial(PacienteParticular cliente) throws BLException {
         validarDatos(cliente);
         String documento = CuentaInicialCliente.usuarioInicial(cliente.getDni());
-        insert(cliente, documento, CuentaInicialCliente.passwordInicial(documento));
+        String temporal = CuentaInicialCliente.passwordTemporal();
+        insert(cliente, documento, temporal);
+        return temporal;
     }
 
     @Override
     public void insert(PacienteParticular cliente, String username, String password) throws BLException {
         validarDatos(cliente);
         validarDocumentoUnico(cliente, false);
-        // Antes de guardar: sin credenciales válidas no se registra el cliente.
         CuentaInicialCliente.validar(username, password);
         try {
             pacienteParticularDAO.insert(cliente);
@@ -104,12 +109,10 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
         }
     }
 
-    /** Compensación: un cliente sin cuenta no debe quedar activo. */
     private void deshacerAlta(int id) {
         try {
             delete(id);
         } catch (BLException ignorada) {
-            // el error principal ya se informa al llamador
         }
     }
 

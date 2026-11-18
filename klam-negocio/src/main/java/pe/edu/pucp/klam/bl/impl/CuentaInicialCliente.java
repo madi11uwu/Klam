@@ -1,17 +1,15 @@
 package pe.edu.pucp.klam.bl.impl;
 
+import java.security.SecureRandom;
 import pe.edu.pucp.klam.bl.BLException;
 
-/**
- * RF01: todo cliente tiene credenciales y no puede existir sin ellas.
- * Al registrar un cliente se le crea su cuenta de acceso en el mismo paso:
- *  - alta del administrador: con el usuario y la contraseña que él indica (obligatorios);
- *  - alta del vendedor u otra vía sin credenciales: cuenta inicial con usuario = DNI o RUC y
- *    contraseña = "Klam" + ese número (el cliente la cambia desde "Cambiar contraseña").
- */
 final class CuentaInicialCliente {
 
-    private static final String PREFIJO_PASSWORD = "Klam";
+    private static final String LETRAS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    private static final String DIGITOS = "23456789";
+    private static final int LARGO = 12;
+
+    private static final SecureRandom ALEATORIO = new SecureRandom();
 
     private CuentaInicialCliente() {
     }
@@ -20,11 +18,24 @@ final class CuentaInicialCliente {
         return documento == null ? "" : documento.trim();
     }
 
-    static String passwordInicial(String documento) {
-        return PREFIJO_PASSWORD + usuarioInicial(documento);
+    static String passwordTemporal() {
+        char[] clave = new char[LARGO];
+        // Se asegura la composición mínima antes de rellenar el resto.
+        clave[0] = LETRAS.charAt(ALEATORIO.nextInt(LETRAS.length()));
+        clave[1] = DIGITOS.charAt(ALEATORIO.nextInt(DIGITOS.length()));
+        String todos = LETRAS + DIGITOS;
+        for (int i = 2; i < LARGO; i++) {
+            clave[i] = todos.charAt(ALEATORIO.nextInt(todos.length()));
+        }
+        for (int i = clave.length - 1; i > 0; i--) {
+            int j = ALEATORIO.nextInt(i + 1);
+            char temporal = clave[i];
+            clave[i] = clave[j];
+            clave[j] = temporal;
+        }
+        return new String(clave);
     }
 
-    /** Verifica, sin guardar nada, que el usuario y la contraseña sirven (formato y usuario libre). */
     static void validar(String username, String password) throws BLException {
         new UsuarioPlataformaBLImpl().validarCredencialesNuevas(username, password);
     }

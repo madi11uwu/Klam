@@ -78,8 +78,11 @@ public class ClientesResource {
             p.setNombre(datos.getNombre()); p.setDireccion(datos.getDireccion());
             p.setEmailContacto(datos.getEmailContacto()); p.setTelefono(datos.getTelefono());
             p.setDni(datos.getDni()); p.setPagoConfirmado(false);
-            pacientes.insert(p);
-            return Response.status(Response.Status.CREATED).entity(particular(p)).build();
+            String temporal = pacientes.insertConCuentaInicial(p);
+            return Response.status(Response.Status.CREATED)
+                    .entity(credencialInicial(particular(p), p.getDni(), temporal))
+                    .header("Cache-Control", "no-store")
+                    .build();
         } catch (BLException e) { return fallo(e); }
     }
 
@@ -107,8 +110,11 @@ public class ClientesResource {
             c.setEmailContacto(datos.getEmailContacto()); c.setTelefono(datos.getTelefono());
             c.setRuc(datos.getRuc()); c.setTieneConsignacion(datos.isTieneConsignacion());
             c.setPeriodoCredito(datos.getPeriodoCredito());
-            clinicas.insert(c);
-            return Response.status(Response.Status.CREATED).entity(clinica(c)).build();
+            String temporal = clinicas.insertConCuentaInicial(c);
+            return Response.status(Response.Status.CREATED)
+                    .entity(credencialInicial(clinica(c), c.getRuc(), temporal))
+                    .header("Cache-Control", "no-store")
+                    .build();
         } catch (BLException e) { return fallo(e); }
     }
 
@@ -123,16 +129,23 @@ public class ClientesResource {
     private Response error(Response.Status status, String message) {
         return Response.status(status).entity(Map.of("error", message)).build();
     }
+
+    private Map<String,Object> credencialInicial(Map<String,Object> cliente, String usuario, String passwordTemporal) {
+        Map<String,Object> respuesta = new java.util.LinkedHashMap<>(cliente);
+        respuesta.put("usuario", usuario);
+        respuesta.put("passwordTemporal", passwordTemporal);
+        return respuesta;
+    }
     private Map<String,Object> particular(PacienteParticular p) {
         return Map.of("idCliente",p.getIdCliente(),"nombre",p.getNombre(),"dni",p.getDni());
     }
     private Map<String,Object> clinica(ClinicaHospital c) {
         return Map.of("idCliente",c.getIdCliente(),"nombre",c.getNombre(),"ruc",c.getRuc());
     }
-    /** Habilita acceso sin volver a registrar al cliente comercial. */
+
     @POST @Path("/{tipo}/{id}/cuenta")
     public Response habilitarCuenta(@PathParam("tipo") String tipo, @PathParam("id") int id,
-                                   Map<String, String> datos) {
+                                    Map<String, String> datos) {
         SesionesRest.Sesion sesion = SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (sesion == null) return error(Response.Status.UNAUTHORIZED, "Sesión inválida o expirada");
         if (!"ADMINISTRADOR".equals(sesion.rol()))
