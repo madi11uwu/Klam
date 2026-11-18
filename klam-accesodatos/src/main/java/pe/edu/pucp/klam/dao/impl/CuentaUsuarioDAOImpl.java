@@ -96,6 +96,19 @@ public class CuentaUsuarioDAOImpl implements CuentaUsuarioDAO {
     }
 
     @Override
+    public boolean existePorCliente(String tipoCliente, int idCliente) throws SQLException {
+        String columna = "PACIENTE_PARTICULAR".equals(tipoCliente) ? "id_paciente" : "id_clinica";
+        String sql = "SELECT 1 FROM cuenta_usuario WHERE " + columna + " = ? LIMIT 1";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             PreparedStatement cmd = conn.prepareStatement(sql)) {
+            cmd.setInt(1, idCliente);
+            try (ResultSet rs = cmd.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    @Override
     public void insert(CuentaUsuario cuenta) throws SQLException {
         String sql = "INSERT INTO cuenta_usuario (username, password_hash, email, nombres, apellidos, "
                 + "activo, id_paciente, id_clinica) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";

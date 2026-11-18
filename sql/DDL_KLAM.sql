@@ -1,3 +1,5 @@
+-- Instalacion nueva: esquema definitivo. No ejecutar sobre una base existente
+-- como sustituto de las migraciones historicas.
 CREATE SCHEMA IF NOT EXISTS `klam` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
 
 USE `klam`;
@@ -82,6 +84,16 @@ CREATE TABLE IF NOT EXISTS `bandeja_consumible` (
                   CONSTRAINT `chk_bandeja_consumo_vs_despacho` CHECK (`cantidad_consumida` <= `cantidad_despachada`)
 );
 
+CREATE TABLE IF NOT EXISTS `bandeja_consumible_estandar` (
+    `id_bandeja` INT NOT NULL,
+    `id_consumible` INT NOT NULL,
+    `cantidad_estandar` INT NOT NULL,
+    PRIMARY KEY (`id_bandeja`, `id_consumible`),
+    CONSTRAINT `fk_bce_bandeja` FOREIGN KEY (`id_bandeja`) REFERENCES `bandeja_instrumental` (`id_bandeja`),
+    CONSTRAINT `fk_bce_consumible` FOREIGN KEY (`id_consumible`) REFERENCES `consumible` (`id_consumible`),
+    CONSTRAINT `chk_bce_cantidad` CHECK (`cantidad_estandar` > 0)
+);
+
 CREATE TABLE IF NOT EXISTS `equipo` (
       `id_equipo` INT NOT NULL AUTO_INCREMENT,
       `nombre` VARCHAR(150) NOT NULL,
@@ -141,8 +153,8 @@ CREATE TABLE IF NOT EXISTS `cuenta_usuario` (
     `id_clinica` INT NULL,
     PRIMARY KEY (`id_usuario`),
     UNIQUE KEY `uq_cuenta_username` (`username`),
-    KEY `idx_cuenta_paciente` (`id_paciente`),
-    KEY `idx_cuenta_clinica` (`id_clinica`),
+    UNIQUE KEY `uq_cuenta_paciente` (`id_paciente`),
+    UNIQUE KEY `uq_cuenta_clinica` (`id_clinica`),
     CONSTRAINT `fk_cuenta_paciente` FOREIGN KEY (`id_paciente`)
         REFERENCES `paciente_particular` (`id_cliente`) ON DELETE RESTRICT,
     CONSTRAINT `fk_cuenta_clinica` FOREIGN KEY (`id_clinica`)
@@ -209,6 +221,8 @@ CREATE TABLE IF NOT EXISTS `cirugia` (
        `tipo_procedimiento` VARCHAR(100) NOT NULL,
        `doctor_nombre` VARCHAR(100) NOT NULL,
        `diagnostico` VARCHAR(300) NOT NULL,
+       `paciente_nombre` VARCHAR(150) NULL,
+       `paciente_documento` VARCHAR(20) NULL,
        `motivo_cancelacion` VARCHAR(200) NULL,
        `estado` ENUM('PROGRAMADA','EN_PROCESO','FINALIZADA','CANCELADA')
 NOT NULL DEFAULT 'PROGRAMADA',
@@ -224,8 +238,7 @@ NOT NULL DEFAULT 'PROGRAMADA',
            CASE WHEN `activo` = 1 AND `estado` <> 'CANCELADA' THEN `id_solicitud_origen` ELSE NULL END
            ) STORED,
        PRIMARY KEY (`id_cirugia`),
-       -- una bandeja fisica no puede estar en dos cirugias (varios NULL permitidos)
-       UNIQUE KEY `uq_cirugia_bandeja` (`id_bandeja`),
+       KEY `idx_cirugia_bandeja` (`id_bandeja`),
        UNIQUE KEY `uq_cirugia_solicitud_vigente` (`solicitud_vigente`),
        KEY `idx_cirugia_fecha_inicio` (`fecha_hora_inicio`),
        KEY `idx_cirugia_estado` (`estado`),
@@ -349,6 +362,35 @@ NOT NULL DEFAULT 'PENDIENTE',
                      )
 );
 
+-- RF04: cada cambio documental genera un evento inmutable, separado de la bitacora RF16.
+-- El responsable procede de la sesion REST; no se almacena contenido clinico ni tokens.
+CREATE TABLE IF NOT EXISTS `auditoria_documental` (
+    `id_evento` INT NOT NULL AUTO_INCREMENT,
+    `id_documento` INT NULL,
+    `id_solicitud` INT NULL,
+    `id_cirugia` INT NULL,
+    `fecha_hora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `tipo_documento` VARCHAR(40) NOT NULL,
+    `accion` VARCHAR(40) NOT NULL,
+    `responsable` VARCHAR(150) NOT NULL,
+    `rol_responsable` VARCHAR(40) NULL,
+    `id_usuario_responsable` INT NULL,
+    `estado_anterior` VARCHAR(40) NULL,
+    `estado_nuevo` VARCHAR(40) NULL,
+    `descripcion` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id_evento`),
+    KEY `idx_auditoria_documental_fecha` (`fecha_hora`, `id_evento`),
+    KEY `idx_auditoria_documental_solicitud` (`id_solicitud`, `fecha_hora`),
+    KEY `idx_auditoria_documental_cirugia` (`id_cirugia`, `fecha_hora`),
+    KEY `idx_auditoria_documental_documento` (`id_documento`, `fecha_hora`),
+    CONSTRAINT `fk_auditoria_documental_documento` FOREIGN KEY (`id_documento`)
+        REFERENCES `documento_ingreso` (`id_documento`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_auditoria_documental_solicitud` FOREIGN KEY (`id_solicitud`)
+        REFERENCES `solicitud_cirugia` (`id_solicitud`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_auditoria_documental_cirugia` FOREIGN KEY (`id_cirugia`)
+        REFERENCES `cirugia` (`id_cirugia`) ON DELETE RESTRICT
+);
+
 CREATE TABLE IF NOT EXISTS `linea_orden_compra` (
                   `id_linea` INT NOT NULL AUTO_INCREMENT,
                   `id_orden_compra` INT NOT NULL,
@@ -437,6 +479,16 @@ CREATE TABLE IF NOT EXISTS `despacho` (
 
 -- Bitacora de auditoria de cirugias (RF16). Sin clase Java: se maneja desde
 -- CirugiaBL/CirugiaDAO. Los valores anterior/posterior se guardan como lineas campo=valor.
+CREATE TABLE IF NOT EXISTS `cirugia_consumible_previsto` (
+    `id_cirugia` INT NOT NULL,
+    `id_consumible` INT NOT NULL,
+    `cantidad_prevista` INT NOT NULL,
+    PRIMARY KEY (`id_cirugia`, `id_consumible`),
+    CONSTRAINT `fk_ccp_cirugia` FOREIGN KEY (`id_cirugia`) REFERENCES `cirugia` (`id_cirugia`),
+    CONSTRAINT `fk_ccp_consumible` FOREIGN KEY (`id_consumible`) REFERENCES `consumible` (`id_consumible`),
+    CONSTRAINT `chk_ccp_cantidad` CHECK (`cantidad_prevista` > 0)
+);
+
 CREATE TABLE IF NOT EXISTS `auditoria_cirugia` (
             `id_auditoria` INT NOT NULL AUTO_INCREMENT,
             `id_cirugia` INT NOT NULL,
