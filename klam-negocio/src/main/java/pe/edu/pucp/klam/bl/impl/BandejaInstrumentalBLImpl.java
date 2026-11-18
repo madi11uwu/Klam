@@ -3,6 +3,7 @@ package pe.edu.pucp.klam.bl.impl;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.BandejaInstrumentalBL;
 import pe.edu.pucp.klam.bl.DocumentoIngresoBL;
+import pe.edu.pucp.klam.bl.ValidacionException;
 import pe.edu.pucp.klam.dao.BandejaInstrumentalDAO;
 import pe.edu.pucp.klam.dao.CirugiaDAO;
 import pe.edu.pucp.klam.dao.ConsumibleDAO;
@@ -317,6 +318,53 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
         } catch (SQLException e) {
             TransactionsManager.rollbackSiActiva();
             throw new BLException("No se pudo registrar el consumo real" + ": " + e.getMessage(), e);
+        } catch (RuntimeException e) {
+            TransactionsManager.rollbackSiActiva();
+            throw e;
+        }
+    }
+
+    @Override
+    public void guardarConsumo(int idCirugia, Map<Integer, Integer> consumosPorConsumible, boolean confirmar) throws BLException {
+        Cirugia cirugia = buscarCirugiaCerrada(idCirugia);
+        if (consumosPorConsumible == null || consumosPorConsumible.isEmpty()) {
+            throw new ValidacionException("Debe indicar la cantidad consumida de al menos un consumible");
+        }
+        int idBandeja = cirugia.getBandejaInstrumental().getIdBandeja();
+        for (Map.Entry<Integer, Integer> e : consumosPorConsumible.entrySet()) {
+            if (e.getKey() == null || e.getValue() == null) {
+                throw new ValidacionException("Cada línea debe indicar el consumible y la cantidad consumida");
+            }
+            validarConsumoRegistrable(idBandeja, e.getKey(), e.getValue());
+        }
+        if (confirmar) {
+            // Al confirmar no puede quedar ningun consumible sin cantidad indicada (la base guarda 0 por defecto)
+            BandejaInstrumental bandeja = buscarBandeja(idBandeja);
+            for (Consumible c : bandeja.getConsumibles().keySet()) {
+                if (!consumosPorConsumible.containsKey(c.getIdConsumible())) {
+                    throw new ValidacionException("Indique la cantidad consumida de «" + c.getNombreComercial()
+                            + "» antes de confirmar el consumo");
+                }
+            }
+        }
+
+        // Todas las cantidades (y el cierre, si se confirma): o se guardan todas o ninguna
+        TransactionsManager.iniciar();
+        try {
+            for (Map.Entry<Integer, Integer> e : consumosPorConsumible.entrySet()) {
+                bandejaInstrumentalDAO.registrarConsumoReal(idBandeja, e.getKey(), e.getValue());
+            }
+            if (confirmar) {
+                cirugiaDAO.marcarConsumoCompleto(idCirugia);
+            }
+            TransactionsManager.commit();
+        } catch (SQLException e) {
+            TransactionsManager.rollbackSiActiva();
+            // SQLSTATE 45000: regla de negocio lanzada por el procedimiento (SIGNAL) con mensaje para el usuario
+            if ("45000".equals(e.getSQLState())) {
+                throw new ValidacionException(e.getMessage());
+            }
+            throw new BLException("No se pudo guardar el consumo: " + e.getMessage(), e);
         } catch (RuntimeException e) {
             TransactionsManager.rollbackSiActiva();
             throw e;

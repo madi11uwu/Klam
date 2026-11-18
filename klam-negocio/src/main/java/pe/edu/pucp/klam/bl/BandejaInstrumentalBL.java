@@ -41,6 +41,13 @@ public interface BandejaInstrumentalBL extends BaseBL<BandejaInstrumental, Integ
     /** Registra todos los consumos indicados (idConsumible -> cantidad) y cierra el registro, en una transaccion. */
     void registrarConsumoCompleto(int idCirugia, Map<Integer, Integer> consumosPorConsumible) throws BLException;
 
+    /**
+     * Guarda las cantidades consumidas indicadas (idConsumible -> cantidad) en una sola transaccion.
+     * Con confirmar=true deben venir todos los consumibles de la bandeja y, tras guardarlos, el
+     * consumo queda completo (ya no se puede modificar). Con confirmar=false el registro sigue editable.
+     */
+    void guardarConsumo(int idCirugia, Map<Integer, Integer> consumosPorConsumible, boolean confirmar) throws BLException;
+
     /** Marca el consumo de la cirugia como completo: despues ya no se puede modificar. */
     void marcarConsumoCompleto(int idCirugia) throws BLException;
 
