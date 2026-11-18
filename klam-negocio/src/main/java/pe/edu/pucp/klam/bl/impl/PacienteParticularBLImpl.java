@@ -132,6 +132,9 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
         if (nombre == null || nombre.isBlank()) {
             throw new BLException("El nombre es obligatorio");
         }
+        if (correo == null || correo.isBlank()) {
+            throw new BLException("El correo de contacto es obligatorio (se usa para enviar las credenciales)");
+        }
         validarLongitud(nombre, 150, "El nombre");
         validarLongitud(direccion, 200, "La dirección");
         validarLongitud(correo, 120, "El correo de contacto");
