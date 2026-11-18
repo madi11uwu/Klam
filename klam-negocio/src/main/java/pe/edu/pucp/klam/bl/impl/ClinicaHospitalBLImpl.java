@@ -99,6 +99,7 @@ public class ClinicaHospitalBLImpl implements ClinicaHospitalBL {
         String documento = CuentaInicialCliente.usuarioInicial(cliente.getRuc());
         String temporal = CuentaInicialCliente.passwordTemporal();
         insert(cliente, documento, temporal);
+        CuentaInicialCliente.avisarPorCorreo(cliente.getNombre(), cliente.getEmailContacto(), documento, temporal);
         return temporal;
     }
 

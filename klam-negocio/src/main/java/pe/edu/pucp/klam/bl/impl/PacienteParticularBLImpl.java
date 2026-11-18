@@ -88,6 +88,7 @@ public class PacienteParticularBLImpl implements PacienteParticularBL {
         String documento = CuentaInicialCliente.usuarioInicial(cliente.getDni());
         String temporal = CuentaInicialCliente.passwordTemporal();
         insert(cliente, documento, temporal);
+        CuentaInicialCliente.avisarPorCorreo(cliente.getNombre(), cliente.getEmailContacto(), documento, temporal);
         return temporal;
     }
 
