@@ -88,11 +88,11 @@ public class BandejaInstrumentalDAOImpl implements BandejaInstrumentalDAO {
     }
 
     @Override
-    public void registrarConsumoReal(int idBandeja, int idConsumible, int cantConsumida) throws SQLException {
+    public void registrarConsumoReal(int idCirugia, int idConsumible, int cantConsumida) throws SQLException {
         String sql = "{call registrar_consumo_bandeja(?, ?, ?)}";
         Connection conn = TransactionsManager.obtenerConexion();
         try (CallableStatement cmd = conn.prepareCall(sql)) {
-            cmd.setInt("p_id_bandeja", idBandeja);
+            cmd.setInt("p_id_cirugia", idCirugia);
             cmd.setInt("p_id_consumible", idConsumible);
             cmd.setInt("p_cantidad_consumida", cantConsumida);
 
