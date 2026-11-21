@@ -318,6 +318,11 @@ public class CirugiaBLImpl implements CirugiaBL {
 
         TransactionsManager.iniciar();
         try {
+            if (cirugia.getSolicitudOrigen() != null) {
+                var elegibilidad = new SolicitudCirugiaBLImpl().evaluarElegibilidadParaRegistro(
+                        cirugia.getSolicitudOrigen().getIdSolicitud());
+                if (!elegibilidad.puedeRegistrar()) throw new BLException(elegibilidad.motivo());
+            }
             cirugiaDAO.insert(cirugia);
             int id = cirugia.getIdCirugia();
             cirugiaDAO.reemplazarConsumiblesPrevistos(id, cirugia.getConsumiblesPrevistos());

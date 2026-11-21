@@ -7,10 +7,15 @@ ALTER TABLE cotizacion
     ADD COLUMN version INT NOT NULL DEFAULT 1,
     ADD COLUMN vigente TINYINT(1) NOT NULL DEFAULT 0,
     ADD COLUMN archivo_path VARCHAR(255) NULL,
+    ADD COLUMN fecha_decision DATETIME NULL,
+    ADD COLUMN id_cuenta_decision INT NULL,
+    ADD COLUMN motivo_rechazo VARCHAR(200) NULL,
     ADD COLUMN solicitud_vigente INT GENERATED ALWAYS AS
         (CASE WHEN vigente = 1 THEN id_solicitud ELSE NULL END) STORED,
     ADD UNIQUE KEY uq_cotizacion_solicitud_version (id_solicitud, version),
     ADD UNIQUE KEY uq_cotizacion_solicitud_vigente (solicitud_vigente),
+    ADD CONSTRAINT fk_cotizacion_cuenta_decision FOREIGN KEY (id_cuenta_decision)
+        REFERENCES cuenta_usuario(id_usuario) ON DELETE RESTRICT,
     ADD CONSTRAINT fk_cotizacion_solicitud FOREIGN KEY (id_solicitud)
         REFERENCES solicitud_cirugia(id_solicitud) ON DELETE RESTRICT,
     ADD CONSTRAINT chk_cotizacion_origen CHECK
@@ -28,13 +33,13 @@ DROP PROCEDURE IF EXISTS buscar_cotizacion_vigente_solicitud;
 DELIMITER $$
 CREATE PROCEDURE listar_cotizaciones()
 BEGIN
-    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path,
+    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path, fecha_decision, id_cuenta_decision, motivo_rechazo,
            precio_pactado, estado, fecha_emision, activo
       FROM cotizacion WHERE activo = 1;
 END$$
 CREATE PROCEDURE buscar_cotizacion_por_id(IN p_id INT)
 BEGIN
-    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path,
+    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path, fecha_decision, id_cuenta_decision, motivo_rechazo,
            precio_pactado, estado, fecha_emision, activo
       FROM cotizacion WHERE id_cotizacion = p_id;
 END$$
@@ -42,10 +47,10 @@ CREATE PROCEDURE actualizar_estado_cotizacion(IN p_id INT, IN p_estado VARCHAR(2
 BEGIN
     UPDATE cotizacion SET estado = p_estado
      WHERE id_cotizacion = p_id
-       AND (id_solicitud IS NULL OR (vigente = 1 AND estado = 'EMITIDA'));
+       AND id_solicitud IS NULL;
 END$$CREATE PROCEDURE listar_cotizaciones_por_cirugia(IN p_id_cirugia INT)
 BEGIN
-    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path,
+    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path, fecha_decision, id_cuenta_decision, motivo_rechazo,
            precio_pactado, estado, fecha_emision, activo
       FROM cotizacion WHERE activo = 1 AND id_cirugia = p_id_cirugia;
 END$$CREATE PROCEDURE insertar_cotizacion_solicitud(
@@ -83,14 +88,14 @@ END$$
 
 CREATE PROCEDURE listar_cotizaciones_por_solicitud(IN p_id_solicitud INT)
 BEGIN
-    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path,
+    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path, fecha_decision, id_cuenta_decision, motivo_rechazo,
            precio_pactado, estado, fecha_emision, activo
       FROM cotizacion WHERE id_solicitud = p_id_solicitud ORDER BY version DESC;
 END$$
 
 CREATE PROCEDURE buscar_cotizacion_vigente_solicitud(IN p_id_solicitud INT)
 BEGIN
-    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path,
+    SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path, fecha_decision, id_cuenta_decision, motivo_rechazo,
            precio_pactado, estado, fecha_emision, activo
       FROM cotizacion WHERE id_solicitud = p_id_solicitud AND vigente = 1;
 END$$

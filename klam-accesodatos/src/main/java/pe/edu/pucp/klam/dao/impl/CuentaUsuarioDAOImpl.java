@@ -11,7 +11,20 @@ import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario;
 
-public class CuentaUsuarioDAOImpl implements CuentaUsuarioDAO {
+public class CuentaUsuarioDAOImpl implements CuentaUsuarioDAO {    @Override
+    public boolean esCuentaDeClinica(int idUsuario, int idClinica) throws SQLException {
+        String sql = "SELECT 1 FROM cuenta_usuario WHERE id_usuario = ? AND id_clinica = ? AND activo = 1";
+        Connection conn = pe.edu.pucp.klam.dao.transacciones.TransactionsManager.obtenerConexion();
+        try {
+            try (PreparedStatement cmd = conn.prepareStatement(sql)) {
+                cmd.setInt(1, idUsuario);
+                cmd.setInt(2, idClinica);
+                try (ResultSet rs = cmd.executeQuery()) { return rs.next(); }
+            }
+        } finally {
+            pe.edu.pucp.klam.dao.transacciones.TransactionsManager.liberar(conn);
+        }
+    }
     @Override
     public CuentaUsuario findByUsername(String username) throws SQLException {
         String sql = "SELECT id_usuario, username, password_hash, email, nombres, apellidos, "

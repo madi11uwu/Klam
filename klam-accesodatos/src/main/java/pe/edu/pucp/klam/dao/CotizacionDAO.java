@@ -12,4 +12,6 @@ public interface CotizacionDAO extends DAO<Cotizacion, Integer> {
     Cotizacion buscarVigentePorSolicitud(Integer idSolicitud) throws SQLException;
     void insertarVersionSolicitud(Cotizacion cotizacion) throws SQLException;
     void actualizarEstado(Integer id, EstadoCotizacion estado) throws SQLException;
+    boolean resolverVersionVigente(int id, EstadoCotizacion estado, int idCuentaUsuario,
+            String motivo) throws SQLException;
 }

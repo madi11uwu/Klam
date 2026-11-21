@@ -534,6 +534,45 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
     }
 
     @Override
+    public Elegibilidad evaluarElegibilidad(int idSolicitud) throws BLException {
+        SolicitudCirugia solicitud = buscarSolicitud(idSolicitud);
+        boolean clinica = solicitud.getCliente() instanceof ClinicaHospital;
+        boolean documentos = documentoBL.verificarDocumentosObligatoriosValidados(idSolicitud);
+        String estadoDocumental = documentos ? "VALIDADA" : "INCOMPLETA";
+        if (solicitud.getEstado() != EstadoSolicitudCirugia.APROBADA)
+            return new Elegibilidad(false, "La solicitud debe estar APROBADA", clinica, null, estadoDocumental);
+        if (!documentos)
+            return new Elegibilidad(false, "Faltan documentos obligatorios vigentes y validados", clinica, null, estadoDocumental);
+        try {
+            Integer existente = cirugiaDAO.buscarCirugiaVigentePorSolicitud(idSolicitud);
+            if (existente != null)
+                return new Elegibilidad(false, "La solicitud ya tiene una cirugía vigente (id " + existente + ")",
+                        clinica, null, estadoDocumental);
+            if (!clinica) return new Elegibilidad(true, null, false, null, estadoDocumental);
+            var cotizacion = new pe.edu.pucp.klam.dao.impl.CotizacionDAOImpl()
+                    .buscarVigentePorSolicitud(idSolicitud);
+            if (cotizacion == null)
+                return new Elegibilidad(false, "La clínica aún no tiene cotización vigente", true, null, estadoDocumental);
+            String estado = cotizacion.getEstado().name();
+            if (cotizacion.getEstado() != pe.edu.pucp.klam.modelo.documentacionfinanzas.EstadoCotizacion.ACEPTADA)
+                return new Elegibilidad(false, "La cotización vigente está " + estado, true, estado, estadoDocumental);
+            return new Elegibilidad(true, null, true, estado, estadoDocumental);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo evaluar la solicitud para registrar cirugía", e);
+        }
+    }
+
+    @Override
+    public Elegibilidad evaluarElegibilidadParaRegistro(int idSolicitud) throws BLException {
+        if (!TransactionsManager.activa()) throw new IllegalStateException("Se requiere una transacción activa");
+        try {
+            solicitudDAO.bloquearParaRegistro(idSolicitud);
+            return evaluarElegibilidad(idSolicitud);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo bloquear la solicitud", e);
+        }
+    }
+    @Override
     public int registrarCirugiaDesdeSolicitud(
             int idSolicitud,
             Cirugia cirugia,
