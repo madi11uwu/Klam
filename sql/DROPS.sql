@@ -7,8 +7,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- Eliminar tablas transaccionales y de detalle (hijas)
 DROP TABLE IF EXISTS `auditoria_cirugia`;
+DROP TABLE IF EXISTS `auditoria_documental`;
 DROP TABLE IF EXISTS `despacho`;
 DROP TABLE IF EXISTS `cirugia_consumible_previsto`;
+DROP TABLE IF EXISTS `cirugia_consumible_real`;
 DROP TABLE IF EXISTS `notificacion`;
 DROP TABLE IF EXISTS `linea_orden_compra`;
 DROP TABLE IF EXISTS `documento_ingreso`;

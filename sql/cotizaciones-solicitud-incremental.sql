@@ -21,6 +21,11 @@ ALTER TABLE cotizacion
         REFERENCES cuenta_usuario(id_usuario) ON DELETE RESTRICT,
     ADD CONSTRAINT fk_cotizacion_solicitud FOREIGN KEY (id_solicitud)
         REFERENCES solicitud_cirugia(id_solicitud) ON DELETE RESTRICT,
+    -- MySQL no permite CHECK sobre id_cirugia si su FK usa ON UPDATE CASCADE.
+    -- Verificar antes que la FK existente tenga este nombre.
+    DROP FOREIGN KEY fk_cotizacion_cirugia,
+    ADD CONSTRAINT fk_cotizacion_cirugia FOREIGN KEY (id_cirugia)
+        REFERENCES cirugia(id_cirugia) ON DELETE RESTRICT ON UPDATE RESTRICT,
     ADD CONSTRAINT chk_cotizacion_origen CHECK
         ((id_cirugia IS NOT NULL AND id_solicitud IS NULL AND vigente = 0)
          OR (id_cirugia IS NULL AND id_solicitud IS NOT NULL
