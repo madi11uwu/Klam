@@ -3,6 +3,11 @@ package pe.edu.pucp.klam.bl.impl;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CotizacionBL;
 import pe.edu.pucp.klam.dao.CirugiaDAO;
+import pe.edu.pucp.klam.dao.SolicitudCirugiaDAO;
+import pe.edu.pucp.klam.dao.impl.SolicitudCirugiaDAOImpl;
+import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.EstadoSolicitudCirugia;
+import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.dao.CotizacionDAO;
 import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.impl.CotizacionDAOImpl;
@@ -17,6 +22,7 @@ public class CotizacionBLImpl implements CotizacionBL {
 
     private final CotizacionDAO cotizacionDAO = new CotizacionDAOImpl();
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
+    private final SolicitudCirugiaDAO solicitudDAO = new SolicitudCirugiaDAOImpl();
 
     @Override
     public List<Cotizacion> findAll() throws BLException {
@@ -50,8 +56,44 @@ public class CotizacionBLImpl implements CotizacionBL {
     }
 
     @Override
+    public List<Cotizacion> listarPorSolicitud(Integer idSolicitud) throws BLException {
+        try {
+            return cotizacionDAO.listarPorSolicitud(idSolicitud);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo consultar el historial de cotizaciones", e);
+        }
+    }
+
+    @Override
+    public Cotizacion buscarVigentePorSolicitud(Integer idSolicitud) throws BLException {
+        try {
+            return cotizacionDAO.buscarVigentePorSolicitud(idSolicitud);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo consultar la cotización vigente", e);
+        }
+    }
+    @Override
     public void insert(Cotizacion cotizacion) throws BLException {
         validarDatos(cotizacion);
+        if (cotizacion.getSolicitud() != null) {
+            TransactionsManager.iniciar();
+            try {
+                var solicitud = solicitudDAO.findById(cotizacion.getSolicitud().getIdSolicitud());
+                if (solicitud == null || !(solicitud.getCliente() instanceof ClinicaHospital)
+                        || solicitud.getEstado() != EstadoSolicitudCirugia.APROBADA) {
+                    throw new BLException("La cotización requiere una solicitud de clínica aprobada");
+                }
+                cotizacionDAO.insertarVersionSolicitud(cotizacion);
+                TransactionsManager.commit();
+                return;
+            } catch (SQLException e) {
+                TransactionsManager.rollbackSiActiva();
+                throw new BLException("No se pudo registrar la cotización", e);
+            } catch (RuntimeException e) {
+                TransactionsManager.rollbackSiActiva();
+                throw e;
+            }
+        }
         try {
             cotizacionDAO.insert(cotizacion);
         } catch (SQLException e) {
@@ -108,6 +150,9 @@ public class CotizacionBLImpl implements CotizacionBL {
                 && nuevo != EstadoCotizacion.VENCIDA) {
             throw new BLException("Estado de cotización no válido: " + nuevo);
         }
+        if (cotizacion.getSolicitud() != null && !cotizacion.isVigente()) {
+            throw new BLException("No se puede resolver una versión anterior de cotización");
+        }
         if (cotizacion.estaResuelta()) {
             throw new BLException("La cotización ya está " + cotizacion.getEstado()
                     + " y no puede pasar a " + nuevo);
@@ -138,6 +183,13 @@ public class CotizacionBLImpl implements CotizacionBL {
             throw new BLException("La fecha de emisión es obligatoria");
         }
 
+        if (cotizacion.getSolicitud() != null) {
+            if (cotizacion.getCirugia() != null || cotizacion.getSolicitud().getIdSolicitud() <= 0
+                    || cotizacion.getArchivoPath() == null || cotizacion.getArchivoPath().isBlank()) {
+                throw new BLException("La cotización de solicitud requiere solicitud y archivo, sin cirugía previa");
+            }
+            return;
+        }
         if (cotizacion.getCirugia() == null) {
             throw new BLException("La cotización debe estar asociada a una cirugía");
         }

@@ -3,6 +3,7 @@ package pe.edu.pucp.klam.modelo.documentacionfinanzas;
 import java.time.LocalDateTime;
 
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 
 public class Cotizacion {
     private int idCotizacion;
@@ -10,6 +11,10 @@ public class Cotizacion {
     private EstadoCotizacion estado;
     private LocalDateTime fechaEmision;
     private Cirugia cirugia;
+    private SolicitudCirugia solicitud;
+    private int version;
+    private boolean vigente;
+    private String archivoPath;
     private boolean activo;
 
     public Cotizacion() {
@@ -34,6 +39,10 @@ public class Cotizacion {
         setEstado(cotizacion.getEstado());
         setFechaEmision(cotizacion.getFechaEmision());
         setCirugia(cotizacion.getCirugia());
+        setSolicitud(cotizacion.getSolicitud());
+        setVersion(cotizacion.getVersion());
+        setVigente(cotizacion.isVigente());
+        setArchivoPath(cotizacion.getArchivoPath());
         setActivo(cotizacion.isActivo());
     }
 
@@ -73,6 +82,15 @@ public class Cotizacion {
 
     public Cirugia getCirugia() { return cirugia; }
     public void setCirugia(Cirugia cirugia) { this.cirugia = cirugia; }
+
+    public SolicitudCirugia getSolicitud() { return solicitud; }
+    public void setSolicitud(SolicitudCirugia solicitud) { this.solicitud = solicitud; }
+    public int getVersion() { return version; }
+    public void setVersion(int version) { this.version = version; }
+    public boolean isVigente() { return vigente; }
+    public void setVigente(boolean vigente) { this.vigente = vigente; }
+    public String getArchivoPath() { return archivoPath; }
+    public void setArchivoPath(String archivoPath) { this.archivoPath = archivoPath; }
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
