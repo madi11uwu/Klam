@@ -11,6 +11,7 @@ import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 public interface SolicitudCirugiaDAO {
     void insert(SolicitudCirugia solicitud) throws SQLException;
     SolicitudCirugia findById(Integer id) throws SQLException;
+    void bloquearParaRegistro(int idSolicitud) throws SQLException;
     List<SolicitudCirugia> findAll() throws SQLException;
     List<SolicitudCirugia> listarPorEstado(EstadoSolicitudCirugia e) throws SQLException;
     List<SolicitudCirugia> listarPorCliente(Cliente cliente) throws SQLException;

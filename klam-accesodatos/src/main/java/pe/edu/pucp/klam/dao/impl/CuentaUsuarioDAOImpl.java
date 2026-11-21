@@ -11,7 +11,20 @@ import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario;
 
-public class CuentaUsuarioDAOImpl implements CuentaUsuarioDAO {
+public class CuentaUsuarioDAOImpl implements CuentaUsuarioDAO {    @Override
+    public boolean esCuentaDeClinica(int idUsuario, int idClinica) throws SQLException {
+        String sql = "SELECT 1 FROM cuenta_usuario WHERE id_usuario = ? AND id_clinica = ? AND activo = 1";
+        Connection conn = pe.edu.pucp.klam.dao.transacciones.TransactionsManager.obtenerConexion();
+        try {
+            try (PreparedStatement cmd = conn.prepareStatement(sql)) {
+                cmd.setInt(1, idUsuario);
+                cmd.setInt(2, idClinica);
+                try (ResultSet rs = cmd.executeQuery()) { return rs.next(); }
+            }
+        } finally {
+            pe.edu.pucp.klam.dao.transacciones.TransactionsManager.liberar(conn);
+        }
+    }
     @Override
     public CuentaUsuario findByUsername(String username) throws SQLException {
         String sql = "SELECT id_usuario, username, password_hash, email, nombres, apellidos, "
@@ -45,6 +58,65 @@ public class CuentaUsuarioDAOImpl implements CuentaUsuarioDAO {
                     }
                 }
                 return cuenta;
+            }
+        }
+    }
+
+    /** Todas las cuentas de clientes, con el nombre del cliente al que pertenecen. */
+    @Override
+    public java.util.List<CuentaUsuario> findAll() throws SQLException {
+        String sql = "SELECT c.id_usuario, c.username, c.email, c.nombres, c.apellidos, c.activo, "
+                + "c.id_paciente, c.id_clinica, p.nombre AS nombre_paciente, h.nombre AS nombre_clinica "
+                + "FROM cuenta_usuario c "
+                + "LEFT JOIN paciente_particular p ON p.id_cliente = c.id_paciente "
+                + "LEFT JOIN clinica_hospital h ON h.id_cliente = c.id_clinica "
+                + "ORDER BY c.id_usuario";
+        java.util.List<CuentaUsuario> cuentas = new java.util.ArrayList<>();
+        try (Connection conn = DBManager.getInstance().getConnection();
+             PreparedStatement cmd = conn.prepareStatement(sql);
+             ResultSet rs = cmd.executeQuery()) {
+            while (rs.next()) {
+                CuentaUsuario cuenta = new CuentaUsuario();
+                cuenta.setIdUsuario(rs.getInt("id_usuario"));
+                cuenta.setUsername(rs.getString("username"));
+                cuenta.setEmail(rs.getString("email"));
+                cuenta.setActivo(rs.getBoolean("activo"));
+                String nombres = rs.getString("nombres");
+                String apellidos = rs.getString("apellidos");
+                int idPaciente = rs.getInt("id_paciente");
+                if (!rs.wasNull()) {
+                    PacienteParticular paciente = new PacienteParticular();
+                    paciente.setIdCliente(idPaciente);
+                    paciente.setNombre(rs.getString("nombre_paciente"));
+                    cuenta.setCliente(paciente);
+                    cuenta.setRol("PACIENTE_PARTICULAR");
+                    if (nombres == null || nombres.isBlank()) nombres = rs.getString("nombre_paciente");
+                } else {
+                    int idClinica = rs.getInt("id_clinica");
+                    ClinicaHospital clinica = new ClinicaHospital();
+                    clinica.setIdCliente(idClinica);
+                    clinica.setNombre(rs.getString("nombre_clinica"));
+                    cuenta.setCliente(clinica);
+                    cuenta.setRol("CLINICA_HOSPITAL");
+                    if (nombres == null || nombres.isBlank()) nombres = rs.getString("nombre_clinica");
+                }
+                cuenta.setNombres(nombres == null ? "" : nombres);
+                cuenta.setApellidos(apellidos == null ? "" : apellidos);
+                cuentas.add(cuenta);
+            }
+        }
+        return cuentas;
+    }
+
+    @Override
+    public boolean existePorCliente(String tipoCliente, int idCliente) throws SQLException {
+        String columna = "PACIENTE_PARTICULAR".equals(tipoCliente) ? "id_paciente" : "id_clinica";
+        String sql = "SELECT 1 FROM cuenta_usuario WHERE " + columna + " = ? LIMIT 1";
+        try (Connection conn = DBManager.getInstance().getConnection();
+             PreparedStatement cmd = conn.prepareStatement(sql)) {
+            cmd.setInt(1, idCliente);
+            try (ResultSet rs = cmd.executeQuery()) {
+                return rs.next();
             }
         }
     }

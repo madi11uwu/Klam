@@ -285,6 +285,9 @@ CREATE TABLE IF NOT EXISTS `cotizacion` (
           `version` INT NOT NULL DEFAULT 1,
           `vigente` TINYINT(1) NOT NULL DEFAULT 0,
           `archivo_path` VARCHAR(255) NULL,
+          `fecha_decision` DATETIME NULL,
+          `id_cuenta_decision` INT NULL,
+          `motivo_rechazo` VARCHAR(200) NULL,
           `solicitud_vigente` INT GENERATED ALWAYS AS (CASE WHEN `vigente` = 1 THEN `id_solicitud` ELSE NULL END) STORED,
           `precio_pactado` DECIMAL(10,2) NOT NULL,
           `estado` ENUM('EMITIDA','ACEPTADA','RECHAZADA','VENCIDA')
@@ -295,6 +298,7 @@ NOT NULL DEFAULT 'EMITIDA',
           UNIQUE KEY `uq_cotizacion_solicitud_version` (`id_solicitud`, `version`),
           UNIQUE KEY `uq_cotizacion_solicitud_vigente` (`solicitud_vigente`),
           CONSTRAINT `chk_cotizacion_origen` CHECK ((`id_cirugia` IS NOT NULL AND `id_solicitud` IS NULL AND `vigente` = 0) OR (`id_cirugia` IS NULL AND `id_solicitud` IS NOT NULL AND `archivo_path` IS NOT NULL AND `version` > 0)),
+          CONSTRAINT `fk_cotizacion_cuenta_decision` FOREIGN KEY (`id_cuenta_decision`) REFERENCES `cuenta_usuario` (`id_usuario`) ON DELETE RESTRICT,
           CONSTRAINT `fk_cotizacion_solicitud` FOREIGN KEY (`id_solicitud`) REFERENCES `solicitud_cirugia` (`id_solicitud`) ON DELETE RESTRICT,
           CONSTRAINT `fk_cotizacion_cirugia`
               FOREIGN KEY (`id_cirugia`) REFERENCES `cirugia` (`id_cirugia`)

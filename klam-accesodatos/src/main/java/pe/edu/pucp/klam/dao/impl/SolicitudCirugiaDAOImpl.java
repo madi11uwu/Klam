@@ -86,6 +86,17 @@ public class SolicitudCirugiaDAOImpl implements SolicitudCirugiaDAO {
     }
 
     @Override
+    public void bloquearParaRegistro(int idSolicitud) throws SQLException {
+        Connection conn = TransactionsManager.getConnection();
+        try (var cmd = conn.prepareStatement(
+                "SELECT id_solicitud FROM solicitud_cirugia WHERE id_solicitud = ? FOR UPDATE")) {
+            cmd.setInt(1, idSolicitud);
+            try (ResultSet rs = cmd.executeQuery()) {
+                if (!rs.next()) throw new SQLException("No existe la solicitud " + idSolicitud);
+            }
+        }
+    }
+    @Override
     public SolicitudCirugia findById(Integer id) throws SQLException {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("ID de solicitud inválido");

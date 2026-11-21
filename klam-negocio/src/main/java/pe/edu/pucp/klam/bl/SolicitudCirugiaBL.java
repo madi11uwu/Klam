@@ -52,6 +52,12 @@ public interface SolicitudCirugiaBL {
             int idSolicitud
     ) throws BLException;
 
+    record Elegibilidad(boolean puedeRegistrar, String motivo, boolean requiereCotizacion,
+            String estadoCotizacion, String estadoDocumental) { }
+
+    Elegibilidad evaluarElegibilidad(int idSolicitud) throws BLException;
+    Elegibilidad evaluarElegibilidadParaRegistro(int idSolicitud) throws BLException;
+
     int registrarCirugiaDesdeSolicitud(
             int idSolicitud,
             Cirugia cirugia,

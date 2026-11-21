@@ -3,6 +3,8 @@ package pe.edu.pucp.klam.bl.impl;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -182,6 +184,8 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
 
         solicitud.setFechaSolicitud(LocalDateTime.now());
 
+        validarNoDuplicada(solicitud);
+
         TransactionsManager.iniciar();
 
         try {
@@ -202,8 +206,6 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
 
             TransactionsManager.commit();
 
-            return solicitud.getIdSolicitud();
-
         } catch (SQLException e) {
             TransactionsManager.rollbackSiActiva();
             throw new BLException(
@@ -213,6 +215,64 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
             TransactionsManager.rollbackSiActiva();
             throw e;
         }
+
+        // RF11: correo automático a los administradores, fuera de la transacción.
+        // Si el correo falla, la solicitud y el aviso interno ya quedaron registrados (no se repiten).
+        notificacionBL.enviarCorreoAdministradores(
+                "BIOKLAM · Nueva solicitud de cirugía " + solicitud.getIdSolicitud(),
+                cuerpoCorreoNuevaSolicitud(solicitud));
+
+        return solicitud.getIdSolicitud();
+    }
+
+    // RF11: un reintento (doble clic, red lenta) no debe registrar dos veces la misma solicitud
+    // ni duplicar los avisos al administrador.
+    private void validarNoDuplicada(SolicitudCirugia nueva) throws BLException {
+        LocalDateTime fecha = nueva.getFechaHoraSolicitada().truncatedTo(ChronoUnit.MINUTES);
+        try {
+            for (SolicitudCirugia existente : solicitudDAO.listarPorCliente(nueva.getCliente())) {
+                if (existente.getEstado() == EstadoSolicitudCirugia.POR_REVISAR
+                        && existente.getFechaHoraSolicitada() != null
+                        && fecha.equals(existente.getFechaHoraSolicitada().truncatedTo(ChronoUnit.MINUTES))
+                        && nueva.getTipoProcedimiento().equalsIgnoreCase(textoLimpio(existente.getTipoProcedimiento()))
+                        && nueva.getPacienteNombre().equalsIgnoreCase(textoLimpio(existente.getPacienteNombre()))) {
+                    throw new BLException("Ya existe una solicitud igual pendiente de revisión (solicitud "
+                            + existente.getIdSolicitud() + ")");
+                }
+            }
+        } catch (SQLException e) {
+            throw new BLException("No se pudo verificar si la solicitud ya fue registrada", e);
+        }
+    }
+
+    private static String textoLimpio(String texto) {
+        return texto == null ? "" : texto.trim();
+    }
+
+    private String cuerpoCorreoNuevaSolicitud(SolicitudCirugia solicitud) {
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String registradaPor = "El propio cliente";
+        if (solicitud.getVendedorRegistrador() != null) {
+            registradaPor = "Vendedor";
+            try {
+                Vendedor vendedor = vendedorDAO.findById(solicitud.getVendedorRegistrador().getIdUsuario());
+                if (vendedor != null) {
+                    registradaPor = "Vendedor " + vendedor.getNombres() + " " + vendedor.getApellidos();
+                }
+            } catch (SQLException e) {
+                // el correo sale igual, sin el nombre del vendedor
+            }
+        }
+        return "Se registró una nueva solicitud de cirugía en BIOKLAM.\n\n"
+                + "Solicitud: " + solicitud.getIdSolicitud() + "\n"
+                + "Cliente: " + solicitud.getCliente().getNombre() + "\n"
+                + "Paciente: " + solicitud.getPacienteNombre() + "\n"
+                + "Procedimiento: " + solicitud.getTipoProcedimiento() + "\n"
+                + "Médico: " + solicitud.getDoctorNombre() + "\n"
+                + "Fecha solicitada: " + solicitud.getFechaHoraSolicitada().format(formato) + "\n"
+                + "Registrada por: " + registradaPor + "\n\n"
+                + "Revísela en BIOKLAM > Solicitudes, o desde el aviso en su bandeja de notificaciones.\n\n"
+                + "Este es un correo automático; no lo responda.";
     }
 
     @Override
@@ -473,6 +533,45 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         }
     }
 
+    @Override
+    public Elegibilidad evaluarElegibilidad(int idSolicitud) throws BLException {
+        SolicitudCirugia solicitud = buscarSolicitud(idSolicitud);
+        boolean clinica = solicitud.getCliente() instanceof ClinicaHospital;
+        boolean documentos = documentoBL.verificarDocumentosObligatoriosValidados(idSolicitud);
+        String estadoDocumental = documentos ? "VALIDADA" : "INCOMPLETA";
+        if (solicitud.getEstado() != EstadoSolicitudCirugia.APROBADA)
+            return new Elegibilidad(false, "La solicitud debe estar APROBADA", clinica, null, estadoDocumental);
+        if (!documentos)
+            return new Elegibilidad(false, "Faltan documentos obligatorios vigentes y validados", clinica, null, estadoDocumental);
+        try {
+            Integer existente = cirugiaDAO.buscarCirugiaVigentePorSolicitud(idSolicitud);
+            if (existente != null)
+                return new Elegibilidad(false, "La solicitud ya tiene una cirugía vigente (id " + existente + ")",
+                        clinica, null, estadoDocumental);
+            if (!clinica) return new Elegibilidad(true, null, false, null, estadoDocumental);
+            var cotizacion = new pe.edu.pucp.klam.dao.impl.CotizacionDAOImpl()
+                    .buscarVigentePorSolicitud(idSolicitud);
+            if (cotizacion == null)
+                return new Elegibilidad(false, "La clínica aún no tiene cotización vigente", true, null, estadoDocumental);
+            String estado = cotizacion.getEstado().name();
+            if (cotizacion.getEstado() != pe.edu.pucp.klam.modelo.documentacionfinanzas.EstadoCotizacion.ACEPTADA)
+                return new Elegibilidad(false, "La cotización vigente está " + estado, true, estado, estadoDocumental);
+            return new Elegibilidad(true, null, true, estado, estadoDocumental);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo evaluar la solicitud para registrar cirugía", e);
+        }
+    }
+
+    @Override
+    public Elegibilidad evaluarElegibilidadParaRegistro(int idSolicitud) throws BLException {
+        if (!TransactionsManager.activa()) throw new IllegalStateException("Se requiere una transacción activa");
+        try {
+            solicitudDAO.bloquearParaRegistro(idSolicitud);
+            return evaluarElegibilidad(idSolicitud);
+        } catch (SQLException e) {
+            throw new BLException("No se pudo bloquear la solicitud", e);
+        }
+    }
     @Override
     public int registrarCirugiaDesdeSolicitud(
             int idSolicitud,

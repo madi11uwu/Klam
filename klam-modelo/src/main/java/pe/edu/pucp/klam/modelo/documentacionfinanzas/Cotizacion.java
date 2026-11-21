@@ -15,6 +15,9 @@ public class Cotizacion {
     private int version;
     private boolean vigente;
     private String archivoPath;
+    private LocalDateTime fechaDecision;
+    private Integer idCuentaDecision;
+    private String motivoRechazo;
     private boolean activo;
 
     public Cotizacion() {
@@ -43,6 +46,9 @@ public class Cotizacion {
         setVersion(cotizacion.getVersion());
         setVigente(cotizacion.isVigente());
         setArchivoPath(cotizacion.getArchivoPath());
+        setFechaDecision(cotizacion.getFechaDecision());
+        setIdCuentaDecision(cotizacion.getIdCuentaDecision());
+        setMotivoRechazo(cotizacion.getMotivoRechazo());
         setActivo(cotizacion.isActivo());
     }
 
@@ -91,6 +97,13 @@ public class Cotizacion {
     public void setVigente(boolean vigente) { this.vigente = vigente; }
     public String getArchivoPath() { return archivoPath; }
     public void setArchivoPath(String archivoPath) { this.archivoPath = archivoPath; }
+
+    public LocalDateTime getFechaDecision() { return fechaDecision; }
+    public void setFechaDecision(LocalDateTime fechaDecision) { this.fechaDecision = fechaDecision; }
+    public Integer getIdCuentaDecision() { return idCuentaDecision; }
+    public void setIdCuentaDecision(Integer idCuentaDecision) { this.idCuentaDecision = idCuentaDecision; }
+    public String getMotivoRechazo() { return motivoRechazo; }
+    public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }

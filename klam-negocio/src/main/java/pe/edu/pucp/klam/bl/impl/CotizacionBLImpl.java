@@ -3,6 +3,9 @@ package pe.edu.pucp.klam.bl.impl;
 import pe.edu.pucp.klam.bl.BLException;
 import pe.edu.pucp.klam.bl.CotizacionBL;
 import pe.edu.pucp.klam.dao.CirugiaDAO;
+import pe.edu.pucp.klam.dao.CuentaUsuarioDAO;
+import pe.edu.pucp.klam.dao.impl.CuentaUsuarioDAOImpl;
+import pe.edu.pucp.klam.bl.DocumentoIngresoBL;
 import pe.edu.pucp.klam.dao.SolicitudCirugiaDAO;
 import pe.edu.pucp.klam.dao.impl.SolicitudCirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
@@ -23,6 +26,8 @@ public class CotizacionBLImpl implements CotizacionBL {
     private final CotizacionDAO cotizacionDAO = new CotizacionDAOImpl();
     private final CirugiaDAO cirugiaDAO = new CirugiaDAOImpl();
     private final SolicitudCirugiaDAO solicitudDAO = new SolicitudCirugiaDAOImpl();
+    private final CuentaUsuarioDAO cuentaDAO = new CuentaUsuarioDAOImpl();
+    private final DocumentoIngresoBL documentoBL = new DocumentoIngresoBLImpl();
 
     @Override
     public List<Cotizacion> findAll() throws BLException {
@@ -78,11 +83,17 @@ public class CotizacionBLImpl implements CotizacionBL {
         if (cotizacion.getSolicitud() != null) {
             TransactionsManager.iniciar();
             try {
-                var solicitud = solicitudDAO.findById(cotizacion.getSolicitud().getIdSolicitud());
+                int idSolicitud = cotizacion.getSolicitud().getIdSolicitud();
+                solicitudDAO.bloquearParaRegistro(idSolicitud);
+                var solicitud = solicitudDAO.findById(idSolicitud);
                 if (solicitud == null || !(solicitud.getCliente() instanceof ClinicaHospital)
                         || solicitud.getEstado() != EstadoSolicitudCirugia.APROBADA) {
                     throw new BLException("La cotización requiere una solicitud de clínica aprobada");
                 }
+                if (!documentoBL.verificarDocumentosObligatoriosValidados(idSolicitud))
+                    throw new BLException("Faltan documentos obligatorios vigentes y validados");
+                if (cirugiaDAO.buscarCirugiaVigentePorSolicitud(idSolicitud) != null)
+                    throw new BLException("La solicitud ya tiene una cirugía vigente");
                 cotizacionDAO.insertarVersionSolicitud(cotizacion);
                 TransactionsManager.commit();
                 return;
@@ -120,7 +131,9 @@ public class CotizacionBLImpl implements CotizacionBL {
 
     @Override
     public void delete(Integer id) throws BLException {
-        buscarCotizacion(id);
+        Cotizacion existente = buscarCotizacion(id);
+        if (existente.getSolicitud() != null)
+            throw new BLException("El historial de cotizaciones de solicitud no se elimina");
         try {
             cotizacionDAO.delete(id);
         } catch (SQLException e) {
@@ -128,6 +141,42 @@ public class CotizacionBLImpl implements CotizacionBL {
         }
     }
 
+    @Override
+    public void decidirVersion(int idCotizacion, int idCuentaUsuario, boolean aceptar, String motivo)
+            throws BLException {
+        if (idCuentaUsuario <= 0) throw new SecurityException("Se requiere una cuenta clínica autenticada");
+        TransactionsManager.iniciar();
+        try {
+            Cotizacion previa = buscarCotizacion(idCotizacion);
+            if (previa.getSolicitud() == null)
+                throw new BLException("La cotización no pertenece a una solicitud clínica");
+            int idSolicitud = previa.getSolicitud().getIdSolicitud();
+            solicitudDAO.bloquearParaRegistro(idSolicitud);
+            var solicitud = solicitudDAO.findById(idSolicitud);
+            if (solicitud == null || !(solicitud.getCliente() instanceof ClinicaHospital)
+                    || solicitud.getEstado() != EstadoSolicitudCirugia.APROBADA)
+                throw new BLException("La solicitud clínica no está aprobada");
+            if (!cuentaDAO.esCuentaDeClinica(idCuentaUsuario, solicitud.getCliente().getIdCliente()))
+                throw new SecurityException("La cuenta no representa a la clínica solicitante");
+            if (!documentoBL.verificarDocumentosObligatoriosValidados(idSolicitud))
+                throw new BLException("Faltan documentos obligatorios vigentes y validados");
+            Cotizacion vigente = cotizacionDAO.buscarVigentePorSolicitud(idSolicitud);
+            if (vigente == null || vigente.getIdCotizacion() != idCotizacion
+                    || vigente.getEstado() != EstadoCotizacion.EMITIDA || !vigente.isActivo())
+                throw new BLException("Solo puede decidirse la cotización vigente EMITIDA");
+            boolean actualizado = cotizacionDAO.resolverVersionVigente(idCotizacion,
+                    aceptar ? EstadoCotizacion.ACEPTADA : EstadoCotizacion.RECHAZADA,
+                    idCuentaUsuario, aceptar ? null : motivo);
+            if (!actualizado) throw new BLException("La cotización ya fue decidida o reemplazada");
+            TransactionsManager.commit();
+        } catch (SQLException e) {
+            TransactionsManager.rollbackSiActiva();
+            throw new BLException("No se pudo registrar la decisión de cotización", e);
+        } catch (RuntimeException e) {
+            TransactionsManager.rollbackSiActiva();
+            throw e;
+        }
+    }
     @Override
     public void aceptar(Integer id) throws BLException {
         resolver(id, EstadoCotizacion.ACEPTADA);
@@ -146,6 +195,8 @@ public class CotizacionBLImpl implements CotizacionBL {
     // La transición de EMITIDA a un estado resuelto se valida en BL y en el setter del Modelo.
     private void resolver(Integer id, EstadoCotizacion nuevo) throws BLException {
         Cotizacion cotizacion = buscarCotizacion(id);
+        if (cotizacion.getSolicitud() != null)
+            throw new BLException("La cotización de solicitud requiere la decisión autenticada de su clínica");
         if (nuevo != EstadoCotizacion.ACEPTADA && nuevo != EstadoCotizacion.RECHAZADA
                 && nuevo != EstadoCotizacion.VENCIDA) {
             throw new BLException("Estado de cotización no válido: " + nuevo);

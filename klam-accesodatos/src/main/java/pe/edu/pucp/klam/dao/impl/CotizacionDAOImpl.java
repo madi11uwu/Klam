@@ -176,6 +176,24 @@ public class CotizacionDAOImpl implements CotizacionDAO {
         }
     }
     @Override
+    public boolean resolverVersionVigente(int id, EstadoCotizacion estado, int idCuentaUsuario,
+            String motivo) throws SQLException {
+        Connection conn = TransactionsManager.obtenerConexion();
+        String sql = "UPDATE cotizacion SET estado = ?, fecha_decision = NOW(), "
+                + "id_cuenta_decision = ?, motivo_rechazo = ? "
+                + "WHERE id_cotizacion = ? AND id_solicitud IS NOT NULL "
+                + "AND vigente = 1 AND activo = 1 AND estado = 'EMITIDA'";
+        try (var cmd = conn.prepareStatement(sql)) {
+            cmd.setString(1, estado.name());
+            cmd.setInt(2, idCuentaUsuario);
+            cmd.setString(3, motivo);
+            cmd.setInt(4, id);
+            return cmd.executeUpdate() == 1;
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
+    @Override
     public void actualizarEstado(Integer id, EstadoCotizacion estado) throws SQLException {
         if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo");
@@ -234,6 +252,11 @@ public class CotizacionDAOImpl implements CotizacionDAO {
         cotizacion.setVersion(rs.getInt("version"));
         cotizacion.setVigente(rs.getBoolean("vigente"));
         cotizacion.setArchivoPath(rs.getString("archivo_path"));
+        Timestamp fechaDecision = rs.getTimestamp("fecha_decision");
+        if (fechaDecision != null) cotizacion.setFechaDecision(fechaDecision.toLocalDateTime());
+        int idCuentaDecision = rs.getInt("id_cuenta_decision");
+        if (!rs.wasNull()) cotizacion.setIdCuentaDecision(idCuentaDecision);
+        cotizacion.setMotivoRechazo(rs.getString("motivo_rechazo"));
         return cotizacion;
     }
 }
