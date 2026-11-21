@@ -32,7 +32,7 @@ public interface BandejaInstrumentalDAO extends DAO<BandejaInstrumental, Integer
     Integer buscarCirugiaAsignada(int idBandeja) throws SQLException;
 
     // ---- Consumo real (RF15) ----
-    void registrarConsumoReal(int idBandeja, int idConsumible, int cantConsumida) throws SQLException;
+    void registrarConsumoReal(int idCirugia, int idConsumible, int cantConsumida) throws SQLException;
 
     /**
      * Despachado, consumido y diferencia por consumible de cirugias FINALIZADAS.

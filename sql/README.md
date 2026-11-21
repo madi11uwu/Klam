@@ -1,11 +1,11 @@
 # SQL de BIOKLAM
 
-La carpeta `sql/` contiene cuatro partes para explicar e instalar la base desde cero:
+La carpeta `sql/` contiene los scripts principales para instalar la base desde cero:
 
 | Archivo o carpeta | Contenido |
 | --- | --- |
 | `DDL_KLAM.sql` | Esquema completo: tablas, columnas, claves, índices y restricciones. |
-| `procedimientos/` | Procedimientos de usuarios, clientes, inventario, cirugías y documentos. Los dos archivos de inventario son complementarios y no repiten definiciones. |
+| `procedimientos/` | Procedimientos de usuarios, clientes, inventario, cirugías, documentos y reportes. Los dos archivos de inventario son complementarios y no repiten definiciones. |
 | `DML_KLAM.sql` | Datos de demostración: personal con hashes marcadores, nueve pacientes ficticios, clínicas ficticias, bandejas cortas y largas, consumibles estándar, cirugías, auditoría y otros ejemplos. |
 | `DROPS.sql` | **Destructivo**: elimina todas las tablas y sus datos. No forma parte de la instalación. |
 
@@ -21,6 +21,7 @@ mysql -u USUARIO -p < sql/procedimientos/inventario-procedimientos.sql
 mysql -u USUARIO -p < sql/procedimientos/inventario-procedimientos-extra.sql
 mysql -u USUARIO -p < sql/procedimientos/cirugias-procedimientos.sql
 mysql -u USUARIO -p < sql/procedimientos/documentos-procedimientos.sql
+mysql -u USUARIO -p < sql/procedimientos/reportes-procedimientos.sql
 ```
 
 Para la demostración académica, cargar al final los datos de prueba:
@@ -33,4 +34,6 @@ El DDL crea el esquema y las tablas en orden compatible con sus claves foráneas
 
 Los hashes de personal del DML son marcadores inválidos: las credenciales utilizables deben aprovisionarse de forma segura fuera del repositorio. Registrar un cliente comercial no crea una cuenta de acceso. La columna `paciente_particular.nombre` guarda el nombre completo porque el esquema actual no tiene una columna separada de apellidos. Las rutas `/docs/...` del DML son referencias ilustrativas y no incluyen archivos físicos.
 
-El proyecto no contiene una ruta automática de actualización de bases existentes. Para una instalación en uso, respaldar y comparar primero su esquema con `DDL_KLAM.sql`; no volver a ejecutar el DDL, el DML ni `DROPS.sql` sobre ella. Las versiones anteriores de los scripts de desarrollo permanecen recuperables en el historial Git, en el commit `e3a0302`.
+El archivo `cotizaciones-solicitud-incremental.sql` se conserva exclusivamente para bases antiguas que todavía no tienen las columnas de cotización por solicitud. **No se ejecuta en una instalación nueva:** `DDL_KLAM.sql` ya incorpora esas columnas, índices y procedimientos. Antes de usarlo en una base existente, respaldar y comparar su esquema con el script; no volver a ejecutar el DDL, el DML ni `DROPS.sql` sobre ella. Las versiones anteriores de los scripts de desarrollo permanecen recuperables en el historial Git, en el commit `e3a0302`.
+
+Para actualizar una base existente al consumo por cirugía, respaldarla primero y ejecutar una sola vez `consumo-cirugia-incremental.sql`; después reinstalar `inventario-procedimientos-extra.sql` y `reportes-procedimientos.sql`, y desplegar el backend compatible. El script crea la tabla vacía: conserva los despachos y consumos anteriores por bandeja sin asignarlos a cirugías que no pueden identificarse con certeza. Los nuevos despachos de bandeja crean registros por cirugía. No ejecutar este script tras una instalación nueva con el DDL definitivo.

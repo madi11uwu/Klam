@@ -1,6 +1,6 @@
 -- =========================================================
 -- PROCEDIMIENTOS ALMACENADOS - REPORTES (RF18 y RF19)
--- Fuente unica de consumo para los reportes: bandeja_consumible.cantidad_consumida
+-- Fuente unica de consumo para los reportes: cirugia_consumible_real.cantidad_consumida
 -- (consumo real, RF15). Nunca usa cantidades previstas (cirugia_consumible_previsto).
 -- Solo cuenta cirugias FINALIZADAS con consumo_completo = 1: un consumo parcial
 -- subreportaria el uso de insumos.
@@ -44,7 +44,7 @@ BEGIN
            bc.cantidad_consumida,
            (bc.cantidad_despachada - bc.cantidad_consumida)           AS diferencia
       FROM cirugia c
-      JOIN bandeja_consumible bc       ON bc.id_bandeja = c.id_bandeja
+      JOIN cirugia_consumible_real bc  ON bc.id_cirugia = c.id_cirugia
       JOIN consumible k                ON k.id_consumible = bc.id_consumible
       LEFT JOIN clinica_hospital ch    ON ch.id_cliente = c.id_clinica_hospital
       LEFT JOIN paciente_particular pp ON pp.id_cliente = c.id_paciente_particular

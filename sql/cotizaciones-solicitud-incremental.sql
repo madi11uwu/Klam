@@ -1,4 +1,7 @@
--- Ejecutar una sola vez, tras respaldo; requiere MySQL 8 con CHECK y columnas generadas.
+-- Solo para bases antiguas SIN id_solicitud en cotizacion, despues de comparar
+-- el esquema y respaldar. NO ejecutar despues de DDL_KLAM.sql: el DDL definitivo
+-- ya contiene estas columnas, indices y procedimientos.
+-- Ejecutar una sola vez; requiere MySQL 8 con CHECK y columnas generadas.
 -- No ejecutado por esta entrega. Las filas históricas conservan id_cirugia.
 USE `klam`;
 ALTER TABLE cotizacion

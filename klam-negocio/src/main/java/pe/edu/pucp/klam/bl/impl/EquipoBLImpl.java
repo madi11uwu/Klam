@@ -78,9 +78,6 @@ public class EquipoBLImpl implements EquipoBL {
             }
         }
         try {
-            if (bandeja != null && cirugiaDAO.bandejaAsignadaAOtraCirugia(bandeja.getIdBandeja(), idCirugia)) {
-                throw new BLException("La bandeja " + bandeja.getIdBandeja() + " está asignada a otra cirugía");
-            }
             if (!equipoDAO.buscarDespachos(null, null, idCirugia, true).isEmpty()) {
                 throw new BLException("La cirugía " + idCirugia + " ya tiene un despacho pendiente de retorno");
             }

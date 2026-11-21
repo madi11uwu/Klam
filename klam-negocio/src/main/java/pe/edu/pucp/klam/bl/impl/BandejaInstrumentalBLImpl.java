@@ -309,11 +309,24 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
     // ------------------------------------------------------------------
     @Override
     public void registrarConsumoReal(int idBandeja, int idConsumible, int cantConsumida) throws BLException {
-        validarConsumoRegistrable(idBandeja, idConsumible, cantConsumida);
+        // Contrato legado por bandeja: solo se puede resolver si hay una unica
+        // cirugia finalizada y abierta con un despacho de esta bandeja.
+        List<Integer> cirugias = buscarConsumos(null, null, null, null, null).stream()
+                .filter(f -> f.get("idBandeja") instanceof Number n && n.intValue() == idBandeja)
+                .filter(f -> !Boolean.TRUE.equals(f.get("consumoCompleto"))
+                        && !(f.get("consumoCompleto") instanceof Number n && n.intValue() != 0))
+                .map(f -> ((Number) f.get("idCirugia")).intValue())
+                .distinct().toList();
+        if (cirugias.size() != 1) {
+            throw new ValidacionException("Indique la cirugía: la bandeja no identifica un consumo único");
+        }
+        int idCirugia = cirugias.get(0);
+        buscarCirugiaCerrada(idCirugia);
+        validarConsumoRegistrable(idCirugia, idConsumible, cantConsumida);
 
         TransactionsManager.iniciar();
         try {
-            bandejaInstrumentalDAO.registrarConsumoReal(idBandeja, idConsumible, cantConsumida);
+            bandejaInstrumentalDAO.registrarConsumoReal(idCirugia, idConsumible, cantConsumida);
             TransactionsManager.commit();
         } catch (SQLException e) {
             TransactionsManager.rollbackSiActiva();
@@ -326,23 +339,22 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
 
     @Override
     public void guardarConsumo(int idCirugia, Map<Integer, Integer> consumosPorConsumible, boolean confirmar) throws BLException {
-        Cirugia cirugia = buscarCirugiaCerrada(idCirugia);
+        buscarCirugiaCerrada(idCirugia);
         if (consumosPorConsumible == null || consumosPorConsumible.isEmpty()) {
             throw new ValidacionException("Debe indicar la cantidad consumida de al menos un consumible");
         }
-        int idBandeja = cirugia.getBandejaInstrumental().getIdBandeja();
         for (Map.Entry<Integer, Integer> e : consumosPorConsumible.entrySet()) {
             if (e.getKey() == null || e.getValue() == null) {
                 throw new ValidacionException("Cada línea debe indicar el consumible y la cantidad consumida");
             }
-            validarConsumoRegistrable(idBandeja, e.getKey(), e.getValue());
+            validarConsumoRegistrable(idCirugia, e.getKey(), e.getValue());
         }
         if (confirmar) {
             // Al confirmar no puede quedar ningun consumible sin cantidad indicada (la base guarda 0 por defecto)
-            BandejaInstrumental bandeja = buscarBandeja(idBandeja);
-            for (Consumible c : bandeja.getConsumibles().keySet()) {
-                if (!consumosPorConsumible.containsKey(c.getIdConsumible())) {
-                    throw new ValidacionException("Indique la cantidad consumida de «" + c.getNombreComercial()
+            for (Map<String, Object> linea : consultarConsumosPorCirugia(idCirugia)) {
+                int idConsumible = ((Number) linea.get("idConsumible")).intValue();
+                if (!consumosPorConsumible.containsKey(idConsumible)) {
+                    throw new ValidacionException("Indique la cantidad consumida de «" + linea.get("nombreComercial")
                             + "» antes de confirmar el consumo");
                 }
             }
@@ -352,7 +364,7 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
         TransactionsManager.iniciar();
         try {
             for (Map.Entry<Integer, Integer> e : consumosPorConsumible.entrySet()) {
-                bandejaInstrumentalDAO.registrarConsumoReal(idBandeja, e.getKey(), e.getValue());
+                bandejaInstrumentalDAO.registrarConsumoReal(idCirugia, e.getKey(), e.getValue());
             }
             if (confirmar) {
                 cirugiaDAO.marcarConsumoCompleto(idCirugia);
@@ -373,20 +385,19 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
 
     @Override
     public void registrarConsumoCompleto(int idCirugia, Map<Integer, Integer> consumosPorConsumible) throws BLException {
-        Cirugia cirugia = buscarCirugiaCerrada(idCirugia);
+        buscarCirugiaCerrada(idCirugia);
         if (consumosPorConsumible == null || consumosPorConsumible.isEmpty()) {
             throw new BLException("Debe indicar los consumos de la cirugía " + idCirugia);
         }
-        int idBandeja = cirugia.getBandejaInstrumental().getIdBandeja();
         for (Map.Entry<Integer, Integer> e : consumosPorConsumible.entrySet()) {
-            validarConsumoRegistrable(idBandeja, e.getKey(), e.getValue());
+            validarConsumoRegistrable(idCirugia, e.getKey(), e.getValue());
         }
 
         // Todos los consumos + el cierre del registro: o se guardan todos o ninguno
         TransactionsManager.iniciar();
         try {
             for (Map.Entry<Integer, Integer> e : consumosPorConsumible.entrySet()) {
-                bandejaInstrumentalDAO.registrarConsumoReal(idBandeja, e.getKey(), e.getValue());
+                bandejaInstrumentalDAO.registrarConsumoReal(idCirugia, e.getKey(), e.getValue());
             }
             cirugiaDAO.marcarConsumoCompleto(idCirugia);
             TransactionsManager.commit();
@@ -479,31 +490,21 @@ public class BandejaInstrumentalBLImpl implements BandejaInstrumentalBL {
     }
 
     // Reglas del consumo real (una sola vez, para registrarConsumoReal y registrarConsumoCompleto)
-    private void validarConsumoRegistrable(int idBandeja, int idConsumible, int cantConsumida) throws BLException {
-        if (idBandeja <= 0 || idConsumible <= 0) {
+    private void validarConsumoRegistrable(int idCirugia, int idConsumible, int cantConsumida) throws BLException {
+        if (idCirugia <= 0 || idConsumible <= 0) {
             throw new BLException("Identificadores inválidos");
         }
         if (cantConsumida < 0) {
             throw new BLException("La cantidad consumida no puede ser negativa");
         }
-        BandejaInstrumental bandeja = buscarBandeja(idBandeja);
         validarConsumibleExiste(idConsumible);
-
-        Integer idCirugia;
-        try {
-            idCirugia = bandejaInstrumentalDAO.buscarCirugiaAsignada(idBandeja);
-        } catch (SQLException e) {
-            throw new BLException("No se pudo consultar la cirugía de la bandeja " + idBandeja, e);
+        Map<String, Object> linea = consultarConsumosPorCirugia(idCirugia).stream()
+                .filter(f -> ((Number) f.get("idConsumible")).intValue() == idConsumible)
+                .findFirst().orElse(null);
+        if (linea == null) {
+            throw new BLException("No hay despacho de este consumible para la cirugía " + idCirugia);
         }
-        if (idCirugia == null) {
-            throw new BLException("La bandeja " + idBandeja + " no está asignada a ninguna cirugía");
-        }
-        buscarCirugiaCerrada(idCirugia);
-
-        Integer despachada = bandeja.getConsumibles().get(consumibleConId(idConsumible));
-        if (despachada == null) {
-            throw new BLException("El consumible " + idConsumible + " no pertenece a la bandeja " + idBandeja);
-        }
+        int despachada = ((Number) linea.get("cantidadDespachada")).intValue();
         if (cantConsumida > despachada) {
             throw new BLException("No se puede consumir más de lo despachado (despachado " + despachada
                     + ", consumido " + cantConsumida + ")");

@@ -128,7 +128,9 @@ public class ConsumoBLImpl implements ConsumoBL {
         fila.put("requiereOrdenCompra", clinica);
         fila.put("estadoOrdenCompra", clinica ? estadoOrdenCompra(idCirugia) : OC_NO_APLICA);
         fila.put("documentacionCierreCompleta", documentacionCompleta);
-        fila.put("estadoConsumo", estadoConsumo(consumoCompleto, documentacionCompleta, cirugia.get("idBandeja") != null));
+        boolean tieneDespachoConsumibles = cirugia.get("idBandeja") != null
+                && !bandejaBL.consultarConsumosPorCirugia(idCirugia).isEmpty();
+        fila.put("estadoConsumo", estadoConsumo(consumoCompleto, documentacionCompleta, tieneDespachoConsumibles));
         return fila;
     }
 

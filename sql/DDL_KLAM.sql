@@ -502,6 +502,23 @@ CREATE TABLE IF NOT EXISTS `cirugia_consumible_previsto` (
     CONSTRAINT `chk_ccp_cantidad` CHECK (`cantidad_prevista` > 0)
 );
 
+-- Despacho y consumo efectivos de cada cirugía. La plantilla de bandeja se
+-- puede reutilizar; sus cantidades históricas no se atribuyen a otra cirugía.
+CREATE TABLE IF NOT EXISTS `cirugia_consumible_real` (
+    `id_cirugia` INT NOT NULL,
+    `id_consumible` INT NOT NULL,
+    `cantidad_despachada` INT NOT NULL,
+    `cantidad_consumida` INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id_cirugia`, `id_consumible`),
+    CONSTRAINT `fk_ccr_cirugia` FOREIGN KEY (`id_cirugia`)
+        REFERENCES `cirugia` (`id_cirugia`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_ccr_consumible` FOREIGN KEY (`id_consumible`)
+        REFERENCES `consumible` (`id_consumible`) ON DELETE RESTRICT,
+    CONSTRAINT `chk_ccr_despachada` CHECK (`cantidad_despachada` >= 0),
+    CONSTRAINT `chk_ccr_consumida` CHECK (`cantidad_consumida` >= 0
+        AND `cantidad_consumida` <= `cantidad_despachada`)
+);
+
 CREATE TABLE IF NOT EXISTS `auditoria_cirugia` (
             `id_auditoria` INT NOT NULL AUTO_INCREMENT,
             `id_cirugia` INT NOT NULL,

@@ -158,9 +158,9 @@ END$$
 
 -- ================= CONSUMO REAL (RF15) =================
 -- Validaciones de datos tambien aqui (ademas de la BL): cirugia finalizada,
--- consumo no cerrado, consumible de la bandeja y 0 <= consumido <= despachado.
+-- consumo no cerrado, consumible despachado a esa cirugia y 0 <= consumido <= despachado.
 CREATE PROCEDURE registrar_consumo_bandeja(
-    IN p_id_bandeja INT,
+    IN p_id_cirugia INT,
     IN p_id_consumible INT,
     IN p_cantidad_consumida INT
 )
@@ -169,15 +169,13 @@ BEGIN
     DECLARE v_completo TINYINT;
     DECLARE v_despachada INT;
 
-    -- La bandeja puede estar asignada a varias cirugias: se toma la finalizada mas reciente
+    -- El consumo pertenece a la cirugia indicada, nunca a la plantilla compartida.
     SELECT estado, consumo_completo INTO v_estado, v_completo
       FROM cirugia
-     WHERE id_bandeja = p_id_bandeja AND activo = 1
-     ORDER BY (estado = 'FINALIZADA') DESC, consumo_completo ASC, fecha_hora_inicio DESC, id_cirugia DESC
-     LIMIT 1;
+     WHERE id_cirugia = p_id_cirugia AND activo = 1 FOR UPDATE;
 
     IF v_estado IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La bandeja no esta asignada a ninguna cirugia';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cirugia no existe';
     END IF;
     IF v_estado <> 'FINALIZADA' THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El consumo solo se registra en cirugias finalizadas';
@@ -187,11 +185,11 @@ BEGIN
     END IF;
 
     SELECT cantidad_despachada INTO v_despachada
-      FROM bandeja_consumible
-     WHERE id_bandeja = p_id_bandeja AND id_consumible = p_id_consumible;
+      FROM cirugia_consumible_real
+     WHERE id_cirugia = p_id_cirugia AND id_consumible = p_id_consumible FOR UPDATE;
 
     IF v_despachada IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El consumible no pertenece a la bandeja';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No hay despacho de este consumible para la cirugia';
     END IF;
     IF p_cantidad_consumida IS NULL OR p_cantidad_consumida < 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cantidad consumida no puede ser negativa';
@@ -200,9 +198,9 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cantidad consumida no puede superar la despachada';
     END IF;
 
-    UPDATE bandeja_consumible
+    UPDATE cirugia_consumible_real
        SET cantidad_consumida = p_cantidad_consumida
-     WHERE id_bandeja = p_id_bandeja AND id_consumible = p_id_consumible;
+     WHERE id_cirugia = p_id_cirugia AND id_consumible = p_id_consumible;
 END$$
 
 -- Despachado / consumido / diferencia por consumible. Filtros opcionales:
@@ -227,7 +225,7 @@ BEGIN
            bc.cantidad_despachada, bc.cantidad_consumida,
            (bc.cantidad_despachada - bc.cantidad_consumida)          AS diferencia
       FROM cirugia c
-      JOIN bandeja_consumible bc       ON bc.id_bandeja = c.id_bandeja
+      JOIN cirugia_consumible_real bc  ON bc.id_cirugia = c.id_cirugia
       JOIN consumible k                ON k.id_consumible = bc.id_consumible
       LEFT JOIN clinica_hospital ch    ON ch.id_cliente = c.id_clinica_hospital
       LEFT JOIN paciente_particular pp ON pp.id_cliente = c.id_paciente_particular
@@ -307,6 +305,17 @@ BEGIN
     UPDATE despacho
        SET codigo = CONCAT('DSP-', LPAD(p_id, 4, '0'))
      WHERE id_despacho = p_id;
+
+    -- Fotografia del despacho de esta cirugia. No se copian consumos antiguos
+    -- de la plantilla ni se modifica su configuracion estandar.
+    IF p_id_bandeja IS NOT NULL THEN
+        DELETE FROM cirugia_consumible_real WHERE id_cirugia = p_id_cirugia;
+        INSERT INTO cirugia_consumible_real
+            (id_cirugia, id_consumible, cantidad_despachada, cantidad_consumida)
+        SELECT p_id_cirugia, id_consumible, cantidad_despachada, 0
+          FROM bandeja_consumible
+         WHERE id_bandeja = p_id_bandeja;
+    END IF;
 END$$
 
 CREATE PROCEDURE registrar_retorno_despacho(
