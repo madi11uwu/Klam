@@ -2,6 +2,8 @@ package pe.edu.pucp.klam.dao.impl;
 
 import pe.edu.pucp.klam.dao.CotizacionDAO;
 import pe.edu.pucp.klam.db.DBManager;
+import pe.edu.pucp.klam.dao.transacciones.TransactionsManager;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.Cotizacion;
 import pe.edu.pucp.klam.modelo.documentacionfinanzas.EstadoCotizacion;
 
@@ -79,6 +81,10 @@ public class CotizacionDAOImpl implements CotizacionDAO {
             throw new IllegalArgumentException("La cotizacion no puede ser nula");
         }
 
+        if (cotizacion.getSolicitud() != null) {
+            insertarVersionSolicitud(cotizacion);
+            return;
+        }
         String sql = "{call insertar_cotizacion(?, ?, ?, ?, ?, ?)}";
         try (
             Connection conn = DBManager.getInstance().getConnection();
@@ -105,6 +111,9 @@ public class CotizacionDAOImpl implements CotizacionDAO {
             throw new IllegalArgumentException("La cotizacion no puede ser nula");
         }
 
+        if (cotizacion.getSolicitud() != null) {
+            throw new SQLException("Una versión de cotización de solicitud es inmutable");
+        }
         String sql = "{call modificar_cotizacion(?, ?, ?, ?, ?, ?)}";
         try (
             Connection conn = DBManager.getInstance().getConnection();
@@ -123,6 +132,49 @@ public class CotizacionDAOImpl implements CotizacionDAO {
         }
     }
 
+    @Override
+    public List<Cotizacion> listarPorSolicitud(Integer idSolicitud) throws SQLException {
+        if (idSolicitud == null || idSolicitud <= 0) throw new IllegalArgumentException("Solicitud inválida");
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall("{call listar_cotizaciones_por_solicitud(?)}")) {
+            cmd.setInt(1, idSolicitud);
+            try (ResultSet rs = cmd.executeQuery()) {
+                List<Cotizacion> resultado = new ArrayList<>();
+                while (rs.next()) resultado.add(mapear(rs, new Cotizacion()));
+                return resultado;
+            }
+        }
+    }
+
+    @Override
+    public Cotizacion buscarVigentePorSolicitud(Integer idSolicitud) throws SQLException {
+        if (idSolicitud == null || idSolicitud <= 0) throw new IllegalArgumentException("Solicitud inválida");
+        try (Connection conn = DBManager.getInstance().getConnection();
+             CallableStatement cmd = conn.prepareCall("{call buscar_cotizacion_vigente_solicitud(?)}")) {
+            cmd.setInt(1, idSolicitud);
+            try (ResultSet rs = cmd.executeQuery()) {
+                return rs.next() ? mapear(rs, new Cotizacion()) : null;
+            }
+        }
+    }
+
+    @Override
+    public void insertarVersionSolicitud(Cotizacion cotizacion) throws SQLException {
+        Connection conn = TransactionsManager.obtenerConexion();
+        try (CallableStatement cmd = conn.prepareCall("{call insertar_cotizacion_solicitud(?, ?, ?, ?, ?)}")) {
+            cmd.setInt(1, cotizacion.getSolicitud().getIdSolicitud());
+            cmd.setDouble(2, cotizacion.getPrecioPactado());
+            cmd.setTimestamp(3, Timestamp.valueOf(cotizacion.getFechaEmision()));
+            cmd.setString(4, cotizacion.getArchivoPath());
+            cmd.registerOutParameter(5, Types.INTEGER);
+            cmd.execute();
+            cotizacion.setIdCotizacion(cmd.getInt(5));
+            cotizacion.setEstado(EstadoCotizacion.EMITIDA);
+            cotizacion.setVigente(true);
+        } finally {
+            TransactionsManager.liberar(conn);
+        }
+    }
     @Override
     public void actualizarEstado(Integer id, EstadoCotizacion estado) throws SQLException {
         if (id == null) {
@@ -171,7 +223,17 @@ public class CotizacionDAOImpl implements CotizacionDAO {
         cotizacion.setEstado(Enum.valueOf(EstadoCotizacion.class, rs.getString("estado")));
         cotizacion.setFechaEmision(rs.getTimestamp("fecha_emision").toLocalDateTime());
         cotizacion.setActivo(rs.getBoolean("activo"));
-        cotizacion.setCirugia(new CirugiaDAOImpl().findById(rs.getInt("id_cirugia")));
+        int idCirugia = rs.getInt("id_cirugia");
+        if (!rs.wasNull()) cotizacion.setCirugia(new CirugiaDAOImpl().findById(idCirugia));
+        int idSolicitud = rs.getInt("id_solicitud");
+        if (!rs.wasNull()) {
+            SolicitudCirugia solicitud = new SolicitudCirugia();
+            solicitud.setIdSolicitud(idSolicitud);
+            cotizacion.setSolicitud(solicitud);
+        }
+        cotizacion.setVersion(rs.getInt("version"));
+        cotizacion.setVigente(rs.getBoolean("vigente"));
+        cotizacion.setArchivoPath(rs.getString("archivo_path"));
         return cotizacion;
     }
 }

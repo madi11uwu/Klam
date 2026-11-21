@@ -8,5 +8,8 @@ import java.util.List;
 
 public interface CotizacionDAO extends DAO<Cotizacion, Integer> {
     List<Cotizacion> findByCirugia(Integer idCirugia) throws SQLException;
+    List<Cotizacion> listarPorSolicitud(Integer idSolicitud) throws SQLException;
+    Cotizacion buscarVigentePorSolicitud(Integer idSolicitud) throws SQLException;
+    void insertarVersionSolicitud(Cotizacion cotizacion) throws SQLException;
     void actualizarEstado(Integer id, EstadoCotizacion estado) throws SQLException;
 }
