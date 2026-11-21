@@ -302,7 +302,7 @@ NOT NULL DEFAULT 'EMITIDA',
           CONSTRAINT `fk_cotizacion_solicitud` FOREIGN KEY (`id_solicitud`) REFERENCES `solicitud_cirugia` (`id_solicitud`) ON DELETE RESTRICT,
           CONSTRAINT `fk_cotizacion_cirugia`
               FOREIGN KEY (`id_cirugia`) REFERENCES `cirugia` (`id_cirugia`)
-                  ON DELETE RESTRICT ON UPDATE CASCADE,
+                  ON DELETE RESTRICT ON UPDATE RESTRICT,
           CONSTRAINT `chk_cotizacion_precio` CHECK (`precio_pactado` >= 0)
 );
 
