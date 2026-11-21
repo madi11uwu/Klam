@@ -32,10 +32,15 @@ final class ArchivoDocumentoStorage {
         }
         String clave = UUID.randomUUID() + extension;
         Path destino = directorio().resolve(clave);
+        Files.createFile(destino);
         try {
-            Files.write(destino, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+            Files.write(destino, bytes, StandardOpenOption.WRITE);
         } catch (IOException ex) {
-            Files.deleteIfExists(destino);
+            try {
+                Files.deleteIfExists(destino);
+            } catch (IOException limpieza) {
+                ex.addSuppressed(limpieza);
+            }
             throw ex;
         }
         return clave;

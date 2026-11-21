@@ -192,7 +192,8 @@ public class DocumentosResource {
             }
             String clave = ArchivoDocumentoStorage.guardar(archivo);
             try {
-                DocumentoIngreso doc = documentoBL.adjuntarOrdenCompra(idCirugia, clave, sesion.username());
+                DocumentoIngreso doc = documentoBL.adjuntarOrdenCompra(idCirugia, clave, sesion.username(),
+                        sesion.idUsuario(), sesion.rol());
                 return Response.status(Response.Status.CREATED)
                         .entity(Map.of("idDocumento", doc.getIdDocumento(), "version", doc.getVersion(),
                                 "estadoValidacion", doc.getEstadoValidacion().name())).build();
