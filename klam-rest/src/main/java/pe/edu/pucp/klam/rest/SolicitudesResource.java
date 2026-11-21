@@ -1,6 +1,12 @@
 package pe.edu.pucp.klam.rest;
 
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.EntityPart;
+import jakarta.ws.rs.core.MediaType;
+import java.io.IOException;
+import pe.edu.pucp.klam.bl.CotizacionBL;
+import pe.edu.pucp.klam.bl.impl.CotizacionBLImpl;
+import pe.edu.pucp.klam.modelo.documentacionfinanzas.Cotizacion;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -25,6 +31,7 @@ import pe.edu.pucp.klam.rest.dto.SolicitudCirugiaDTO;
 public class SolicitudesResource {
 
     private final SolicitudCirugiaBL solicitudBL = new SolicitudCirugiaBLImpl();
+    private final CotizacionBL cotizacionBL = new CotizacionBLImpl();
 
     @Context
     private HttpHeaders headers;
@@ -185,6 +192,75 @@ public class SolicitudesResource {
         }
     }
 
+    @POST
+    @Path("/{id}/cotizaciones")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response adjuntarCotizacion(@PathParam("id") int id,
+            @FormParam("archivo") EntityPart archivo, @FormParam("precioPactado") String precioTexto) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion)) return sinPermiso();
+        if (id <= 0 || archivo == null || precioTexto == null)
+            return error(Response.Status.BAD_REQUEST, "Solicitud, archivo y precio del ERP son obligatorios");
+        double precio;
+        try {
+            precio = Double.parseDouble(precioTexto);
+            if (!Double.isFinite(precio) || precio < 0)
+                return error(Response.Status.BAD_REQUEST, "El precio del ERP debe ser válido");
+        } catch (NumberFormatException ex) {
+            return error(Response.Status.BAD_REQUEST, "El precio del ERP debe ser numérico");
+        }
+        try {
+            if (solicitudBL.findSolicitudById(id) == null)
+                return error(Response.Status.NOT_FOUND, "No existe la solicitud");
+            String clave = ArchivoDocumentoStorage.guardar(archivo);
+            Cotizacion cotizacion = new Cotizacion();
+            SolicitudCirugia solicitud = new SolicitudCirugia();
+            solicitud.setIdSolicitud(id);
+            cotizacion.setSolicitud(solicitud);
+            cotizacion.setArchivoPath(clave);
+            cotizacion.setPrecioPactado(precio);
+            cotizacion.setFechaEmision(LocalDateTime.now());
+            try {
+                cotizacionBL.registrarVersion(cotizacion, sesion.idUsuario(), sesion.username());
+            } catch (RuntimeException ex) {
+                try { ArchivoDocumentoStorage.eliminar(clave); }
+                catch (IOException limpieza) { ex.addSuppressed(limpieza); }
+                throw ex;
+            }
+            return Response.status(Response.Status.CREATED)
+                    .entity(Map.of("idCotizacion", cotizacion.getIdCotizacion(),
+                            "version", cotizacion.getVersion(), "estado", cotizacion.getEstado().name())).build();
+        } catch (IllegalArgumentException ex) {
+            return error(Response.Status.BAD_REQUEST, ex.getMessage());
+        } catch (SecurityException ex) {
+            return error(Response.Status.FORBIDDEN, ex.getMessage());
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.CONFLICT);
+        } catch (IOException ex) {
+            return error(Response.Status.INTERNAL_SERVER_ERROR, "No se pudo almacenar el archivo");
+        }
+    }
+
+    @GET
+    @Path("/{id}/elegibilidad-cirugia")
+    public Response elegibilidad(@PathParam("id") int id) {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        if (!esAdministrador(sesion)) return sinPermiso();
+        try {
+            if (solicitudBL.findSolicitudById(id) == null)
+                return error(Response.Status.NOT_FOUND, "No existe la solicitud");
+            var resultado = solicitudBL.evaluarElegibilidad(id);
+            java.util.Map<String, Object> datos = new java.util.LinkedHashMap<>();
+            datos.put("puedeRegistrarCirugia", resultado.puedeRegistrar());
+            datos.put("requiereCotizacion", resultado.requiereCotizacion());
+            datos.put("estadoDocumental", resultado.estadoDocumental());
+            datos.put("estadoCotizacion", resultado.estadoCotizacion());
+            datos.put("motivoBloqueo", resultado.motivo());
+            return Response.ok(datos).build();
+        } catch (BLException ex) { return fallo(ex, Response.Status.CONFLICT); }
+    }
     private SesionesRest.Sesion sesion() {
         return SesionesRest.validar(headers.getHeaderString(HttpHeaders.AUTHORIZATION));
     }

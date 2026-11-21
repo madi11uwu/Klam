@@ -513,7 +513,8 @@ CREATE PROCEDURE insertar_cotizacion_solicitud(
     IN p_precio_pactado DECIMAL(10,2),
     IN p_fecha_emision DATETIME,
     IN p_archivo_path VARCHAR(255),
-    OUT p_id INT
+    OUT p_id INT,
+    OUT p_version INT
 )
 BEGIN
     DECLARE v_estado VARCHAR(32);
@@ -539,6 +540,7 @@ BEGIN
     INSERT INTO cotizacion (id_solicitud, version, vigente, archivo_path, precio_pactado, estado, fecha_emision, activo)
     VALUES (p_id_solicitud, v_version + 1, 1, p_archivo_path, p_precio_pactado, 'EMITIDA', p_fecha_emision, 1);
     SET p_id = LAST_INSERT_ID();
+    SET p_version = v_version + 1;
 END$$
 
 CREATE PROCEDURE listar_cotizaciones_por_solicitud(IN p_id_solicitud INT)

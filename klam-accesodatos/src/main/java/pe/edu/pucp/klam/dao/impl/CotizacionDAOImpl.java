@@ -161,14 +161,16 @@ public class CotizacionDAOImpl implements CotizacionDAO {
     @Override
     public void insertarVersionSolicitud(Cotizacion cotizacion) throws SQLException {
         Connection conn = TransactionsManager.obtenerConexion();
-        try (CallableStatement cmd = conn.prepareCall("{call insertar_cotizacion_solicitud(?, ?, ?, ?, ?)}")) {
+        try (CallableStatement cmd = conn.prepareCall("{call insertar_cotizacion_solicitud(?, ?, ?, ?, ?, ?)}")) {
             cmd.setInt(1, cotizacion.getSolicitud().getIdSolicitud());
             cmd.setDouble(2, cotizacion.getPrecioPactado());
             cmd.setTimestamp(3, Timestamp.valueOf(cotizacion.getFechaEmision()));
             cmd.setString(4, cotizacion.getArchivoPath());
             cmd.registerOutParameter(5, Types.INTEGER);
+            cmd.registerOutParameter(6, Types.INTEGER);
             cmd.execute();
             cotizacion.setIdCotizacion(cmd.getInt(5));
+            cotizacion.setVersion(cmd.getInt(6));
             cotizacion.setEstado(EstadoCotizacion.EMITIDA);
             cotizacion.setVigente(true);
         } finally {

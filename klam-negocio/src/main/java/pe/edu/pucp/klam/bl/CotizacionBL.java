@@ -11,5 +11,6 @@ public interface CotizacionBL extends BaseBL<Cotizacion, Integer> {
     void aceptar(Integer id) throws BLException;
     void rechazar(Integer id) throws BLException;
     void vencer(Integer id) throws BLException;
-    void decidirVersion(int idCotizacion, int idCuentaUsuario, boolean aceptar, String motivo) throws BLException;
+    void registrarVersion(Cotizacion cotizacion, int idAdministrador, String responsable) throws BLException;
+    void decidirVersion(int idCotizacion, int idCuentaUsuario, boolean aceptar, String motivo, String responsable) throws BLException;
 }
