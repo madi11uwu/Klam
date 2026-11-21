@@ -48,17 +48,20 @@ BEGIN
     UPDATE cotizacion SET estado = p_estado
      WHERE id_cotizacion = p_id
        AND id_solicitud IS NULL;
-END$$CREATE PROCEDURE listar_cotizaciones_por_cirugia(IN p_id_cirugia INT)
+END$$
+CREATE PROCEDURE listar_cotizaciones_por_cirugia(IN p_id_cirugia INT)
 BEGIN
     SELECT id_cotizacion, id_cirugia, id_solicitud, version, vigente, archivo_path, fecha_decision, id_cuenta_decision, motivo_rechazo,
            precio_pactado, estado, fecha_emision, activo
       FROM cotizacion WHERE activo = 1 AND id_cirugia = p_id_cirugia;
-END$$CREATE PROCEDURE insertar_cotizacion_solicitud(
+END$$
+CREATE PROCEDURE insertar_cotizacion_solicitud(
     IN p_id_solicitud INT,
     IN p_precio_pactado DECIMAL(10,2),
     IN p_fecha_emision DATETIME,
     IN p_archivo_path VARCHAR(255),
-    OUT p_id INT
+    OUT p_id INT,
+    OUT p_version INT
 )
 BEGIN
     DECLARE v_estado VARCHAR(32);
@@ -84,6 +87,7 @@ BEGIN
     INSERT INTO cotizacion (id_solicitud, version, vigente, archivo_path, precio_pactado, estado, fecha_emision, activo)
     VALUES (p_id_solicitud, v_version + 1, 1, p_archivo_path, p_precio_pactado, 'EMITIDA', p_fecha_emision, 1);
     SET p_id = LAST_INSERT_ID();
+    SET p_version = v_version + 1;
 END$$
 
 CREATE PROCEDURE listar_cotizaciones_por_solicitud(IN p_id_solicitud INT)
