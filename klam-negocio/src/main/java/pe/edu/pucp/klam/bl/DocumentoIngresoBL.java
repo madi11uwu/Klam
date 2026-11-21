@@ -75,6 +75,8 @@ public interface DocumentoIngresoBL extends BaseBL<DocumentoIngreso,Integer> {
     // ---- Orden de compra (clinicas y hospitales) y cierre de cirugia ----
     /** El cliente adjunta la orden de compra de una cirugia FINALIZADA; queda PENDIENTE. */
     DocumentoIngreso adjuntarOrdenCompra(int idCirugia, String archivoPath, String responsable) throws BLException;
+    DocumentoIngreso adjuntarOrdenCompra(int idCirugia, String archivoPath, String responsable,
+            int idUsuarioAutenticado, String rolAutenticado) throws BLException;
     void validarOrdenCompra(int idDocumento, String responsable) throws BLException;
     void rechazarOrdenCompra(int idDocumento, String motivo, String responsable) throws BLException;
 

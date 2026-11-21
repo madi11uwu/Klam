@@ -590,6 +590,12 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
     // ------------------------------------------------------------------
     @Override
     public DocumentoIngreso adjuntarOrdenCompra(int idCirugia, String archivoPath, String responsable) throws BLException {
+        return adjuntarOrdenCompra(idCirugia, archivoPath, responsable, 0, null);
+    }
+
+    @Override
+    public DocumentoIngreso adjuntarOrdenCompra(int idCirugia, String archivoPath, String responsable,
+            int idUsuarioAutenticado, String rolAutenticado) throws BLException {
         validarId(idCirugia, "cirugía");
         if (archivoPath == null || archivoPath.isBlank()) {
             throw new BLException("Debe adjuntar el archivo de la orden de compra");
@@ -610,6 +616,16 @@ public class DocumentoIngresoBLImpl implements DocumentoIngresoBL {
         doc.setFechaCarga(LocalDateTime.now());
         doc.setCirugia(cirugia);
         doc.setResponsable(textoResponsable(responsable));
+        if (idUsuarioAutenticado > 0) {
+            if (!"ADMINISTRADOR".equals(rolAutenticado) && !"CLINICA_HOSPITAL".equals(rolAutenticado)) {
+                throw new SecurityException("El usuario no puede adjuntar una orden de compra");
+            }
+            UsuarioPlataforma usuario = "ADMINISTRADOR".equals(rolAutenticado)
+                    ? new Administrador() : new pe.edu.pucp.klam.modelo.usuariosPermisos.CuentaUsuario();
+            usuario.setIdUsuario(idUsuarioAutenticado);
+            usuario.setRol(rolAutenticado);
+            doc.setUsuarioCarga(usuario);
+        }
 
         // Orden de compra + documento (version nueva): ambos o ninguno
         TransactionsManager.iniciar();
