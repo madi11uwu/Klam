@@ -1,7 +1,7 @@
 -- ============================================================
 -- BIOKLAM - datos exclusivamente demostrativos para una instalacion nueva.
--- No ejecutar sobre una base con datos. Las claves de personal son marcadores
--- invalidos: antes de iniciar sesion deben aprovisionarse hashes seguros.
+-- No ejecutar sobre una base con datos. Todas las cuentas de demostracion
+-- utilizan BioKlam2026!; cambiarla antes de usar una instalacion real.
 -- No se crean cuentas de cliente automaticamente al registrar clientes.
 -- ============================================================
 
@@ -12,7 +12,7 @@ INSERT INTO administrador
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo)
 VALUES
     (1, 'admin.rojas',
-     '2y10$examplehash0000000000000000000001',
+     'pbkdf2-sha256$600000$t5crEQdzTQyfSOtL8LD6uw==$TJaYB/lLMO3Dad9VWbWFTQFkRFLlrEP9/CZr9nnvEfw=',
      'crojas@bioklam.com',
      'Carlos',
      'Rojas Medina',
@@ -25,7 +25,7 @@ INSERT INTO vendedor
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo, comision_acumulada)
 VALUES
     (2, 'vend.torres',
-     '2y10$examplehash0000000000000000000002',
+     'pbkdf2-sha256$600000$1jM7aEO/PRp5Fcxp95HgmQ==$JivBlAFV3c0UagKNpUkz0NVq/2M+gnmCLI9MfTbytzw=',
      'ltorres@bioklam.com',
      'Lucía',
      'Torres Vega',
@@ -34,7 +34,7 @@ VALUES
      1250.50),
 
     (3, 'vend.quispe',
-     '$2y$10$examplehash0000000000000000000003',
+     'pbkdf2-sha256$600000$BZCk0rEF6fII02buR10toQ==$4gv/19Ylye797A4eVXD1bEZBaxPgaEsHVjHP2AkgwXo=',
      'mquispe@bioklam.com',
      'Miguel',
      'Quispe Huamán',
@@ -47,7 +47,7 @@ INSERT INTO tecnico_instrumentista
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo, especialidad)
 VALUES
     (4, 'tec.fernandez',
-     '2y10$examplehash0000000000000000000004',
+     'pbkdf2-sha256$600000$zLnK3alcvwY7Rs4mb65W1Q==$RhQwczDUPSbtE1h5r0NernVIhc2tD6o7UzvJQxhayEs=',
      'jfernandez@bioklam.com',
      'José',
      'Fernández Castro',
@@ -56,7 +56,7 @@ VALUES
      'Neurocirugía'),
 
     (5, 'tec.salazar',
-     '$2y$10$examplehash0000000000000000000005',
+     'pbkdf2-sha256$600000$uefwonF9fmE6XJaXIXalqQ==$X9EWplDkm0xSPojhy+C71xL5tkXRCOZBAZVVrmFZZw0=',
      'psalazar@bioklam.com',
      'Paola',
      'Salazar Díaz',
@@ -170,7 +170,55 @@ VALUES
      1,
      '20900000002',
      0,
-     '60 días');
+     '60 días'),
+    -- Instituciones reales; solo el nombre y el RUC son datos institucionales.
+    -- Los accesos asociados más abajo son exclusivamente de laboratorio.
+    (4, 'Clínica San Felipe', NULL, NULL, NULL, 1, '20100129841', 0, NULL),
+    (5, 'Clínica Internacional', NULL, NULL, NULL, 1, '20100054184', 0, NULL),
+    (6, 'Clínica Auna Vallesur', NULL, NULL, NULL, 1, '20454135432', 0, NULL),
+    (7, 'Clínica Auna Bellavista', NULL, NULL, NULL, 1, '20100251176', 0, NULL),
+    (8, 'Hospital Nacional Dos de Mayo', NULL, NULL, NULL, 1, '20160388570', 0, NULL),
+    (9, 'Hospital Nacional Arzobispo Loayza', NULL, NULL, NULL, 1, '20154996991', 0, NULL),
+    (10, 'Hospital Cayetano Heredia', NULL, NULL, NULL, 1, '20154528971', 0, NULL),
+    (11, 'Hospital San Juan de Dios de Pisco', NULL, NULL, NULL, 1, '20452578949', 0, NULL);
+
+-- Cuentas de representantes FICTICIOS para probar el acceso de clínicas.
+-- No implican autorización de las instituciones reales. Contraseña de laboratorio:
+-- BioKlam2026! (PBKDF2-SHA256 con sal diferente por cuenta).
+-- El registro comercial y la habilitación de acceso siguen siendo operaciones separadas.
+INSERT INTO cuenta_usuario
+(username, password_hash, email, nombres, apellidos, activo, id_paciente, id_clinica)
+VALUES
+    ('lab.clinica.norte',
+     'pbkdf2-sha256$600000$Kl/lylWb/4oK7UhzFV3chw==$WvpRqz18vlI0mLVe9VOhOdWsfwLoSvQijCdHXioxWRA=',
+     'acceso.norte@example.test', 'Usuario', 'de laboratorio', 1, NULL, 2),
+    ('lab.hospital.sur',
+     'pbkdf2-sha256$600000$SZiaFXdPWSUW+j22Fn1s7w==$OHmstkqoCRZ1F7TSUa4SR6ot951vvxxL9+rfCov6q1Y=',
+     'acceso.sur@example.test', 'Usuario', 'de laboratorio', 1, NULL, 3),
+    ('lab.clinica.sanfelipe',
+     'pbkdf2-sha256$600000$Z/2TB4Wlm2vC4MGxf75ruQ==$azaArPZwFEjA6OlcJEuoK1tDDppFZbq3HjLuWp1J2xM=',
+     'acceso.sanfelipe@example.test', 'Usuario', 'de laboratorio', 1, NULL, 4),
+    ('lab.clinica.internacional',
+     'pbkdf2-sha256$600000$QuO9dUXZknDsbj8ZBwM7zQ==$+2ILqxRDPbYazNEfwpqVQjnI3kyo/vwfdDZM9Suos/A=',
+     'acceso.internacional@example.test', 'Usuario', 'de laboratorio', 1, NULL, 5),
+    ('lab.clinica.vallesur',
+     'pbkdf2-sha256$600000$ZpzsWBNoo6Vv1sGHEzFxcg==$NUF7/ykxCMSgg785ygX2/ePNSGS8tvupkHIAPqggeUY=',
+     'acceso.vallesur@example.test', 'Usuario', 'de laboratorio', 1, NULL, 6),
+    ('lab.clinica.bellavista',
+     'pbkdf2-sha256$600000$+m25ECrKNcEPGmkA6goEXA==$eGA3Zz1VFMNax19lpz1vthKXHULjzCLm2go3ZYTxsBY=',
+     'acceso.bellavista@example.test', 'Usuario', 'de laboratorio', 1, NULL, 7),
+    ('lab.hospital.dosdemayo',
+     'pbkdf2-sha256$600000$FUifYl1sM3V4jWmxAo3iRg==$ndJwxMJ4MnWouOyMe1jsVS7KMsPNlASi5r9oyPdBmpY=',
+     'acceso.dosdemayo@example.test', 'Usuario', 'de laboratorio', 1, NULL, 8),
+    ('lab.hospital.loayza',
+     'pbkdf2-sha256$600000$NjX1+oSNOAT3DWaKwLDNLA==$paeer5sBa0SKakQNGYJ8Ji6rpFa+gJ/Tscxj099Ljpw=',
+     'acceso.loayza@example.test', 'Usuario', 'de laboratorio', 1, NULL, 9),
+    ('lab.hospital.cayetano',
+     'pbkdf2-sha256$600000$/HiTDbI9CrtgZXUtotm2Qg==$UyYZ5i1pTySFKdbUnb1DoTuREBm8G3h5Str2nVoh5Os=',
+     'acceso.cayetano@example.test', 'Usuario', 'de laboratorio', 1, NULL, 10),
+    ('lab.hospital.pisco',
+     'pbkdf2-sha256$600000$JYqv0xju8qEDRtrpheFjAQ==$apYqgfUSt4PLdyEEQAj8SswDwKwAv0BARAWhnije8/o=',
+     'acceso.pisco@example.test', 'Usuario', 'de laboratorio', 1, NULL, 11);
 -- orden_compra
 
 INSERT INTO orden_compra
