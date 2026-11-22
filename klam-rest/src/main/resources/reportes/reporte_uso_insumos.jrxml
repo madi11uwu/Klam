@@ -3,22 +3,26 @@
 	<parameter name="generado" class="java.lang.String"/>
 	<parameter name="periodo" class="java.lang.String"/>
 	<parameter name="criterios" class="java.lang.String"/>
+	<parameter name="logo" class="java.awt.Image"/>
 	<field name="nombre" class="java.lang.String"/>
 	<field name="medida" class="java.lang.String"/>
 	<field name="tipoProcedimiento" class="java.lang.String"/>
 	<field name="cantidadUtilizada" class="java.lang.Integer"/>
 	<field name="frecuencia" class="java.lang.Integer"/>
 	<title height="95" splitType="Stretch">
-		<element kind="textField" x="0" y="0" width="555" height="22" fontName="Helvetica" fontSize="14.0" bold="true">
+		<element kind="image" x="480" y="5" width="65" height="60">
+			<expression><![CDATA[$P{logo}]]></expression>
+		</element>
+		<element kind="textField" x="0" y="0" width="470" height="22" fontName="Helvetica" fontSize="14.0" bold="true">
 			<expression><![CDATA[$P{titulo}]]></expression>
 		</element>
-		<element kind="textField" x="0" y="24" width="555" height="16" fontName="Helvetica" fontSize="10.0">
+		<element kind="textField" x="0" y="24" width="470" height="16" fontName="Helvetica" fontSize="10.0">
 			<expression><![CDATA["Generado: " + $P{generado}]]></expression>
 		</element>
-		<element kind="textField" x="0" y="40" width="555" height="16" fontName="Helvetica" fontSize="10.0">
+		<element kind="textField" x="0" y="40" width="470" height="16" fontName="Helvetica" fontSize="10.0">
 			<expression><![CDATA["Periodo: " + $P{periodo}]]></expression>
 		</element>
-		<element kind="textField" textAdjust="StretchHeight" x="0" y="56" width="555" height="32" fontName="Helvetica" fontSize="10.0">
+		<element kind="textField" textAdjust="StretchHeight" x="0" y="56" width="470" height="32" fontName="Helvetica" fontSize="10.0">
 			<expression><![CDATA[$P{criterios}]]></expression>
 		</element>
 	</title>
@@ -97,16 +101,19 @@
 		</element>
 	</pageFooter>
 	<noData height="140" splitType="Stretch">
-		<element kind="textField" x="0" y="0" width="555" height="22" fontName="Helvetica" fontSize="14.0" bold="true">
+		<element kind="image" x="480" y="5" width="65" height="60">
+			<expression><![CDATA[$P{logo}]]></expression>
+		</element>
+		<element kind="textField" x="0" y="0" width="470" height="22" fontName="Helvetica" fontSize="14.0" bold="true">
 			<expression><![CDATA[$P{titulo}]]></expression>
 		</element>
-		<element kind="textField" x="0" y="24" width="555" height="16" fontName="Helvetica" fontSize="10.0">
+		<element kind="textField" x="0" y="24" width="470" height="16" fontName="Helvetica" fontSize="10.0">
 			<expression><![CDATA["Generado: " + $P{generado}]]></expression>
 		</element>
-		<element kind="textField" x="0" y="40" width="555" height="16" fontName="Helvetica" fontSize="10.0">
+		<element kind="textField" x="0" y="40" width="470" height="16" fontName="Helvetica" fontSize="10.0">
 			<expression><![CDATA["Periodo: " + $P{periodo}]]></expression>
 		</element>
-		<element kind="textField" textAdjust="StretchHeight" x="0" y="56" width="555" height="32" fontName="Helvetica" fontSize="10.0">
+		<element kind="textField" textAdjust="StretchHeight" x="0" y="56" width="470" height="32" fontName="Helvetica" fontSize="10.0">
 			<expression><![CDATA[$P{criterios}]]></expression>
 		</element>
 		<element kind="staticText" x="0" y="105" width="555" height="20" fontName="Helvetica" fontSize="10.0">

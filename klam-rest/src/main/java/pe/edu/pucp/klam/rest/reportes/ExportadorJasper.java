@@ -14,6 +14,9 @@ import pe.edu.pucp.klam.bl.reportes.ReporteComparativo;
 import pe.edu.pucp.klam.bl.reportes.ReporteUsoInsumos;
 import pe.edu.pucp.klam.bl.reportes.ResumenUsoInsumo;
 
+import javax.imageio.ImageIO;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +35,9 @@ public final class ExportadorJasper {
     private static final String RUTA_USO_INSUMOS = "reportes/reporte_uso_insumos.jrxml";
     private static final String RUTA_COMPARATIVO = "reportes/reporte_comparativo.jrxml";
     private static final String RUTA_COMPARATIVO_LINEAS = "reportes/reporte_comparativo_lineas.jrxml";
+    private static final String RUTA_LOGO = "imagenes/bioklam-logo.png";
 
+    private static Image logoCache;
     private static JasperReport reporteUsoCache;
     private static JasperReport reporteComparativoCache;
     private static JasperReport reporteComparativoLineasCache;
@@ -121,7 +126,27 @@ public final class ExportadorJasper {
         parametros.put("generado", cabecera.generado());
         parametros.put("periodo", cabecera.periodo());
         parametros.put("criterios", String.join("\n", cabecera.criterios()));
+        parametros.put("logo", obtenerLogo());
         return parametros;
+    }
+
+    /**
+     * Logo de la cabecera. Nunca devuelve null: un parametro de imagen vacio corta
+     * el llenado del reporte y el PDF no llegaria a generarse, asi que si el recurso
+     * falta se devuelve un pixel transparente y el reporte sale sin logo.
+     */
+    private static synchronized Image obtenerLogo() {
+        if (logoCache == null) {
+            try (InputStream is = ExportadorJasper.class.getClassLoader().getResourceAsStream(RUTA_LOGO)) {
+                logoCache = is == null ? null : ImageIO.read(is);
+            } catch (IOException e) {
+                logoCache = null;
+            }
+            if (logoCache == null) {
+                logoCache = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+            }
+        }
+        return logoCache;
     }
 
     private static synchronized JasperReport obtenerReporteUso() throws JRException, IOException {

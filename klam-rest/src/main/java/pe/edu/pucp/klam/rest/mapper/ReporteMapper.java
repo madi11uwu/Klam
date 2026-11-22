@@ -67,7 +67,7 @@ public final class ReporteMapper {
                 "Medida: " + textoODefecto(f.medida(), "Todas"),
                 "Solo cirugías finalizadas con consumo completo. Cirugías consideradas: "
                         + r.cirugiasConsideradas());
-        return new CabeceraReporte("Insumos más utilizados (RF18)", fechaHora(r.generado()),
+        return new CabeceraReporte("BIOKLAM · Uso de insumos", fechaHora(r.generado()),
                 periodo(f), criterios);
     }
 
@@ -77,7 +77,7 @@ public final class ReporteMapper {
                 "Cirugía: " + (f.idCirugia() == null ? "Todas" : "CIR-" + String.format("%03d", f.idCirugia())),
                 "Cliente: " + textoODefecto(nombreCliente, "Todos"),
                 "Solo cirugías finalizadas con consumo completo. Cirugías incluidas: " + r.cirugias().size());
-        return new CabeceraReporte("Control de consumo por cirugía (RF19)", fechaHora(r.generado()),
+        return new CabeceraReporte("BIOKLAM · Control de consumo por cirugía", fechaHora(r.generado()),
                 periodo(f), criterios);
     }
 
