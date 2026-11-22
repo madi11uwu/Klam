@@ -22,6 +22,7 @@ import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.clientes.PacienteParticular;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 import pe.edu.pucp.klam.rest.dto.AccionSolicitudDTO;
+import pe.edu.pucp.klam.rest.dto.ClinicaNuevaDTO;
 import pe.edu.pucp.klam.rest.dto.RegistrarSolicitudDTO;
 import pe.edu.pucp.klam.rest.dto.SolicitudCirugiaDTO;
 
@@ -41,26 +42,47 @@ public class SolicitudesResource {
         SesionesRest.Sesion sesion = sesion();
         if (sesion == null) return noAutenticado();
         if (!esVendedor(sesion)) return sinPermisoVendedor();
-        if (datos == null || datos.getIdCliente() <= 0) {
+        if (datos == null) {
             return error(Response.Status.BAD_REQUEST, "El cliente solicitante es obligatorio");
         }
 
-        Cliente cliente;
-        if ("PARTICULAR".equals(datos.getTipoCliente()) || "PACIENTE_PARTICULAR".equals(datos.getTipoCliente())) {
-            PacienteParticular particular = new PacienteParticular();
-            particular.setIdCliente(datos.getIdCliente());
-            cliente = particular;
-        } else if ("CLINICA".equals(datos.getTipoCliente()) || "CLINICA_HOSPITAL".equals(datos.getTipoCliente())) {
-            ClinicaHospital clinica = new ClinicaHospital();
-            clinica.setIdCliente(datos.getIdCliente());
-            cliente = clinica;
+        boolean esClinica = "CLINICA".equals(datos.getTipoCliente()) || "CLINICA_HOSPITAL".equals(datos.getTipoCliente());
+        ClinicaHospital clinicaNueva = null;
+        Cliente cliente = null;
+        if (esClinica) {
+            // Un vendedor solo solicita por una clinica que aun no esta en BIOKLAM;
+            // si ya esta registrada, la solicitud la hace la propia clinica.
+            if (datos.getIdCliente() > 0) {
+                return error(Response.Status.CONFLICT, SolicitudCirugiaBLImpl.MSG_CLINICA_YA_REGISTRADA);
+            }
+            ClinicaNuevaDTO c = datos.getClinicaNueva();
+            if (c == null) {
+                return error(Response.Status.BAD_REQUEST, "Ingrese los datos de la clínica");
+            }
+            clinicaNueva = new ClinicaHospital();
+            clinicaNueva.setNombre(c.getNombre());
+            clinicaNueva.setRuc(c.getRuc());
+            clinicaNueva.setDireccion(c.getDireccion());
+            clinicaNueva.setEmailContacto(c.getEmailContacto());
+            clinicaNueva.setTelefono(c.getTelefono());
+            clinicaNueva.setPeriodoCredito(c.getPeriodoCredito());
+            clinicaNueva.setTieneConsignacion(c.isTieneConsignacion());
         } else {
-            return error(Response.Status.BAD_REQUEST, "Tipo de cliente no soportado");
+            if (datos.getIdCliente() <= 0) {
+                return error(Response.Status.BAD_REQUEST, "El cliente solicitante es obligatorio");
+            }
+            if ("PARTICULAR".equals(datos.getTipoCliente()) || "PACIENTE_PARTICULAR".equals(datos.getTipoCliente())) {
+                PacienteParticular particular = new PacienteParticular();
+                particular.setIdCliente(datos.getIdCliente());
+                cliente = particular;
+            } else {
+                return error(Response.Status.BAD_REQUEST, "Tipo de cliente no soportado");
+            }
         }
 
         SolicitudCirugia solicitud = new SolicitudCirugia();
         solicitud.setCliente(cliente);
-        if (datos.getIdClinicaDestino() > 0) {
+        if (!esClinica && datos.getIdClinicaDestino() > 0) {
             ClinicaHospital destino = new ClinicaHospital();
             destino.setIdCliente(datos.getIdClinicaDestino());
             solicitud.setClinicaDestino(destino);
@@ -77,7 +99,12 @@ public class SolicitudesResource {
             if (datos.getFechaHoraSolicitada() != null) {
                 solicitud.setFechaHoraSolicitada(LocalDateTime.parse(datos.getFechaHoraSolicitada()));
             }
-            solicitudBL.registrarSolicitud(solicitud, sesion.username(), sesion.idUsuario(), sesion.rol());
+            if (esClinica) {
+                solicitudBL.registrarSolicitudClinicaNueva(solicitud, clinicaNueva,
+                        sesion.username(), sesion.idUsuario(), sesion.rol());
+            } else {
+                solicitudBL.registrarSolicitud(solicitud, sesion.username(), sesion.idUsuario(), sesion.rol());
+            }
             return Response.status(Response.Status.CREATED)
                     .entity(new SolicitudCirugiaDTO(solicitud)).build();
         } catch (DateTimeParseException ex) {

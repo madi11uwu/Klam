@@ -10,6 +10,7 @@ public class RegistrarSolicitudDTO {
     private String doctorNombre;
     private String fechaHoraSolicitada;
     private String observaciones;
+    private ClinicaNuevaDTO clinicaNueva;
 
     public String getTipoCliente() { return tipoCliente; }
     public void setTipoCliente(String tipoCliente) { this.tipoCliente = tipoCliente; }
@@ -27,6 +28,8 @@ public class RegistrarSolicitudDTO {
     public void setDoctorNombre(String doctorNombre) { this.doctorNombre = doctorNombre; }
     public String getFechaHoraSolicitada() { return fechaHoraSolicitada; }
     public void setFechaHoraSolicitada(String fechaHoraSolicitada) { this.fechaHoraSolicitada = fechaHoraSolicitada; }
+    public ClinicaNuevaDTO getClinicaNueva() { return clinicaNueva; }
+    public void setClinicaNueva(ClinicaNuevaDTO clinicaNueva) { this.clinicaNueva = clinicaNueva; }
     public String getObservaciones() { return observaciones; }
     public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
 }

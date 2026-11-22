@@ -85,6 +85,59 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         return registrarSolicitud(solicitud, null, null, null);
     }
 
+    public static final String MSG_CLINICA_YA_REGISTRADA =
+            "La clínica ya está registrada en BIOKLAM: la solicitud debe hacerla la propia clínica desde su cuenta";
+
+    @Override
+    public int registrarSolicitudClinicaNueva(SolicitudCirugia solicitud, ClinicaHospital clinicaNueva,
+            String responsable, Integer idUsuario, String rol) throws BLException {
+        if (solicitud == null) {
+            throw new BLException("La solicitud no puede ser nula");
+        }
+        if (clinicaNueva == null) {
+            throw new BLException("Ingrese los datos de la clínica");
+        }
+        ClinicaHospitalBLImpl clinicas = new ClinicaHospitalBLImpl();
+        ClinicaHospital existente = clinicas.findByRUC(clinicaNueva.getRuc());
+        if (existente != null && existente.isActivo()) {
+            throw new BLException(MSG_CLINICA_YA_REGISTRADA);
+        }
+        clinicaNueva.setActivo(true);
+        if (existente != null) {
+            // Baja logica de un intento anterior que no llego a registrar la solicitud.
+            clinicaNueva.setIdCliente(existente.getIdCliente());
+            clinicas.update(clinicaNueva);
+        } else {
+            clinicas.insert(clinicaNueva);
+        }
+
+        solicitud.setCliente(clinicaNueva);
+        solicitud.setClinicaDestino(null);
+        int idSolicitud;
+        try {
+            idSolicitud = registrarSolicitud(solicitud, responsable, idUsuario, rol);
+        } catch (RuntimeException e) {
+            try {
+                clinicas.delete(clinicaNueva.getIdCliente());
+            } catch (BLException ignorada) {
+                // la clinica queda sin solicitud; el siguiente intento la reutiliza
+            }
+            throw e;
+        }
+
+        try {
+            new UsuarioPlataformaBLImpl().habilitarCuentaClienteConCorreo(
+                    "CLINICA_HOSPITAL", clinicaNueva.getIdCliente(), null);
+        } catch (BLException e) {
+            // La solicitud ya existe: se avisa al administrador para que habilite la cuenta a mano.
+            notificacionBL.notificarAdministradores(
+                    "No se pudo crear la cuenta de la clínica " + clinicaNueva.getNombre(),
+                    "Solicitud " + idSolicitud + ": habilite la cuenta de la clínica (RUC "
+                            + clinicaNueva.getRuc() + "). Motivo: " + e.getMessage());
+        }
+        return idSolicitud;
+    }
+
     @Override
     public int registrarSolicitud(SolicitudCirugia solicitud, String responsable,
             Integer idUsuario, String rol) throws BLException {

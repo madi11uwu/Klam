@@ -6,6 +6,7 @@ import java.util.List;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.Cirugia;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
 import pe.edu.pucp.klam.modelo.clientes.Cliente;
+import pe.edu.pucp.klam.modelo.clientes.ClinicaHospital;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 
 public interface SolicitudCirugiaBL {
@@ -15,6 +16,14 @@ public interface SolicitudCirugiaBL {
     ) throws BLException;
     int registrarSolicitud(SolicitudCirugia solicitud, String responsable,
             Integer idUsuario, String rol) throws BLException;
+
+    /**
+     * Solicitud de un vendedor a nombre de una clinica que aun no esta registrada
+     * en BIOKLAM: registra la clinica, la solicitud y envia las credenciales
+     * temporales a la clinica para que suba la orden de compra.
+     */
+    int registrarSolicitudClinicaNueva(SolicitudCirugia solicitud, ClinicaHospital clinicaNueva,
+            String responsable, Integer idUsuario, String rol) throws BLException;
 
     SolicitudCirugia findSolicitudById(
             int idSolicitud
