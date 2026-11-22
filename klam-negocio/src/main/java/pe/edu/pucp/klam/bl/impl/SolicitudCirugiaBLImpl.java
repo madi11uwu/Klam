@@ -706,13 +706,16 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         // Los procedimientos del catálogo exigen una bandeja: si no se indicó una, se asigna la primera activa compatible.
         if (nueva.getBandejaInstrumental() == null && nueva.getTipoProcedimiento() != null) {
             try {
-                for (BandejaInstrumental candidata : new BandejaInstrumentalDAOImpl()
+                BandejaInstrumentalDAOImpl bandejas = new BandejaInstrumentalDAOImpl();
+                BandejaInstrumental elegida = null;
+                for (BandejaInstrumental candidata : bandejas
                         .listarPorProcedimiento(nueva.getTipoProcedimiento().trim())) {
-                    if (candidata.isActivo()) {
-                        nueva.setBandejaInstrumental(candidata);
-                        break;
-                    }
+                    if (!candidata.isActivo()) continue;
+                    // Se prefiere una bandeja sin consumo: con consumo registrado ya no se podría cambiar después.
+                    if (!bandejas.tieneConsumoRegistrado(candidata.getIdBandeja())) { elegida = candidata; break; }
+                    if (elegida == null) elegida = candidata;
                 }
+                if (elegida != null) nueva.setBandejaInstrumental(elegida);
             } catch (SQLException e) {
                 throw new BLException("No se pudo buscar la bandeja del procedimiento", e);
             }
