@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="Reporte_UsoInsumos" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="KlamReportes"/>
+	<parameter name="logo" class="java.awt.Image"/>
+	<query language="SQL"><![CDATA[call reporte_uso_insumos(null, null);]]></query>
+	<field name="insumo" class="java.lang.String"/>
+	<field name="medida" class="java.lang.String"/>
+	<field name="tipo_cirugia" class="java.lang.String"/>
+	<field name="cantidad_utilizada" class="java.lang.Long"/>
+	<field name="frecuencia" class="java.lang.Long"/>
+	<variable name="TOTAL_CANTIDAD" calculation="Sum" class="java.lang.Long">
+		<expression><![CDATA[$F{cantidad_utilizada}]]></expression>
+	</variable>
+	<title height="75">
+		<element kind="staticText" x="0" y="15" width="450" height="30" fontSize="18.0" bold="true">
+			<text><![CDATA[BIOKLAM - REPORTE DE USO DE INSUMOS]]></text>
+		</element>
+		<element kind="staticText" x="0" y="45" width="450" height="20" fontSize="11.0" forecolor="#666666">
+			<text><![CDATA[Consumo consolidado en cirugías finalizadas]]></text>
+		</element>
+		<element kind="image" x="480" y="5" width="65" height="60">
+			<expression><![CDATA[$P{logo}]]></expression>
+		</element>
+	</title>
+	<columnHeader height="30">
+		<element kind="staticText" x="0" y="5" width="160" height="20" fontSize="11.0" bold="true">
+			<text><![CDATA[INSUMO]]></text>
+		</element>
+		<element kind="staticText" x="160" y="5" width="70" height="20" fontSize="11.0" bold="true">
+			<text><![CDATA[MEDIDA]]></text>
+		</element>
+		<element kind="staticText" x="230" y="5" width="140" height="20" fontSize="11.0" bold="true">
+			<text><![CDATA[TIPO DE CIRUGÍA]]></text>
+		</element>
+		<element kind="staticText" x="370" y="5" width="90" height="20" fontSize="11.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[CANTIDAD]]></text>
+		</element>
+		<element kind="staticText" x="465" y="5" width="90" height="20" fontSize="11.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[FRECUENCIA]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="24">
+			<element kind="textField" x="0" y="2" width="160" height="18">
+				<expression><![CDATA[$F{insumo}]]></expression>
+			</element>
+			<element kind="textField" x="160" y="2" width="70" height="18">
+				<expression><![CDATA[$F{medida} != null ? $F{medida} : "-"]]></expression>
+			</element>
+			<element kind="textField" x="230" y="2" width="140" height="18">
+				<expression><![CDATA[$F{tipo_cirugia}]]></expression>
+			</element>
+			<element kind="textField" x="370" y="2" width="90" height="18" hTextAlign="Right">
+				<expression><![CDATA[$F{cantidad_utilizada}]]></expression>
+			</element>
+			<element kind="textField" x="465" y="2" width="90" height="18" hTextAlign="Right">
+				<expression><![CDATA[$F{frecuencia} + " cirugías"]]></expression>
+			</element>
+		</band>
+	</detail>
+	<summary height="40">
+		<element kind="staticText" x="230" y="10" width="140" height="20" fontSize="11.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[TOTAL UTILIZADO:]]></text>
+		</element>
+		<element kind="textField" x="370" y="10" width="90" height="20" fontSize="11.0" bold="true" hTextAlign="Right">
+			<expression><![CDATA[$V{TOTAL_CANTIDAD}]]></expression>
+		</element>
+	</summary>
+</jasperReport>

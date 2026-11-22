@@ -2,17 +2,20 @@ package pe.edu.pucp.klam.rest.reportes;
 
 import net.sf.jasperreports.engine.DefaultJasperReportsContext;
 import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRPrintPage;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 import pe.edu.pucp.klam.bl.reportes.CirugiaComparativa;
 import pe.edu.pucp.klam.bl.reportes.LineaComparativa;
 import pe.edu.pucp.klam.bl.reportes.ReporteComparativo;
 import pe.edu.pucp.klam.bl.reportes.ReporteUsoInsumos;
 import pe.edu.pucp.klam.bl.reportes.ResumenUsoInsumo;
+import pe.edu.pucp.klam.db.DBManager;
 
 import javax.imageio.ImageIO;
 import java.awt.Image;
@@ -20,27 +23,54 @@ import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Genera los reportes RF18 y RF19 en PDF usando JasperReports 7.0.3.
+ * Genera los PDF de RF18 y RF19 con las plantillas de Jaspersoft Studio que vienen
+ * del modulo klam-reportes (Reporte_UsoInsumos y Reporte_DespachoConsumo), que son
+ * las que llevan la identidad de Bioklam.
+ *
+ * Cada plantilla se alimenta como fue disenada:
+ *
+ *  - Uso de insumos no tiene subreportes, asi que se llena con los datos que ya
+ *    trajo la capa de negocio. Su consulta interna queda sin usar, y a cambio el
+ *    PDF respeta TODOS los filtros de la pantalla (periodo, tipo de cirugia,
+ *    consumible y medida), no solo las dos fechas del procedimiento almacenado,
+ *    y muestra exactamente los mismos numeros que la tabla.
+ *
+ *  - El comparativo si necesita conexion: su subreporte de lineas se llena con
+ *    $P{REPORT_CONNECTION}. La plantilla esta hecha para una cirugia, asi que se
+ *    llena una vez por cada cirugia que haya pasado los filtros y las paginas se
+ *    unen en un solo PDF. Los filtros se respetan porque deciden que cirugias
+ *    entran en esa lista.
+ *
+ * Cuando no hay datos se usan las plantillas sencillas de este modulo: las de
+ * Studio no tienen banda "sin datos" y un reporte vacio saldria sin paginas.
  */
 public final class ExportadorJasper {
 
-    private static final String RUTA_USO_INSUMOS = "reportes/reporte_uso_insumos.jrxml";
-    private static final String RUTA_COMPARATIVO = "reportes/reporte_comparativo.jrxml";
-    private static final String RUTA_COMPARATIVO_LINEAS = "reportes/reporte_comparativo_lineas.jrxml";
+    // Plantillas de Jaspersoft Studio, ya compiladas.
+    private static final String USO_INSUMOS = "reportes/Reporte_UsoInsumos.jasper";
+    private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumo.jasper";
+    private static final String COMPARATIVO_DETALLE = "reportes/Reporte_DetalleDespachoConsumo.jasper";
+
+    // Plantillas de respaldo para el caso sin datos.
+    private static final String USO_INSUMOS_VACIO = "reportes/reporte_uso_insumos.jrxml";
+    private static final String COMPARATIVO_VACIO = "reportes/reporte_comparativo.jrxml";
+    private static final String COMPARATIVO_VACIO_LINEAS = "reportes/reporte_comparativo_lineas.jrxml";
+
     private static final String RUTA_LOGO = "imagenes/bioklam-logo.png";
 
+    private static final Map<String, JasperReport> CACHE = new ConcurrentHashMap<>();
     private static Image logoCache;
-    private static JasperReport reporteUsoCache;
-    private static JasperReport reporteComparativoCache;
-    private static JasperReport reporteComparativoLineasCache;
 
     static {
         DefaultJasperReportsContext.getInstance().setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
@@ -49,39 +79,96 @@ public final class ExportadorJasper {
     private ExportadorJasper() {
     }
 
+    // ---------- RF18: uso de insumos ----------
+
     public static byte[] usoInsumos(ReporteUsoInsumos reporte, CabeceraReporte cabecera) throws IOException {
+        List<ResumenUsoInsumo> insumos = reporte.insumos() == null ? List.of() : reporte.insumos();
+        if (insumos.isEmpty()) {
+            return usoInsumosSinDatos(cabecera);
+        }
         try {
-            JasperReport jr = obtenerReporteUso();
-            Map<String, Object> parametros = construirParametrosCabecera(cabecera);
+            JasperReport jr = plantillaCompilada(USO_INSUMOS);
 
             Collection<Map<String, ?>> filas = new ArrayList<>();
-            if (reporte.insumos() != null) {
-                for (ResumenUsoInsumo insumo : reporte.insumos()) {
-                    Map<String, Object> fila = new HashMap<>();
-                    fila.put("nombre", insumo.nombre());
-                    fila.put("medida", insumo.medida());
-                    fila.put("tipoProcedimiento", insumo.tipoProcedimiento());
-                    fila.put("cantidadUtilizada", insumo.cantidadUtilizada());
-                    fila.put("frecuencia", insumo.frecuencia());
-                    filas.add(fila);
-                }
+            for (ResumenUsoInsumo insumo : insumos) {
+                Map<String, Object> fila = new HashMap<>();
+                fila.put("insumo", insumo.nombre());
+                fila.put("medida", insumo.medida());
+                fila.put("tipo_cirugia", insumo.tipoProcedimiento());
+                // La plantilla declara estos dos campos como Long, no como Integer.
+                fila.put("cantidad_utilizada", (long) insumo.cantidadUtilizada());
+                fila.put("frecuencia", (long) insumo.frecuencia());
+                filas.add(fila);
             }
 
-            JRMapCollectionDataSource ds = new JRMapCollectionDataSource(filas);
-            JasperPrint jp = JasperFillManager.fillReport(jr, parametros, ds);
+            Map<String, Object> parametros = new HashMap<>();
+            parametros.put("logo", obtenerLogo());
+
+            JasperPrint jp = JasperFillManager.fillReport(jr, parametros, new JRMapCollectionDataSource(filas));
             return JasperExportManager.exportReportToPdf(jp);
         } catch (JRException e) {
             throw new IOException("Error al generar el PDF de uso de insumos con JasperReports: " + e.getMessage(), e);
         }
     }
 
-    public static byte[] comparativo(ReporteComparativo reporte, CabeceraReporte cabecera) throws IOException {
-        try {
-            JasperReport jrMaestro = obtenerReporteComparativo();
-            JasperReport jrLineas = obtenerReporteComparativoLineas();
+    // ---------- RF19: comparativo por cirugia ----------
 
+    public static byte[] comparativo(ReporteComparativo reporte, CabeceraReporte cabecera) throws IOException {
+        List<CirugiaComparativa> cirugias = reporte.cirugias() == null ? List.of() : reporte.cirugias();
+        if (cirugias.isEmpty()) {
+            return comparativoSinDatos(reporte, cabecera);
+        }
+        try {
+            JasperReport maestro = plantillaCompilada(COMPARATIVO);
+            JasperPrint total = null;
+
+            try (Connection conexion = conexion()) {
+                for (CirugiaComparativa cirugia : cirugias) {
+                    Map<String, Object> parametros = new HashMap<>();
+                    parametros.put("id_cirugia", cirugia.idCirugia());
+                    parametros.put("subreporte", COMPARATIVO_DETALLE);
+                    parametros.put("logo", obtenerLogo());
+
+                    JasperPrint jp = JasperFillManager.fillReport(maestro, parametros, conexion);
+                    if (total == null) {
+                        total = jp;
+                    } else {
+                        for (JRPrintPage pagina : jp.getPages()) {
+                            total.addPage(pagina);
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                throw new IOException("Error de base de datos al generar el PDF comparativo: " + e.getMessage(), e);
+            }
+
+            if (total == null || total.getPages().isEmpty()) {
+                return comparativoSinDatos(reporte, cabecera);
+            }
+            return JasperExportManager.exportReportToPdf(total);
+        } catch (JRException e) {
+            throw new IOException("Error al generar el PDF comparativo con JasperReports: " + e.getMessage(), e);
+        }
+    }
+
+    // ---------- Respaldo cuando el reporte sale vacio ----------
+
+    private static byte[] usoInsumosSinDatos(CabeceraReporte cabecera) throws IOException {
+        try {
+            JasperReport jr = plantillaFuente(USO_INSUMOS_VACIO);
+            JasperPrint jp = JasperFillManager.fillReport(jr, construirParametrosCabecera(cabecera),
+                    new JRMapCollectionDataSource(new ArrayList<>()));
+            return JasperExportManager.exportReportToPdf(jp);
+        } catch (JRException e) {
+            throw new IOException("Error al generar el PDF de uso de insumos sin datos: " + e.getMessage(), e);
+        }
+    }
+
+    private static byte[] comparativoSinDatos(ReporteComparativo reporte, CabeceraReporte cabecera) throws IOException {
+        try {
+            JasperReport jrMaestro = plantillaFuente(COMPARATIVO_VACIO);
             Map<String, Object> parametros = construirParametrosCabecera(cabecera);
-            parametros.put("subreporteLineas", jrLineas);
+            parametros.put("subreporteLineas", plantillaFuente(COMPARATIVO_VACIO_LINEAS));
 
             Collection<Map<String, ?>> filas = new ArrayList<>();
             if (reporte.cirugias() != null) {
@@ -112,13 +199,14 @@ public final class ExportadorJasper {
                 }
             }
 
-            JRMapCollectionDataSource ds = new JRMapCollectionDataSource(filas);
-            JasperPrint jp = JasperFillManager.fillReport(jrMaestro, parametros, ds);
+            JasperPrint jp = JasperFillManager.fillReport(jrMaestro, parametros, new JRMapCollectionDataSource(filas));
             return JasperExportManager.exportReportToPdf(jp);
         } catch (JRException e) {
-            throw new IOException("Error al generar el PDF comparativo con JasperReports: " + e.getMessage(), e);
+            throw new IOException("Error al generar el PDF comparativo sin datos: " + e.getMessage(), e);
         }
     }
+
+    // ---------- Auxiliares ----------
 
     private static Map<String, Object> construirParametrosCabecera(CabeceraReporte cabecera) {
         Map<String, Object> parametros = new HashMap<>();
@@ -128,6 +216,46 @@ public final class ExportadorJasper {
         parametros.put("criterios", String.join("\n", cabecera.criterios()));
         parametros.put("logo", obtenerLogo());
         return parametros;
+    }
+
+    /** DBManager lanza RuntimeException si no puede conectar; aqui se convierte para que quede en el log. */
+    private static Connection conexion() throws IOException {
+        try {
+            return DBManager.getInstance().getConnection();
+        } catch (RuntimeException e) {
+            throw new IOException("No se pudo conectar a la base de datos para el reporte comparativo: "
+                    + e.getMessage(), e);
+        }
+    }
+
+    /** Plantilla ya compilada (.jasper), tal como sale de Jaspersoft Studio. */
+    private static JasperReport plantillaCompilada(String ruta) throws JRException, IOException {
+        JasperReport enCache = CACHE.get(ruta);
+        if (enCache != null) return enCache;
+        try (InputStream is = recurso(ruta)) {
+            JasperReport jr = (JasperReport) JRLoader.loadObject(is);
+            CACHE.put(ruta, jr);
+            return jr;
+        }
+    }
+
+    /** Plantilla en .jrxml, que se compila la primera vez que se usa. */
+    private static JasperReport plantillaFuente(String ruta) throws JRException, IOException {
+        JasperReport enCache = CACHE.get(ruta);
+        if (enCache != null) return enCache;
+        try (InputStream is = recurso(ruta)) {
+            JasperReport jr = JasperCompileManager.compileReport(is);
+            CACHE.put(ruta, jr);
+            return jr;
+        }
+    }
+
+    private static InputStream recurso(String ruta) throws IOException {
+        InputStream is = ExportadorJasper.class.getClassLoader().getResourceAsStream(ruta);
+        if (is == null) {
+            throw new FileNotFoundException("No se encontró el recurso del reporte en classpath: " + ruta);
+        }
+        return is;
     }
 
     /**
@@ -147,36 +275,6 @@ public final class ExportadorJasper {
             }
         }
         return logoCache;
-    }
-
-    private static synchronized JasperReport obtenerReporteUso() throws JRException, IOException {
-        if (reporteUsoCache == null) {
-            reporteUsoCache = compilarReporte(RUTA_USO_INSUMOS);
-        }
-        return reporteUsoCache;
-    }
-
-    private static synchronized JasperReport obtenerReporteComparativo() throws JRException, IOException {
-        if (reporteComparativoCache == null) {
-            reporteComparativoCache = compilarReporte(RUTA_COMPARATIVO);
-        }
-        return reporteComparativoCache;
-    }
-
-    private static synchronized JasperReport obtenerReporteComparativoLineas() throws JRException, IOException {
-        if (reporteComparativoLineasCache == null) {
-            reporteComparativoLineasCache = compilarReporte(RUTA_COMPARATIVO_LINEAS);
-        }
-        return reporteComparativoLineasCache;
-    }
-
-    private static JasperReport compilarReporte(String ruta) throws JRException, IOException {
-        try (InputStream is = ExportadorJasper.class.getClassLoader().getResourceAsStream(ruta)) {
-            if (is == null) {
-                throw new FileNotFoundException("No se encontró el recurso del reporte en classpath: " + ruta);
-            }
-            return JasperCompileManager.compileReport(is);
-        }
     }
 
     private static String formatearFecha(LocalDateTime f) {

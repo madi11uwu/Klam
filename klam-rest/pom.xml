@@ -23,6 +23,12 @@
           <artifactId>klam-negocio</artifactId>
           <version>1.0-SNAPSHOT</version>
       </dependency>
+      <!-- El comparativo llena la plantilla de Studio con una conexion JDBC. -->
+      <dependency>
+          <groupId>pe.edu.pucp.softprog</groupId>
+          <artifactId>klam-dbmanager</artifactId>
+          <version>1.0-SNAPSHOT</version>
+      </dependency>
       <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
