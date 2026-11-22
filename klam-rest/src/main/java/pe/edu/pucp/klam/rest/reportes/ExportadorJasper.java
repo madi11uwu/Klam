@@ -9,7 +9,6 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
-import net.sf.jasperreports.engine.util.JRLoader;
 import pe.edu.pucp.klam.bl.reportes.CirugiaComparativa;
 import pe.edu.pucp.klam.bl.reportes.LineaComparativa;
 import pe.edu.pucp.klam.bl.reportes.ReporteComparativo;
@@ -57,9 +56,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ExportadorJasper {
 
-    // Plantillas de Jaspersoft Studio, ya compiladas.
-    private static final String USO_INSUMOS = "reportes/Reporte_UsoInsumos.jasper";
-    private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumo.jasper";
+    // Plantillas de Jaspersoft Studio. Se leen del .jrxml, que es el archivo que se
+    // edita en Studio, y se compilan al vuelo: asi no se pueden quedar atras. Los
+    // .jasper que venian en el repositorio estaban compilados de una version
+    // anterior del diseno, sin los parametros logo, id_cirugia ni subreporte, y por
+    // eso el PDF de uso de insumos fallaba y el comparativo salia en blanco.
+    private static final String USO_INSUMOS = "reportes/Reporte_UsoInsumos.jrxml";
+    private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumo.jrxml";
+    // El subreporte es la excepcion: la plantilla maestra lo nombra por ruta en
+    // $P{subreporte} y Jasper espera ahi un archivo ya compilado. Si se edita
+    // Reporte_DetalleDespachoConsumo.jrxml hay que volver a exportar su .jasper.
     private static final String COMPARATIVO_DETALLE = "reportes/Reporte_DetalleDespachoConsumo.jasper";
 
     // Plantillas de respaldo para el caso sin datos.
@@ -87,7 +93,7 @@ public final class ExportadorJasper {
             return usoInsumosSinDatos(cabecera);
         }
         try {
-            JasperReport jr = plantillaCompilada(USO_INSUMOS);
+            JasperReport jr = plantillaFuente(USO_INSUMOS);
 
             Collection<Map<String, ?>> filas = new ArrayList<>();
             for (ResumenUsoInsumo insumo : insumos) {
@@ -119,7 +125,7 @@ public final class ExportadorJasper {
             return comparativoSinDatos(reporte, cabecera);
         }
         try {
-            JasperReport maestro = plantillaCompilada(COMPARATIVO);
+            JasperReport maestro = plantillaFuente(COMPARATIVO);
             JasperPrint total = null;
 
             try (Connection conexion = conexion()) {
@@ -225,17 +231,6 @@ public final class ExportadorJasper {
         } catch (RuntimeException e) {
             throw new IOException("No se pudo conectar a la base de datos para el reporte comparativo: "
                     + e.getMessage(), e);
-        }
-    }
-
-    /** Plantilla ya compilada (.jasper), tal como sale de Jaspersoft Studio. */
-    private static JasperReport plantillaCompilada(String ruta) throws JRException, IOException {
-        JasperReport enCache = CACHE.get(ruta);
-        if (enCache != null) return enCache;
-        try (InputStream is = recurso(ruta)) {
-            JasperReport jr = (JasperReport) JRLoader.loadObject(is);
-            CACHE.put(ruta, jr);
-            return jr;
         }
     }
 
