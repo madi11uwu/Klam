@@ -1,0 +1,73 @@
+<jasperReport name="reporte_comparativo_lineas" language="java" pageWidth="555" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<field name="nombre" class="java.lang.String"/>
+	<field name="medida" class="java.lang.String"/>
+	<field name="despachada" class="java.lang.Integer"/>
+	<field name="consumida" class="java.lang.Integer"/>
+	<field name="diferencia" class="java.lang.Integer"/>
+	<columnHeader height="20" splitType="Stretch">
+		<element kind="staticText" mode="Opaque" backcolor="#E0E0E0" x="0" y="0" width="205" height="20" fontName="Helvetica" fontSize="9.0" bold="true" vTextAlign="Middle">
+			<box leftPadding="4">
+				<pen lineWidth="0.5" lineColor="#B0B0B0"/>
+			</box>
+			<text><![CDATA[Insumo]]></text>
+		</element>
+		<element kind="staticText" mode="Opaque" backcolor="#E0E0E0" x="205" y="0" width="72" height="20" fontName="Helvetica" fontSize="9.0" bold="true" vTextAlign="Middle">
+			<box leftPadding="4">
+				<pen lineWidth="0.5" lineColor="#B0B0B0"/>
+			</box>
+			<text><![CDATA[Medida]]></text>
+		</element>
+		<element kind="staticText" mode="Opaque" backcolor="#E0E0E0" x="277" y="0" width="92" height="20" fontName="Helvetica" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<box rightPadding="4">
+				<pen lineWidth="0.5" lineColor="#B0B0B0"/>
+			</box>
+			<text><![CDATA[Despachada]]></text>
+		</element>
+		<element kind="staticText" mode="Opaque" backcolor="#E0E0E0" x="369" y="0" width="93" height="20" fontName="Helvetica" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<box rightPadding="4">
+				<pen lineWidth="0.5" lineColor="#B0B0B0"/>
+			</box>
+			<text><![CDATA[Consumida]]></text>
+		</element>
+		<element kind="staticText" mode="Opaque" backcolor="#E0E0E0" x="462" y="0" width="93" height="20" fontName="Helvetica" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<box rightPadding="4">
+				<pen lineWidth="0.5" lineColor="#B0B0B0"/>
+			</box>
+			<text><![CDATA[Diferencia]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<element kind="textField" textAdjust="StretchHeight" x="0" y="0" width="205" height="18" fontName="Helvetica" fontSize="9.0" vTextAlign="Middle">
+				<box leftPadding="4">
+					<pen lineWidth="0.25" lineColor="#D0D0D0"/>
+				</box>
+				<expression><![CDATA[$F{nombre} != null ? $F{nombre} : "—"]]></expression>
+			</element>
+			<element kind="textField" x="205" y="0" width="72" height="18" fontName="Helvetica" fontSize="9.0" vTextAlign="Middle">
+				<box leftPadding="4">
+					<pen lineWidth="0.25" lineColor="#D0D0D0"/>
+				</box>
+				<expression><![CDATA[$F{medida} != null ? $F{medida} : "—"]]></expression>
+			</element>
+			<element kind="textField" x="277" y="0" width="92" height="18" fontName="Helvetica" fontSize="9.0" hTextAlign="Right" vTextAlign="Middle">
+				<box rightPadding="4">
+					<pen lineWidth="0.25" lineColor="#D0D0D0"/>
+				</box>
+				<expression><![CDATA[$F{despachada} != null ? $F{despachada} : 0]]></expression>
+			</element>
+			<element kind="textField" x="369" y="0" width="93" height="18" fontName="Helvetica" fontSize="9.0" hTextAlign="Right" vTextAlign="Middle">
+				<box rightPadding="4">
+					<pen lineWidth="0.25" lineColor="#D0D0D0"/>
+				</box>
+				<expression><![CDATA[$F{consumida} != null ? $F{consumida} : 0]]></expression>
+			</element>
+			<element kind="textField" x="462" y="0" width="93" height="18" fontName="Helvetica" fontSize="9.0" hTextAlign="Right" vTextAlign="Middle">
+				<box rightPadding="4">
+					<pen lineWidth="0.25" lineColor="#D0D0D0"/>
+				</box>
+				<expression><![CDATA[$F{diferencia} != null ? $F{diferencia} : 0]]></expression>
+			</element>
+		</band>
+	</detail>
+</jasperReport>

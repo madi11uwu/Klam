@@ -19,7 +19,7 @@ import pe.edu.pucp.klam.modelo.agendaoperaciones.Consumible;
 import pe.edu.pucp.klam.rest.mapper.ReporteMapper;
 import pe.edu.pucp.klam.rest.reportes.CabeceraReporte;
 import pe.edu.pucp.klam.rest.reportes.ExportadorExcel;
-import pe.edu.pucp.klam.rest.reportes.ExportadorPdf;
+import pe.edu.pucp.klam.rest.reportes.ExportadorJasper;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -93,7 +93,7 @@ public class ReportesResource {
             CabeceraReporte cabecera = ReporteMapper.cabeceraUso(reporte, nombreConsumible(filtro.idConsumible()));
             return archivo(excel, "uso-insumos", filtro.desde(), filtro.hasta(),
                     () -> ExportadorExcel.usoInsumos(reporte, cabecera),
-                    () -> ExportadorPdf.usoInsumos(reporte, cabecera));
+                    () -> ExportadorJasper.usoInsumos(reporte, cabecera));
         } catch (BLException ex) {
             return Errores.desde(ex);
         }
@@ -136,7 +136,7 @@ public class ReportesResource {
                     nombreCliente(filtro.idCliente(), reporte));
             return archivo(excel, "comparativo-consumo", filtro.desde(), filtro.hasta(),
                     () -> ExportadorExcel.comparativo(reporte, cabecera),
-                    () -> ExportadorPdf.comparativo(reporte, cabecera));
+                    () -> ExportadorJasper.comparativo(reporte, cabecera));
         } catch (BLException ex) {
             return Errores.desde(ex);
         }
