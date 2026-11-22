@@ -14,6 +14,7 @@
         <module>klam-accesodatos</module>
         <module>klam-negocio</module>
         <module>klam-rest</module>
+        <module>klam-reportes</module>
     </modules>
 
     <properties>
