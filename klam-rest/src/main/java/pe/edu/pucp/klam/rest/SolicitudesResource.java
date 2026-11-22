@@ -14,6 +14,8 @@ import java.util.Map;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import pe.edu.pucp.klam.bl.BLException;
+import pe.edu.pucp.klam.bl.BandejaInstrumentalBL;
+import pe.edu.pucp.klam.bl.impl.BandejaInstrumentalBLImpl;
 import pe.edu.pucp.klam.bl.SolicitudCirugiaBL;
 import pe.edu.pucp.klam.bl.impl.SolicitudCirugiaBLImpl;
 import pe.edu.pucp.klam.modelo.agendaoperaciones.SolicitudCirugia;
@@ -33,6 +35,7 @@ public class SolicitudesResource {
 
     private final SolicitudCirugiaBL solicitudBL = new SolicitudCirugiaBLImpl();
     private final CotizacionBL cotizacionBL = new CotizacionBLImpl();
+    private final BandejaInstrumentalBL bandejaBL = new BandejaInstrumentalBLImpl();
 
     @Context
     private HttpHeaders headers;
@@ -109,6 +112,19 @@ public class SolicitudesResource {
                     .entity(new SolicitudCirugiaDTO(solicitud)).build();
         } catch (DateTimeParseException ex) {
             return error(Response.Status.BAD_REQUEST, "La fecha y hora solicitadas no son válidas");
+        } catch (BLException ex) {
+            return fallo(ex, Response.Status.BAD_REQUEST);
+        }
+    }
+
+    /** Procedimientos del catálogo (los que tienen bandeja): la solicitud debe usar uno de ellos. */
+    @GET
+    @Path("/procedimientos")
+    public Response listarProcedimientos() {
+        SesionesRest.Sesion sesion = sesion();
+        if (sesion == null) return noAutenticado();
+        try {
+            return Response.ok(bandejaBL.listarProcedimientos()).build();
         } catch (BLException ex) {
             return fallo(ex, Response.Status.BAD_REQUEST);
         }
