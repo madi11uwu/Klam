@@ -68,3 +68,87 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+USE `klam`;
+
+-- =========================================================================
+-- REPORTE 1: RF18 - USO DE INSUMOS
+-- =========================================================================
+DROP PROCEDURE IF EXISTS reporte_uso_insumos;
+
+DELIMITER $$
+CREATE PROCEDURE reporte_uso_insumos(
+    IN p_desde DATETIME,
+    IN p_hasta DATETIME
+)
+BEGIN
+SELECT
+    k.nombre_comercial                                        AS insumo,
+    k.medida                                                  AS medida,
+    c.tipo_procedimiento                                      AS tipo_cirugia,
+    SUM(bc.cantidad_consumida)                                AS cantidad_utilizada,
+    COUNT(DISTINCT c.id_cirugia)                              AS frecuencia
+FROM cirugia c
+         JOIN cirugia_consumible_real bc  ON bc.id_cirugia = c.id_cirugia
+         JOIN consumible k                ON k.id_consumible = bc.id_consumible
+WHERE c.activo = 1
+  AND c.estado = 'FINALIZADA'
+  AND c.consumo_completo = 1
+  AND (p_desde IS NULL OR c.fecha_hora_inicio >= p_desde)
+  AND (p_hasta IS NULL OR c.fecha_hora_inicio <= p_hasta)
+GROUP BY k.id_consumible, k.nombre_comercial, k.medida, c.tipo_procedimiento
+ORDER BY k.nombre_comercial;
+END$$
+DELIMITER ;
+
+
+-- =========================================================================
+-- REPORTE 2: RF19 - COMPARATIVO POR CIRUGÍA (Cabecera y Subreporte)
+-- =========================================================================
+
+-- Maestro: Cabecera de la cirugía
+DROP PROCEDURE IF EXISTS reporte_comparativo_cirugia;
+
+DELIMITER $$
+CREATE PROCEDURE reporte_comparativo_cirugia(
+    IN p_id_cirugia INT
+)
+BEGIN
+SELECT
+    c.id_cirugia,
+    DATE_FORMAT(c.fecha_hora_inicio, '%d/%m/%Y %H:%i')        AS fecha,
+    c.tipo_procedimiento,
+    c.doctor_nombre                                           AS medico,
+    c.paciente_nombre                                         AS paciente,
+    c.paciente_documento                                      AS documento_paciente,
+    COALESCE(ch.nombre, pp.nombre)                            AS cliente
+FROM cirugia c
+         LEFT JOIN clinica_hospital ch    ON ch.id_cliente = c.id_clinica_hospital
+         LEFT JOIN paciente_particular pp ON pp.id_cliente = c.id_paciente_particular
+WHERE c.id_cirugia = p_id_cirugia
+  AND c.activo = 1
+  AND c.estado = 'FINALIZADA'
+  AND c.consumo_completo = 1;
+END$$
+DELIMITER ;
+
+-- Subreporte: Detalle de insumos consumidos vs despachados
+DROP PROCEDURE IF EXISTS reporte_comparativo_detalle;
+
+DELIMITER $$
+CREATE PROCEDURE reporte_comparativo_detalle(
+    IN p_id_cirugia INT
+)
+BEGIN
+SELECT
+    k.nombre_comercial                                        AS insumo,
+    k.medida                                                  AS medida,
+    bc.cantidad_despachada                                    AS despachada,
+    bc.cantidad_consumida                                     AS consumida,
+    (bc.cantidad_despachada - bc.cantidad_consumida)          AS diferencia
+FROM cirugia_consumible_real bc
+         JOIN consumible k ON k.id_consumible = bc.id_consumible
+WHERE bc.id_cirugia = p_id_cirugia
+ORDER BY k.nombre_comercial;
+END$$
+DELIMITER ;
