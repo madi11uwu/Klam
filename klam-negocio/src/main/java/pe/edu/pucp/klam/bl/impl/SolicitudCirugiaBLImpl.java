@@ -22,6 +22,8 @@ import pe.edu.pucp.klam.dao.DocumentoIngresoDAO;
 import pe.edu.pucp.klam.dao.SolicitudCirugiaDAO;
 import pe.edu.pucp.klam.dao.VendedorDAO;
 
+import pe.edu.pucp.klam.dao.impl.inventario.BandejaInstrumentalDAOImpl;
+import pe.edu.pucp.klam.modelo.agendaoperaciones.BandejaInstrumental;
 import pe.edu.pucp.klam.dao.impl.CirugiaDAOImpl;
 import pe.edu.pucp.klam.dao.impl.AuditoriaDocumentalDAOImpl;
 import pe.edu.pucp.klam.dao.impl.ClinicaHospitalDAOImpl;
@@ -700,6 +702,21 @@ public class SolicitudCirugiaBLImpl implements SolicitudCirugiaBL {
         nueva.setCliente(solicitante);
         nueva.setSolicitudOrigen(solicitud);
         nueva.setActivo(true);
+
+        // Los procedimientos del catálogo exigen una bandeja: si no se indicó una, se asigna la primera activa compatible.
+        if (nueva.getBandejaInstrumental() == null && nueva.getTipoProcedimiento() != null) {
+            try {
+                for (BandejaInstrumental candidata : new BandejaInstrumentalDAOImpl()
+                        .listarPorProcedimiento(nueva.getTipoProcedimiento().trim())) {
+                    if (candidata.isActivo()) {
+                        nueva.setBandejaInstrumental(candidata);
+                        break;
+                    }
+                }
+            } catch (SQLException e) {
+                throw new BLException("No se pudo buscar la bandeja del procedimiento", e);
+            }
+        }
 
         return new CirugiaBLImpl()
                 .registrarInterno(nueva, responsable);
