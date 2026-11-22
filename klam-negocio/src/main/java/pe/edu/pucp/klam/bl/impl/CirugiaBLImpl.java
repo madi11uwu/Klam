@@ -395,7 +395,12 @@ public class CirugiaBLImpl implements CirugiaBL {
 
         Integer idBandejaAntes = idBandeja(existente);
         Integer idBandejaDespues = idBandeja(cirugia);
-        if (idBandejaAntes != null && !Objects.equals(idBandejaAntes, idBandejaDespues)) {
+        // El consumo que bloquea el cambio es el de ESTA cirugía (ya en curso, finalizada o con consumo completo);
+        // el historial de otras cirugías sobre la misma plantilla de bandeja no debe impedir corregirla mientras está programada.
+        boolean cirugiaConConsumo = existente.isConsumoCompleto()
+                || existente.getEstado() == EstadoCirugia.EN_PROCESO
+                || existente.getEstado() == EstadoCirugia.FINALIZADA;
+        if (idBandejaAntes != null && !Objects.equals(idBandejaAntes, idBandejaDespues) && cirugiaConConsumo) {
             try {
                 if (bandejaDAO.tieneConsumoRegistrado(idBandejaAntes)) {
                     throw new BLException("No se puede cambiar la bandeja: ya tiene consumo registrado");
