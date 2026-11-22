@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Reportes de consumo (RF18 y RF19). Solo administradores. Todos los endpoints usan los mismos
@@ -42,6 +44,7 @@ public class ReportesResource {
 
     private static final String EXCEL_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     private static final String PDF_MIME = "application/pdf";
+    private static final Logger LOG = Logger.getLogger(ReportesResource.class.getName());
 
     @Context private HttpHeaders headers;
 
@@ -194,6 +197,12 @@ public class ReportesResource {
                     .header("Cache-Control", "no-store")
                     .build();
         } catch (IOException e) {
+            // Al cliente se le sigue diciendo algo entendible, pero la causa real
+            // (plantilla que no compila, recurso que falta, fallo de Jasper) tiene
+            // que quedar en el log del servidor: antes se descartaba y no habia
+            // forma de saber por que no salia el archivo.
+            LOG.log(Level.SEVERE, "No se pudo generar el "
+                    + (excel ? "Excel" : "PDF") + " del reporte " + nombreBase, e);
             return Errores.error(Response.Status.INTERNAL_SERVER_ERROR, "No se pudo generar el archivo del reporte");
         }
     }
