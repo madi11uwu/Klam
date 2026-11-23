@@ -61,8 +61,8 @@ public final class ExportadorJasper {
     // .jasper que venian en el repositorio estaban compilados de una version
     // anterior del diseno, sin los parametros logo, id_cirugia ni subreporte, y por
     // eso el PDF de uso de insumos fallaba y el comparativo salia en blanco.
-    private static final String USO_INSUMOS = "reportes/ReporteUso_Insumo.jrxml";
-    private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumoFinal.jrxml";
+    private static final String USO_INSUMOS = "reportes/ReporteUso_Insumo.jasper";
+    private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumoFinal.jasper";
     // El subreporte es la excepcion: la plantilla maestra lo nombra por ruta en
     // $P{subreporte} y Jasper espera ahi un archivo ya compilado. Si se edita
     // Reporte_DetalleDespachoConsumo.jrxml hay que volver a exportar su .jasper.
@@ -239,7 +239,9 @@ public final class ExportadorJasper {
         JasperReport enCache = CACHE.get(ruta);
         if (enCache != null) return enCache;
         try (InputStream is = recurso(ruta)) {
-            JasperReport jr = JasperCompileManager.compileReport(is);
+            JasperReport jr = ruta.endsWith(".jasper")
+                    ? (JasperReport) net.sf.jasperreports.engine.util.JRLoader.loadObject(is)
+                    : JasperCompileManager.compileReport(is);
             CACHE.put(ruta, jr);
             return jr;
         }
