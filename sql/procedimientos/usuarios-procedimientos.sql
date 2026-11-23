@@ -1,6 +1,3 @@
--- =========================================================
--- PROCEDIMIENTOS ALMACENADOS - ROL 1: USUARIOS, PERMISOS Y COMUNICACIONES
--- =========================================================
 USE `klam`;
 
 DROP PROCEDURE IF EXISTS insertar_administrador;
@@ -37,7 +34,6 @@ DROP PROCEDURE IF EXISTS listar_notificaciones_por_destinatario;
 DROP PROCEDURE IF EXISTS listar_notificaciones_no_leidas;
 
 DELIMITER //
--- ADMINISTRADOR  (ROL 1)
 
 CREATE PROCEDURE insertar_administrador(
     OUT p_id INT,
@@ -79,7 +75,6 @@ CREATE PROCEDURE eliminar_administrador(
     IN p_id INT
 )
 BEGIN
--- Baja logica
 UPDATE administrador
 SET activo = 0
 WHERE id_usuario = p_id;
@@ -123,7 +118,6 @@ FROM administrador
 WHERE email = p_email;
 END //
 
--- VENDEDOR  (ROL 1)
 
 CREATE PROCEDURE insertar_vendedor(
     OUT p_id INT,
@@ -168,7 +162,6 @@ CREATE PROCEDURE eliminar_vendedor(
     IN p_id INT
 )
 BEGIN
--- Baja logica
 UPDATE vendedor
 SET activo = 0
 WHERE id_usuario = p_id;
@@ -216,7 +209,6 @@ FROM vendedor
 WHERE email = p_email;
 END //
 
--- TECNICO_INSTRUMENTISTA  (ROL 1)
 
 CREATE PROCEDURE insertar_tecnico(
     OUT p_id INT,
@@ -261,7 +253,6 @@ CREATE PROCEDURE eliminar_tecnico(
     IN p_id INT
 )
 BEGIN
--- Baja logica
 UPDATE tecnico_instrumentista
 SET activo = 0
 WHERE id_usuario = p_id;
@@ -309,7 +300,6 @@ FROM tecnico_instrumentista
 WHERE email = p_email;
 END //
 
--- NOTIFICACION  (ROL 1)
 
 CREATE PROCEDURE insertar_notificacion(
     OUT p_id INT,
@@ -322,7 +312,6 @@ CREATE PROCEDURE insertar_notificacion(
     IN  p_id_tecnico INT
 )
 BEGIN
--- id_notificacion no es AUTO_INCREMENT: se genera el siguiente id
 SELECT COALESCE(MAX(id_notificacion), 0) + 1 INTO p_id FROM notificacion;
 
 INSERT INTO notificacion (id_notificacion, fecha_hora, titulo, mensaje, estado_leida, id_administrador, id_vendedor, id_tecnico)
@@ -393,7 +382,6 @@ CREATE PROCEDURE listar_notificaciones_por_destinatario(
     IN p_id_tecnico INT
 )
 BEGIN
--- Pasar solo uno de los tres ids; los otros van en NULL
 SELECT id_notificacion, fecha_hora, titulo, mensaje,
        estado_leida, id_administrador, id_vendedor, id_tecnico
 FROM notificacion

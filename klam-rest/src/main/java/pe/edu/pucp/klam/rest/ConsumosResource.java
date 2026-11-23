@@ -24,14 +24,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * RF15: consumo real y cierre por cirugía. Solo administración.
- *
- * GET /consumos?q=texto&desde=AAAA-MM-DD&hasta=AAAA-MM-DD   cirugías finalizadas con estado de OC y de consumo
- * GET /consumos/{idCirugia}                                 detalle: despachado, consumido y diferencia por consumible
- * PUT /consumos/{idCirugia}   {"idCirugia": n, "confirmar": bool, "lineas": [{"idConsumible": n, "cantidadConsumida": n}]}
- *                                                           guarda las cantidades; con confirmar=true cierra el consumo
- */
+/** RF15: consulta y cierre del consumo real por cirugía, solo para administradores. */
 @Path("/consumos")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

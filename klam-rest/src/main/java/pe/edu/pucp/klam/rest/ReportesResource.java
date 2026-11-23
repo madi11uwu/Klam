@@ -28,17 +28,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Reportes de consumo (RF18 y RF19). Solo administradores. Todos los endpoints usan los mismos
- * criterios, de modo que la vista y el archivo exportado muestran los mismos datos.
- *
- * GET /reportes/uso-insumos?desde=&hasta=&tipoCirugia=&idConsumible=&medida=          JSON (RF18)
- * GET /reportes/uso-insumos/exportar?formato=excel|pdf&...                              archivo (RF18)
- * GET /reportes/comparativo?desde=&hasta=&idCirugia=&tipoCliente=&idCliente=           JSON (RF19)
- * GET /reportes/comparativo/exportar?formato=excel|pdf&...                             archivo (RF19)
- *
- * Fechas en formato AAAA-MM-DD. tipoCliente: CLINICA_HOSPITAL o PACIENTE_PARTICULAR.
- */
+/** Reportes RF18/RF19 para administradores. La vista y la exportación comparten filtros. */
 @Path("/reportes")
 public class ReportesResource {
 

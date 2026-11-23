@@ -1,6 +1,3 @@
--- =========================================================
--- PROCEDIMIENTOS ALMACENADOS - ROL 5: GESTION DOCUMENTAL DE INGRESO
--- =========================================================
 USE `klam`;
 
 DROP PROCEDURE IF EXISTS insertar_orden_compra;
@@ -26,9 +23,6 @@ DROP PROCEDURE IF EXISTS buscar_auditoria_documental;
 
 DELIMITER $$
 
--- ---------------------------------------------------------
--- ORDEN_COMPRA  (ROL 5)
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_orden_compra(
     OUT p_id INT,
     IN  p_archivo_respaldo_path VARCHAR(255),
@@ -36,7 +30,6 @@ CREATE PROCEDURE insertar_orden_compra(
     IN  p_activo TINYINT
 )
 BEGIN
-    -- id_orden_compra no es AUTO_INCREMENT: se genera el siguiente id
     SELECT COALESCE(MAX(id_orden_compra), 0) + 1 INTO p_id FROM orden_compra;
 
     INSERT INTO orden_compra (id_orden_compra, archivo_respaldo_path, fecha_recepcion, activo)
@@ -61,7 +54,6 @@ CREATE PROCEDURE eliminar_orden_compra(
     IN p_id INT
 )
 BEGIN
-    -- Baja logica
     UPDATE orden_compra
        SET activo = 0
      WHERE id_orden_compra = p_id;
@@ -83,9 +75,6 @@ BEGIN
      WHERE id_orden_compra = p_id;
 END$$
 
--- ---------------------------------------------------------
--- LINEA_ORDEN_COMPRA  (detalle de orden_compra, ROL 5)
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_linea_orden_compra(
     OUT p_id INT,
     IN  p_id_orden_compra INT,
@@ -106,7 +95,6 @@ CREATE PROCEDURE eliminar_lineas_por_orden_compra(
     IN p_id_orden_compra INT
 )
 BEGIN
-    -- Se usa al modificar: borrar todas las lineas y volver a insertarlas
     DELETE FROM linea_orden_compra
      WHERE id_orden_compra = p_id_orden_compra;
 END$$
@@ -121,9 +109,6 @@ BEGIN
      WHERE id_orden_compra = p_id_orden_compra;
 END$$
 
--- ---------------------------------------------------------
--- DOCUMENTO_INGRESO
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_documento_ingreso(
     OUT p_id INT,
     IN  p_tipo_documento VARCHAR(20),
@@ -200,7 +185,6 @@ CREATE PROCEDURE eliminar_documento_ingreso(
     IN p_id INT
 )
 BEGIN
-    -- Baja logica
     UPDATE documento_ingreso
        SET activo = 0
      WHERE id_documento = p_id;
@@ -228,7 +212,6 @@ BEGIN
      WHERE id_documento = p_id;
 END$$
 
--- Validar o rechazar un documento. Un rechazo exige motivo.
 CREATE PROCEDURE actualizar_estado_validacion_documento(
     IN p_id INT,
     IN p_estado_validacion VARCHAR(20),
@@ -260,9 +243,6 @@ BEGIN
        AND activo = 1;
 END$$
 
--- Documentos de una solicitud o de una cirugia (uno de los dos ids; el otro NULL).
---   p_solo_vigentes = 1 -> solo la ultima version de cada tipo
---   p_solo_vigentes = 0 -> historial completo (todas las versiones)
 CREATE PROCEDURE listar_documentos_origen(
     IN p_id_solicitud   INT,
     IN p_id_cirugia     INT,
@@ -287,7 +267,6 @@ BEGIN
      ORDER BY d.fecha_carga, d.id_documento;
 END$$
 
--- Siguiente version de un documento (la resubida no borra la anterior).
 CREATE PROCEDURE siguiente_version_documento(
     IN  p_id_solicitud INT,
     IN  p_id_cirugia   INT,
@@ -302,7 +281,6 @@ BEGIN
        AND id_cirugia   <=> p_id_cirugia;
 END$$
 
--- RF04. No expone operaciones para modificar o borrar eventos historicos.
 CREATE PROCEDURE insertar_auditoria_documental(
     IN p_id_documento INT, IN p_id_solicitud INT, IN p_id_cirugia INT,
     IN p_tipo_documento VARCHAR(40), IN p_accion VARCHAR(40),

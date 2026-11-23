@@ -1,49 +1,38 @@
--- ============================================================
--- BIOKLAM - datos exclusivamente demostrativos para una instalacion nueva.
--- No ejecutar sobre una base con datos. Las claves de personal son marcadores
--- invalidos: antes de iniciar sesion deben aprovisionarse hashes seguros.
--- No se crean cuentas de cliente automaticamente al registrar clientes.
--- ============================================================
-
 USE `klam`;
--- administrador
 
 INSERT INTO administrador
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo)
 VALUES
     (1, 'admin.rojas',
-     'pbkdf2-sha256$600000$g+7HUqedKQGQwrg9cQcPAg==$VJb2Hy2G1/yJ4U4W3d8c289hdYI3j4qGOtdwDNiyB4w=',
+     'pbkdf2-sha256$600000$t5crEQdzTQyfSOtL8LD6uw==$TJaYB/lLMO3Dad9VWbWFTQFkRFLlrEP9/CZr9nnvEfw=',
      'crojas@bioklam.com',
      'Carlos',
      'Rojas Medina',
      'ADMINISTRADOR',
      1);
 
-
--- administradores adicionales (contrasena de todos: Klam2026!)
 INSERT INTO administrador
 (username, password_hash, email, nombres, apellidos, rol, activo)
 VALUES
-    ('izegarra', 'pbkdf2-sha256$600000$iCxYYFDoFbqZAGDsZH7xGg==$kcj37yQQKwchG2D8NFF8QiNn+J2REaTsvsZk4mTUvjQ=', 'izegarra@bioklam.com', 'Isabela', 'Zegarra Becerra', 'ADMINISTRADOR', 1),
-    ('admin.mendoza', 'pbkdf2-sha256$600000$GC8kfSUiFXYkIt2XFPw1QQ==$D89tuPnKqn+/d/TJoBanasxOmIAu7xjUmMOH6jMKI/4=', 'amendoza@bioklam.com', 'Ana', 'Mendoza Rios', 'ADMINISTRADOR', 1),
-    ('admin.vargas', 'pbkdf2-sha256$600000$YnvAOdfUus+N5HFgtwa+6Q==$TL4l3Uel1I9Z1JyR+sXkJo6Yh8/qV8u1gfDGXTLF818=', 'rvargas@bioklam.com', 'Ricardo', 'Vargas Paredes', 'ADMINISTRADOR', 1),
-    ('admin.delgado', 'pbkdf2-sha256$600000$jNdD9jPQx9cK80Jn2Uu/7w==$MvGcfDHdHZPskEgU2TTMcYknOsqmUFTPnCj3flyTE58=', 'pdelgado@bioklam.com', 'Patricia', 'Delgado Núñez', 'ADMINISTRADOR', 1),
-    ('admin.gutierrez', 'pbkdf2-sha256$600000$LoXGF/Mx51ZvHMsysW3IVQ==$oOtRur0dDPI2OS5QiDNjgcCjFiXtHB7SM5ZE7GPj8vk=', 'fgutierrez@bioklam.com', 'Fernando', 'Gutiérrez Lazo', 'ADMINISTRADOR', 1),
-    ('admin.benavides', 'pbkdf2-sha256$600000$07ydLl891KrQ/3uqrYNJzw==$Enaz3SSXTfElewBBbO0iXcQlIMsEPlmncAbcKJNyD5o=', 'cbenavides@bioklam.com', 'Claudia', 'Benavides Pinto', 'ADMINISTRADOR', 1),
-    ('admin.montoya', 'pbkdf2-sha256$600000$bWROvCnAO/pcuAEyZELdxA==$gPkrOgMbsV0gAI0zhtQuZyg+jBxxEuCXKwzLHlNONss=', 'jmontoya@bioklam.com', 'Javier', 'Montoya Ruiz', 'ADMINISTRADOR', 1),
-    ('admin.espinoza', 'pbkdf2-sha256$600000$RQPYghwsC7obaowhXBBz/Q==$p1PCBIUPPYt61ZsWNUSvNnMOsgigjboUYvmoEQeuACw=', 'respinoza@bioklam.com', 'Rosa', 'Espinoza Cárdenas', 'ADMINISTRADOR', 1),
-    ('admin.linares', 'pbkdf2-sha256$600000$Q9uUmc+4rcUeHxhgzlHRuQ==$DNCcc1J8OyGR/NBrYcnZDzBumafzfiHpuaz9CJHRVtU=', 'alinares@bioklam.com', 'Álvaro', 'Linares Vidal', 'ADMINISTRADOR', 1),
-    ('admin.tapia', 'pbkdf2-sha256$600000$Qq/KL5xSicozjfgdRo2rLg==$yGYK1LguhzBMVm88D/E5yhIUF3/FzuREIBq2kpinTzs=', 'gtapia@bioklam.com', 'Gabriela', 'Tapia Zúñiga', 'ADMINISTRADOR', 1),
-    ('admin.valdivia', 'pbkdf2-sha256$600000$RHCTdcJpHcARKoq2h8GPzA==$OztIBWlQBPDIjayBIeLjpF4cvpshRxnAinVgelEzUfI=', 'hvaldivia@bioklam.com', 'Héctor', 'Valdivia Mora', 'ADMINISTRADOR', 1)
+    ('izegarra', 'pbkdf2-sha256$600000$9MQBiUz2MM7sV7OfBEQ+iw==$VoLvg0eWbexy6flIjhyx81S8uHRlDZi93dmzU1lDPHw=', 'izegarra@bioklam.com', 'Isabela', 'Zegarra Becerra', 'ADMINISTRADOR', 1),
+    ('admin.mendoza', 'pbkdf2-sha256$600000$7uaXBZTfVn1zhUOlrTRyiw==$FRv40qZ+++kb/mBKA2m9fD6UNtdT+iDRKsuoWVbsLrY=', 'amendoza@bioklam.com', 'Ana', 'Mendoza Rios', 'ADMINISTRADOR', 1),
+    ('admin.vargas', 'pbkdf2-sha256$600000$aP9bT+aTeIcb/vknvhdCoQ==$Sc0Bmeg1n6JCiwACg0Sx12Yv+9EqZctd0nYFsVuWgvs=', 'rvargas@bioklam.com', 'Ricardo', 'Vargas Paredes', 'ADMINISTRADOR', 1),
+    ('admin.delgado', 'pbkdf2-sha256$600000$t3f1ie+pefNhtPNDFCTZpg==$O/ZWNhSnZQcZvOdOpfK2dRQ0iGmCVt1yFYvK63Q3Ghk=', 'pdelgado@bioklam.com', 'Patricia', 'Delgado Núñez', 'ADMINISTRADOR', 1),
+    ('admin.gutierrez', 'pbkdf2-sha256$600000$OCzcoTn4E1uTyhctzcOR9Q==$Lt3IT9zBh/7oQUtVbfIkLnF7ec7e26JVWDDZ25ErGO0=', 'fgutierrez@bioklam.com', 'Fernando', 'Gutiérrez Lazo', 'ADMINISTRADOR', 1),
+    ('admin.benavides', 'pbkdf2-sha256$600000$KU4SY4ZbrijRiRFtFOwMBA==$sBt1No57g+UBT9kGiLWjtFkHyh1HCuLYhp9AQ+0ejII=', 'cbenavides@bioklam.com', 'Claudia', 'Benavides Pinto', 'ADMINISTRADOR', 1),
+    ('admin.montoya', 'pbkdf2-sha256$600000$MlzLA4Jyuqdw8qm/fnVOig==$bG/HQNDlcOculuC89MVzp8d1ei3620nwp/Xps1c3gdI=', 'jmontoya@bioklam.com', 'Javier', 'Montoya Ruiz', 'ADMINISTRADOR', 1),
+    ('admin.espinoza', 'pbkdf2-sha256$600000$2MWCIw9+ESxcwXaA8bDrEA==$43PUbE4Yzsg5habZJX1NeTJQ93/+rteEsdTHeSr1jmo=', 'respinoza@bioklam.com', 'Rosa', 'Espinoza Cárdenas', 'ADMINISTRADOR', 1),
+    ('admin.linares', 'pbkdf2-sha256$600000$VpWizvibyF1GL/ClUdl2Dw==$xLGPaiKgLtaKj28pOGVDASogf/ua9VHLNjNHo1HRr04=', 'alinares@bioklam.com', 'Álvaro', 'Linares Vidal', 'ADMINISTRADOR', 1),
+    ('admin.tapia', 'pbkdf2-sha256$600000$QIdXfNcDcX530OccOcmx7g==$OYcPFHvdH19gDWF92rynngNv1P8KgkCl8CyuiFcBWqM=', 'gtapia@bioklam.com', 'Gabriela', 'Tapia Zúñiga', 'ADMINISTRADOR', 1),
+    ('admin.valdivia', 'pbkdf2-sha256$600000$czsEiYSocNWxGrTxB6dHbw==$42X7aFngw7bhZW3SybsJwU1a2+HBWFdXJZ3Aa66viYI=', 'hvaldivia@bioklam.com', 'Héctor', 'Valdivia Mora', 'ADMINISTRADOR', 1)
 ON DUPLICATE KEY UPDATE username = username;
 
--- vendedor
 
 INSERT INTO vendedor
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo, comision_acumulada)
 VALUES
     (2, 'vend.torres',
-     'pbkdf2-sha256$600000$Z/Ylq7vHuL6zTNNfq+IDKw==$QDUaRy15j4QI+PDwjLgzMj9BSpGXeVPsW3Rw3uvd+XQ=',
+     'pbkdf2-sha256$600000$1jM7aEO/PRp5Fcxp95HgmQ==$JivBlAFV3c0UagKNpUkz0NVq/2M+gnmCLI9MfTbytzw=',
      'ltorres@bioklam.com',
      'Lucía',
      'Torres Vega',
@@ -52,7 +41,7 @@ VALUES
      1250.50),
 
     (3, 'vend.quispe',
-     'pbkdf2-sha256$600000$hTur049uWPg2LGHCHqshEQ==$H2C7dimUmZnjhnzUxnu+IX2xaVKTDBM/nBj9Gwtu8uA=',
+     'pbkdf2-sha256$600000$BZCk0rEF6fII02buR10toQ==$4gv/19Ylye797A4eVXD1bEZBaxPgaEsHVjHP2AkgwXo=',
      'mquispe@bioklam.com',
      'Miguel',
      'Quispe Huamán',
@@ -60,31 +49,28 @@ VALUES
      1,
      780.00);
 
-
--- vendedores adicionales (contrasena de todos: Klam2026!)
 INSERT INTO vendedor
 (username, password_hash, email, nombres, apellidos, rol, activo, comision_acumulada)
 VALUES
-    ('mobregon', 'pbkdf2-sha256$600000$rgZ6Qg4PEm3k4L7H+z6dpA==$Q/to4TQtbdWQxRs3qZkLUEtFdYGf0z0MPK8ven6qHz0=', 'mobregon@bioklam.com', 'Madison', 'Obregón Cruz', 'VENDEDOR', 1, 0.00),
-    ('jparra', 'pbkdf2-sha256$600000$7EBEOa7wlnLBRB2TfwfOEA==$ShgpVb0ssbBaO4P5d2Nz2tDtg6TtiJPfq6oTbjLsA5k=', 'jparra@bioklam.com', 'José Felipe Sebastián', 'Parra Salazar', 'VENDEDOR', 1, 0.00),
-    ('vend.castillo', 'pbkdf2-sha256$600000$KrTqCeIeh/fW5Bt7rl3jig==$1PUc4ABUwYf3ua1fFOUm7/zY0gcGURRSJf7WYk+ebKs=', 'scastillo@bioklam.com', 'Sofía', 'Castillo Ramos', 'VENDEDOR', 1, 0.00),
-    ('vend.huaman', 'pbkdf2-sha256$600000$q5prhKj06bT6z7a2kMA6Ig==$GOHWheGUCnRJDVXFZuw7DzaNoiG3OqLSg9qxJrn+Beg=', 'dhuaman@bioklam.com', 'Diego', 'Huamán Flores', 'VENDEDOR', 1, 0.00),
-    ('vend.salas', 'pbkdf2-sha256$600000$7IcqlA3ArvQlafphXsfBRg==$XEVGzZiJCaIjEGuBHn7FImHbfU2SwGTm5QX6/foJ2qE=', 'vsalas@bioklam.com', 'Valeria', 'Salas Ortega', 'VENDEDOR', 1, 0.00),
-    ('vend.aguirre', 'pbkdf2-sha256$600000$lrzvFSarSznqkwIMHtAG/g==$TGXW4LsoHSjerx7RjdcEvU+C1Ln1cxk5wgAyMf2s3Fs=', 'raguirre@bioklam.com', 'Renzo', 'Aguirre Palma', 'VENDEDOR', 1, 0.00),
-    ('vend.quiroz', 'pbkdf2-sha256$600000$6hJ92eu645vMXxtCXqTUUQ==$WLghPvQJr1sujhOTWLnXovlw0jBGApnrSdFFoVoNscU=', 'cquiroz@bioklam.com', 'Camila', 'Quiroz Beltrán', 'VENDEDOR', 1, 0.00),
-    ('vend.ccori', 'pbkdf2-sha256$600000$cnasKjnyyz6tMPU9Vpz3qg==$4r+VetLzQa7mGhpsoqrx7zaeW7NG1zkPHsP71H59D/M=', 'mccori@bioklam.com', 'Mateo', 'Ccori Mamani', 'VENDEDOR', 1, 0.00),
-    ('vend.rivas', 'pbkdf2-sha256$600000$ezyFgjGRqhaTKHVYqXy0rg==$kNf/k+yndknEfGM725hJplToLCQvck/ddND6jQt1/XY=', 'drivas@bioklam.com', 'Daniela', 'Rivas Cornejo', 'VENDEDOR', 1, 0.00),
-    ('vend.ledesma', 'pbkdf2-sha256$600000$5FbYwH486Z7HgemkGqyh6A==$RdNFeivvD3i3G2vEnkC0YSUR2wnYyLrc4vDWfdwvLII=', 'bledesma@bioklam.com', 'Bruno', 'Ledesma Arce', 'VENDEDOR', 1, 0.00),
-    ('vend.pacheco', 'pbkdf2-sha256$600000$g4Uc6ex09E6A6hOGREQ7Sg==$nj0M1/LfMFWo7P1jDN6FL4WZt+kuqKg9RrUr73X56Uk=', 'fpacheco@bioklam.com', 'Fiorella', 'Pacheco Gamarra', 'VENDEDOR', 1, 0.00),
-    ('vend.neyra', 'pbkdf2-sha256$600000$yx2pdR8q6AFcfplsOlbhDA==$Xpfl7lLiFOsLFdYG4puYKL5a9zq7X+wAY2TNqu5mJlM=', 'jneyra@bioklam.com', 'Joaquín', 'Neyra Bustamante', 'VENDEDOR', 1, 0.00)
+    ('mobregon', 'pbkdf2-sha256$600000$6UhkskO3QRzZyamTLD8DLw==$EzrgNhpn92dJ8OMBtVugdtUdKNwimRtoRgsPVsM7G7c=', 'mobregon@bioklam.com', 'Madison', 'Obregón Cruz', 'VENDEDOR', 1, 0.00),
+    ('jparra', 'pbkdf2-sha256$600000$MSjqcqrAIv11auQbXRh7HA==$RaO2yvjjg4dsVLT6P1hm6hLX6zumvXobGpcZq4xmJ/0=', 'jparra@bioklam.com', 'José Felipe Sebastián', 'Parra Salazar', 'VENDEDOR', 1, 0.00),
+    ('vend.castillo', 'pbkdf2-sha256$600000$zgW5w5p8PlyrgVndzIwNxQ==$APWgVirUvHjwMG+8Itr4KhhKVMuZqRKGtKO2kjVuAo4=', 'scastillo@bioklam.com', 'Sofía', 'Castillo Ramos', 'VENDEDOR', 1, 0.00),
+    ('vend.huaman', 'pbkdf2-sha256$600000$p4KS0YxMR3/7tu5AUhT/MA==$czTq/zRO07Fh/PQNuydULLX1IRrVQ1/FJB7VsBVjJNE=', 'dhuaman@bioklam.com', 'Diego', 'Huamán Flores', 'VENDEDOR', 1, 0.00),
+    ('vend.salas', 'pbkdf2-sha256$600000$B+Suc3a/oOzw516pg/wRhQ==$n/I2dYFUkktEhHkHZDLbgFdj+MtdTnE6eukalhLBC1o=', 'vsalas@bioklam.com', 'Valeria', 'Salas Ortega', 'VENDEDOR', 1, 0.00),
+    ('vend.aguirre', 'pbkdf2-sha256$600000$mKLE9cmOTvlmdeID0Yx6zA==$pVgDwHEVPvLJtB9Gy27nu8gYd02UY1Dus6W/ephuHOo=', 'raguirre@bioklam.com', 'Renzo', 'Aguirre Palma', 'VENDEDOR', 1, 0.00),
+    ('vend.quiroz', 'pbkdf2-sha256$600000$nNqxZWUvZRrNZx3v32jFVA==$8j5XzBJD1d7cyTfuW64rkgfW2j2uRgFxGbu9NejeVAI=', 'cquiroz@bioklam.com', 'Camila', 'Quiroz Beltrán', 'VENDEDOR', 1, 0.00),
+    ('vend.ccori', 'pbkdf2-sha256$600000$e4FZarVQbRqCcE0VLFWzdA==$Ne81Rn5msSXhp2O99tLJaFvZLzWM29jtejHChUjH0yA=', 'mccori@bioklam.com', 'Mateo', 'Ccori Mamani', 'VENDEDOR', 1, 0.00),
+    ('vend.rivas', 'pbkdf2-sha256$600000$qybNODmprjJCvoIcORBsxA==$y8jp8Y6UbOk2bH181gutkEK35IQxU5+wELXChEDblXw=', 'drivas@bioklam.com', 'Daniela', 'Rivas Cornejo', 'VENDEDOR', 1, 0.00),
+    ('vend.ledesma', 'pbkdf2-sha256$600000$yX9xc4A4dAWJEp2Y5/nsMw==$fBYtEuS4L4udjAAYXkNISH4h8taftp/F5DqtaMF+SBM=', 'bledesma@bioklam.com', 'Bruno', 'Ledesma Arce', 'VENDEDOR', 1, 0.00),
+    ('vend.pacheco', 'pbkdf2-sha256$600000$282sT7qt6/ZZ5iKty71q5g==$56M+8DxASdGR5Kz60VofhNP4PSciiVwF0yI1q2J5Jy0=', 'fpacheco@bioklam.com', 'Fiorella', 'Pacheco Gamarra', 'VENDEDOR', 1, 0.00),
+    ('vend.neyra', 'pbkdf2-sha256$600000$arUqqp64vHNw0V+K3WlIDQ==$1NEbNYZ7ulBzoku/HIhCFrGL0g0ZDiVqFF1k02h6ZQ4=', 'jneyra@bioklam.com', 'Joaquín', 'Neyra Bustamante', 'VENDEDOR', 1, 0.00)
 ON DUPLICATE KEY UPDATE username = username;
--- tecnico_instrumentista
 
 INSERT INTO tecnico_instrumentista
 (id_usuario, username, password_hash, email, nombres, apellidos, rol, activo, especialidad)
 VALUES
     (4, 'tec.fernandez',
-     'pbkdf2-sha256$600000$OBuOz0/y/qfQeuP5G5xKow==$KR03C/bScqZL9wir/Ucg+v2dYmUxrZ6MdkeeHZUMIK8=',
+     'pbkdf2-sha256$600000$zLnK3alcvwY7Rs4mb65W1Q==$RhQwczDUPSbtE1h5r0NernVIhc2tD6o7UzvJQxhayEs=',
      'jfernandez@bioklam.com',
      'José',
      'Fernández Castro',
@@ -93,7 +79,7 @@ VALUES
      'Neurocirugía'),
 
     (5, 'tec.salazar',
-     'pbkdf2-sha256$600000$JRdUMqnM2CpRG5NUTstwOw==$3Uy85jP7NaaR9TxXx7asDlxjFKv/JZScqlG9y880rTM=',
+     'pbkdf2-sha256$600000$uefwonF9fmE6XJaXIXalqQ==$X9EWplDkm0xSPojhy+C71xL5tkXRCOZBAZVVrmFZZw0=',
      'psalazar@bioklam.com',
      'Paola',
      'Salazar Díaz',
@@ -101,26 +87,22 @@ VALUES
      1,
      'Cirugía general');
 
-
--- tecnicos instrumentistas adicionales (contrasena de todos: Klam2026!)
 INSERT INTO tecnico_instrumentista
 (username, password_hash, email, nombres, apellidos, rol, activo, especialidad)
 VALUES
-    ('hcabello', 'pbkdf2-sha256$600000$QNaNohACGfuMo5VhAzYLvQ==$074VByX7QocMjUOlv5rBYMB2s+j9oNcf/b9pIH+1bKY=', 'hcabello@bioklam.com', 'Halím', 'Cabello Mendoza', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
-    ('mromero', 'pbkdf2-sha256$600000$/5rzQs99DlL6Q38oPgBlQw==$PIaPkHQcKVhBig6a+uHPt4crJr3TdEr8jbhh+bHukC8=', 'mromero@bioklam.com', 'María Fernanda', 'Romero Ilave', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general'),
-    ('tec.ramos', 'pbkdf2-sha256$600000$byfO6bSa3IlNNG2Wr97IVw==$tSvrso2wpBCinOb4v5jgcMlepDHNsePJJW7c/CjAz0s=', 'aramos@bioklam.com', 'Andrés', 'Ramos Cueva', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
-    ('tec.chavez', 'pbkdf2-sha256$600000$j5HYPnUJi8O8xWGL2XsLzQ==$3QVKHjSJT4cdzk2p6/H7aNdl7ueNZRAbAPWKhnfS0Yg=', 'lchavez@bioklam.com', 'Lucero', 'Chávez Soto', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general'),
-    ('tec.paredes', 'pbkdf2-sha256$600000$8auJFrOXhPmG7X5YkzXziw==$dToJZpnMca9aq/DtWvLpQwh3O8gMyexnFcKKWtA7RsY=', 'cparedes@bioklam.com', 'César', 'Paredes Luna', 'TECNICO_INSTRUMENTISTA', 1, 'Traumatología'),
-    ('tec.ayala', 'pbkdf2-sha256$600000$gg5xDZ1HHD3oQz5gdcE2ZQ==$nVItB5VQcLrOqR1LeIJyiohAK63TRGoTGu7ieFqJdzg=', 'mayala@bioklam.com', 'Milagros', 'Ayala Torre', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
-    ('tec.zavala', 'pbkdf2-sha256$600000$hLKyAakPhv7uKCg/y9/w8g==$VcAAR9IxRPdv8FBYtlmEq45Clt5L0T6FdLk/72M0Ma4=', 'ozavala@bioklam.com', 'Oscar', 'Zavala Meza', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía de columna'),
-    ('tec.villanueva', 'pbkdf2-sha256$600000$8gW/VRYwSWdajWBjp7hu0Q==$zcEvMG6wD3MnxSJllRZ6lPAcYRNM0AWI8RXROtoBe9E=', 'kvillanueva@bioklam.com', 'Karen', 'Villanueva Roca', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general'),
-    ('tec.condori', 'pbkdf2-sha256$600000$Txs9g9KS6ifLuU1HzlrDQA==$U0U1g6TvDf06VPV0Kf6cKsfSw03GoD8Xa9jWaMrvkQY=', 'wcondori@bioklam.com', 'Walter', 'Condori Apaza', 'TECNICO_INSTRUMENTISTA', 1, 'Traumatología'),
-    ('tec.rojas', 'pbkdf2-sha256$600000$4vkAR32Hzp4Wb4+5uA7xeA==$a1DhOuUBM0nq0R0707V5nyxUISs2daK6BksHz591BbY=', 'erojas@bioklam.com', 'Estefany', 'Rojas Camacho', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
-    ('tec.maguina', 'pbkdf2-sha256$600000$zHl6UmO/YUufZuem19xV9Q==$HY5X0i8bAvtMNafHsOjtmN3m6eNHakE/cSEV4dFVzBc=', 'lmaguina@bioklam.com', 'Luis', 'Maguiña Ponce', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía de columna'),
-    ('tec.santos', 'pbkdf2-sha256$600000$h+nuOOFWz16uPZO5iJZmkQ==$XFIsgubDYOqCUNWPagiLHkqnhQfqfJ/fKAXi8BMB3PM=', 'nsantos@bioklam.com', 'Nataly', 'Santos Egoavil', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general')
+    ('hcabello', 'pbkdf2-sha256$600000$LXxcOwmN5ylnQy/Yj5lrYA==$rkQssHZq5TF5g43gNEpvMyCfhUc1y+tqlSuuxhlbI2Q=', 'hcabello@bioklam.com', 'Halím', 'Cabello Mendoza', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
+    ('mromero', 'pbkdf2-sha256$600000$avsLQuQjE02cvdOsO82L8A==$7dgPI89YGJbq3rAOYCktox4bv+ZI39BfqIh726coPg4=', 'mromero@bioklam.com', 'María Fernanda', 'Romero Ilave', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general'),
+    ('tec.ramos', 'pbkdf2-sha256$600000$f8x6ADAqPmj8fmjAqZB2Ag==$4pk6lmxkAko02hVJ24hBHEYT+ZtvDfpkG9rCFT8108E=', 'aramos@bioklam.com', 'Andrés', 'Ramos Cueva', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
+    ('tec.chavez', 'pbkdf2-sha256$600000$gooAYRBlMzXx6XfFYof4sA==$cGjYEpeRlPlWMvnQLLTvH/wHxDBasWzz7upWlxPnFq8=', 'lchavez@bioklam.com', 'Lucero', 'Chávez Soto', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general'),
+    ('tec.paredes', 'pbkdf2-sha256$600000$j1/57mGKM/oOmVKSJeoLYg==$HlNcLErNLSMOIvX3s1CFX0N+k/cgwvbzAFWyeMQzKOE=', 'cparedes@bioklam.com', 'César', 'Paredes Luna', 'TECNICO_INSTRUMENTISTA', 1, 'Traumatología'),
+    ('tec.ayala', 'pbkdf2-sha256$600000$iriK0AXNdfdK+Cuaf0YbUg==$fW1t6pzTUPL//xgz6UmxUrpr6/Eb8Z0AZd34oO+Tn6A=', 'mayala@bioklam.com', 'Milagros', 'Ayala Torre', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
+    ('tec.zavala', 'pbkdf2-sha256$600000$yKhSX9liSDZHQn788eUK5A==$KZSEuZFy4Xs8vpa7aJL5+Fo+voHv6D7b3R1Hv//+mpQ=', 'ozavala@bioklam.com', 'Oscar', 'Zavala Meza', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía de columna'),
+    ('tec.villanueva', 'pbkdf2-sha256$600000$qekYAspVX79g5qbsiUj+Tw==$BfthGmItFPazY5vgwxk98LZAp65q+Qom7srrUherZjg=', 'kvillanueva@bioklam.com', 'Karen', 'Villanueva Roca', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general'),
+    ('tec.condori', 'pbkdf2-sha256$600000$z9QqEqM0PgLWW4L9h/ZNIw==$3LPAmjhsE5ll76L0ry1yofumZ+45VPXpgAzGKrBJRsI=', 'wcondori@bioklam.com', 'Walter', 'Condori Apaza', 'TECNICO_INSTRUMENTISTA', 1, 'Traumatología'),
+    ('tec.rojas', 'pbkdf2-sha256$600000$W0Xm2YtOl0QRnIlnsAKShg==$Knitmp7vV4O2tVYNTHWWLEl3ETlqXqGtuyC90rVe8M4=', 'erojas@bioklam.com', 'Estefany', 'Rojas Camacho', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
+    ('tec.maguina', 'pbkdf2-sha256$600000$pCwh79IHtbrmC0OoVIvRtA==$lJhbbaTf+C50kFnKjLKSCaVkuSHsZ2hZzO8n3Rker3s=', 'lmaguina@bioklam.com', 'Luis', 'Maguiña Ponce', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía de columna'),
+    ('tec.santos', 'pbkdf2-sha256$600000$RWu2+4qAJY3RvqubNGMLrA==$8KgF5u0tZFmPIYwNP0sh0wUqn6HoiqiM9nQu397OvO0=', 'nsantos@bioklam.com', 'Nataly', 'Santos Egoavil', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general')
 ON DUPLICATE KEY UPDATE username = username;
--- Catalogo de procedimientos: cráneo (bandeja corta) y columna (bandeja larga).
--- Los procedimientos se identifican por bandeja_instrumental.procedimiento.
 
 INSERT INTO bandeja_instrumental
 (id_bandeja, tipo, procedimiento, esterilizado, activo)
@@ -131,7 +113,6 @@ VALUES
     (4, 'Bandeja larga de columna', 'Cirugía de columna', 1, 1),
     (5, 'Bandeja larga de vértebras', 'Cirugía de columna', 1, 1);
 
--- consumible
 
 INSERT INTO consumible
 (id_consumible, nombre_comercial, marca, medida, activo)
@@ -142,7 +123,6 @@ VALUES
     (4, 'Cera para hueso',   'Ethicon',  '2.5g',     1),
     (5, 'Tornillo pedicular', 'Demostración', '6 mm', 1);
 
--- Composicion estandar reutilizable: no representa despacho ni consumo real.
 INSERT INTO bandeja_consumible_estandar
 (id_bandeja, id_consumible, cantidad_estandar)
 VALUES
@@ -151,7 +131,6 @@ VALUES
     (4, 1, 8), (4, 2, 20), (4, 5, 6),
     (5, 2, 16), (5, 5, 8);
 
--- Datos historicos de demostracion de despacho/consumo, separados del estandar.
 
 INSERT INTO bandeja_consumible
 (id_bandeja, id_consumible, cantidad_despachada, cantidad_consumida)
@@ -161,7 +140,6 @@ VALUES
     (2, 2, 20, 15),
     (3, 4, 5,  1);
 
--- equipo
 
 INSERT INTO equipo
 (id_equipo, nombre, categoria, disponible, activo)
@@ -170,7 +148,6 @@ VALUES
     (2, 'Navegador StealthStation S8', 'NAVEGADOR',  1, 1),
     (3, 'Craneótomo Anspach eMax',     'CRANEOTOMO', 0, 1);
 
--- equipo_especificacion
 
 INSERT INTO equipo_especificacion
 (id_equipo, clave, valor)
@@ -183,12 +160,7 @@ VALUES
     (3, 'marca',      'DePuy Synthes'),
     (3, 'voltaje',    '220V');
 
--- ============================================================
--- CLIENTES
--- ============================================================
 
--- La tabla tiene una sola columna nombre: contiene nombre y apellido completos.
--- DNI, telefono, correo y direccion son valores sinteticos de laboratorio.
 
 INSERT INTO paciente_particular
 (id_cliente, nombre, direccion, email_contacto, telefono, activo, dni, pago_confirmado)
@@ -204,40 +176,37 @@ VALUES
     (9, 'Luis Muroya', 'Dirección ficticia 09', 'paciente09@example.test', '000000009', 1, '90000009', 0),
     (10, 'Carla Medina', 'Dirección ficticia 10', 'paciente10@example.test', '000000010', 1, '90000010', 0);
 
--- cuenta del cliente mbazan, ligada al paciente 1
 INSERT INTO cuenta_usuario
 (username, password_hash, email, nombres, apellidos, activo, id_paciente)
-SELECT 'mbazan', 'pbkdf2-sha256$600000$JoQZRhDgNrsYqtj3T2hdkQ==$FX0h5FwMdhcU5t3fdzXZVhf7d221hqb5NYTng5kZOvM=', 'mbazan@example.test', 'Miguel', 'Bazán Montenegro', 1, id_cliente
+SELECT 'mbazan', 'pbkdf2-sha256$600000$uLQ+b1ZpQ208bvoFOYy8tA==$LwtWWAHHuDxNFVUn9urcrmbutNn5+X+AauFMdYx2F3w=', 'mbazan@example.test', 'Miguel', 'Bazán Montenegro', 1, id_cliente
 FROM paciente_particular WHERE dni = '90000001'
 ON DUPLICATE KEY UPDATE username = cuenta_usuario.username;
 
--- cuentas de acceso de pacientes particulares (contrasena de todos: Klam2026!)
 INSERT INTO cuenta_usuario
 (username, password_hash, email, nombres, apellidos, activo, id_paciente)
 SELECT v.username, v.password_hash, v.email, v.nombres, v.apellidos, 1, p.id_cliente
 FROM (
-  SELECT 'fpaz' AS username, 'pbkdf2-sha256$600000$Xa1fULJdVaGs/yoB0StEfw==$t1SvpETpBITIJs6vSk1XSxpMWrCKxEToq1a78zWflxQ=' AS password_hash, 'fpaz@example.test' AS email, 'Freddy' AS nombres, 'Paz' AS apellidos, '90000002' AS dni
+  SELECT 'fpaz' AS username, 'pbkdf2-sha256$600000$77xmSkZWu+RmyUvOLElP2g==$NIcAQIXP1mcn/GFfqyE6aI3xZurlNa+e+U3DiqmPEc4=' AS password_hash, 'fpaz@example.test' AS email, 'Freddy' AS nombres, 'Paz' AS apellidos, '90000002' AS dni
  UNION ALL
-  SELECT 'rcueva' AS username, 'pbkdf2-sha256$600000$foFIlK7S6XTqXNCnO1wWUQ==$VyqX9/7Sq+5Wz60u2lLic1G+4IT5HpIff38lpB3Jnrg=' AS password_hash, 'rcueva@example.test' AS email, 'Rony' AS nombres, 'Cueva' AS apellidos, '90000003' AS dni
+  SELECT 'rcueva' AS username, 'pbkdf2-sha256$600000$2p2XaQ6p42hgxVRiVLg48Q==$ggDzfH0cKRQe7ssaVrHTyc6MAomrRoOtV6EI6XEPNJ0=' AS password_hash, 'rcueva@example.test' AS email, 'Rony' AS nombres, 'Cueva' AS apellidos, '90000003' AS dni
  UNION ALL
-  SELECT 'egomez' AS username, 'pbkdf2-sha256$600000$TFR0rBwM88U9xX/xpOqy4A==$ezBNmrdi7yswtgD52bl+6I2nZiAkwinOjuOwE+OuI7w=' AS password_hash, 'egomez@example.test' AS email, 'Erasmo' AS nombres, 'Gómez' AS apellidos, '90000004' AS dni
+  SELECT 'egomez' AS username, 'pbkdf2-sha256$600000$0H+qPEHilMvqzZ5kjxPebA==$nPg0gJpidnHLWZr/s0OR9fYQPwuyJfplYY/o3N0c8iE=' AS password_hash, 'egomez@example.test' AS email, 'Erasmo' AS nombres, 'Gómez' AS apellidos, '90000004' AS dni
  UNION ALL
-  SELECT 'dallasi' AS username, 'pbkdf2-sha256$600000$XJRna3w0kbB1RM3sv/2Zpg==$LPLaYEPSjvlAaFP207XXrr27eZMqe4ohSJVusHdPbk0=' AS password_hash, 'dallasi@example.test' AS email, 'David' AS nombres, 'Allasi' AS apellidos, '90000005' AS dni
+  SELECT 'dallasi' AS username, 'pbkdf2-sha256$600000$geOF4dDPRPZAqwAqLTDoQQ==$7Pa4OgLtet+X1c4pWp6D6I+47scNmPu5/jxnQTe7uT4=' AS password_hash, 'dallasi@example.test' AS email, 'David' AS nombres, 'Allasi' AS apellidos, '90000005' AS dni
  UNION ALL
-  SELECT 'jcorcuera' AS username, 'pbkdf2-sha256$600000$o2kuDvGLu4gWNAtjgAfgVQ==$gbqsJduLO4m/q7SKB9B8YMEG3n1WOXSQbEfbur6ShCg=' AS password_hash, 'jcorcuera@example.test' AS email, 'José Luis' AS nombres, 'Corcuera' AS apellidos, '90000006' AS dni
+  SELECT 'jcorcuera' AS username, 'pbkdf2-sha256$600000$xG+g1JsH3yHkylsfWlkLjg==$QybER/YmZh6dba+I7U2nqdvZ+rvRiNJi2wVcNOgQjs4=' AS password_hash, 'jcorcuera@example.test' AS email, 'José Luis' AS nombres, 'Corcuera' AS apellidos, '90000006' AS dni
  UNION ALL
-  SELECT 'mguanira' AS username, 'pbkdf2-sha256$600000$VW/+x+pVXE5rRDQkIOYJGA==$kU/Rej+GJAxfSgBM3DgEct0qwot0A0lAPE0ilXRaK1M=' AS password_hash, 'mguanira@example.test' AS email, 'Miguel' AS nombres, 'Guanira' AS apellidos, '90000007' AS dni
+  SELECT 'mguanira' AS username, 'pbkdf2-sha256$600000$GJsc7/gnceVf1sJ+qcxWOA==$1hjx3EbB43WJl2kZuCVE1bkj4Xt86GJ5SCW9o4AQw0g=' AS password_hash, 'mguanira@example.test' AS email, 'Miguel' AS nombres, 'Guanira' AS apellidos, '90000007' AS dni
  UNION ALL
-  SELECT 'vkhlebnikov' AS username, 'pbkdf2-sha256$600000$mREujNbBSK5I6pBLD/9gWw==$sOTc73pjLgM9eSzq0RTJOZH5DWOQnskvAfMQrmzT6lI=' AS password_hash, 'vkhlebnikov@example.test' AS email, 'Viktor' AS nombres, 'Khlebnikov' AS apellidos, '90000008' AS dni
+  SELECT 'vkhlebnikov' AS username, 'pbkdf2-sha256$600000$Ier0sRR0f2sOGWtpQVvLMg==$Mvu7TP0wL99X907Dkpsv35WQqz2KgrdB1lV49I2TPkM=' AS password_hash, 'vkhlebnikov@example.test' AS email, 'Viktor' AS nombres, 'Khlebnikov' AS apellidos, '90000008' AS dni
  UNION ALL
-  SELECT 'lmuroya' AS username, 'pbkdf2-sha256$600000$LY7gKsNoW+5dyRmbDZYGOw==$KF/frI2zuPrgytyqSVVkcx7HkAaM5Mf6+Jp7G7L1yl0=' AS password_hash, 'lmuroya@example.test' AS email, 'Luis' AS nombres, 'Muroya' AS apellidos, '90000009' AS dni
+  SELECT 'lmuroya' AS username, 'pbkdf2-sha256$600000$UtndizVZHojds3ya2+EjrA==$mGRS2FMnwMVxAvESgQNnqSkScyovFA4tVCM7vjjlXoA=' AS password_hash, 'lmuroya@example.test' AS email, 'Luis' AS nombres, 'Muroya' AS apellidos, '90000009' AS dni
  UNION ALL
-  SELECT 'cmedina' AS username, 'pbkdf2-sha256$600000$s0JNT4jC8ni+HprbOF8Vxg==$o7dU9HjETSmwJC/jAreYlW+02jvjYzIdmW0AT04tk8E=' AS password_hash, 'cmedina@example.test' AS email, 'Carla' AS nombres, 'Medina' AS apellidos, '90000010' AS dni
+  SELECT 'cmedina' AS username, 'pbkdf2-sha256$600000$e/2eI+fDxRTflShuydI98A==$Li4gSVWUHlQ8qHYkGO/ME7tB/GvJQog8vYH/UxiX2wo=' AS password_hash, 'cmedina@example.test' AS email, 'Carla' AS nombres, 'Medina' AS apellidos, '90000010' AS dni
 ) v
 JOIN paciente_particular p ON p.dni = v.dni
 ON DUPLICATE KEY UPDATE username = cuenta_usuario.username;
 
--- clinica_hospital
 
 INSERT INTO clinica_hospital
 (id_cliente, nombre, direccion, email_contacto, telefono, activo, ruc, tiene_consignacion, periodo_credito)
@@ -260,49 +229,49 @@ VALUES
      1,
      '20900000002',
      0,
-     '60 días');
+     '60 días'),
+    (4, 'Clínica San Felipe', NULL, NULL, NULL, 1, '20100129841', 0, NULL),
+    (5, 'Clínica Internacional', NULL, NULL, NULL, 1, '20100054184', 0, NULL),
+    (6, 'Clínica Auna Vallesur', NULL, NULL, NULL, 1, '20454135432', 0, NULL),
+    (7, 'Clínica Auna Bellavista', NULL, NULL, NULL, 1, '20100251176', 0, NULL),
+    (8, 'Hospital Nacional Dos de Mayo', NULL, NULL, NULL, 1, '20160388570', 0, NULL),
+    (9, 'Hospital Nacional Arzobispo Loayza', NULL, NULL, NULL, 1, '20154996991', 0, NULL),
+    (10, 'Hospital Cayetano Heredia', NULL, NULL, NULL, 1, '20154528971', 0, NULL),
+    (11, 'Hospital San Juan de Dios de Pisco', NULL, NULL, NULL, 1, '20452578949', 0, NULL);
 
--- clinicas y hospitales adicionales
-INSERT INTO clinica_hospital
-(id_cliente, nombre, direccion, email_contacto, telefono, activo, ruc, tiene_consignacion, periodo_credito)
-VALUES
-    (4, 'Clínica San Felipe', 'Dirección ficticia clínica 04', 'clinica04@example.test', '000000004', 1, '20900000003', 0, '30 días'),
-    (5, 'Clínica Internacional', 'Dirección ficticia clínica 05', 'clinica05@example.test', '000000005', 1, '20900000004', 0, '30 días'),
-    (6, 'Clínica Auna Vallesur', 'Dirección ficticia clínica 06', 'clinica06@example.test', '000000006', 1, '20900000005', 0, '30 días'),
-    (7, 'Clínica Auna Bellavista', 'Dirección ficticia clínica 07', 'clinica07@example.test', '000000007', 1, '20900000006', 0, '30 días'),
-    (8, 'Hospital Nacional Dos de Mayo', 'Dirección ficticia clínica 08', 'clinica08@example.test', '000000008', 1, '20900000007', 0, '30 días'),
-    (9, 'Hospital Nacional Arzobispo Loayza', 'Dirección ficticia clínica 09', 'clinica09@example.test', '000000009', 1, '20900000008', 0, '30 días'),
-    (10, 'Hospital Cayetano Heredia', 'Dirección ficticia clínica 10', 'clinica10@example.test', '000000010', 1, '20900000009', 0, '30 días'),
-    (11, 'Hospital San Juan de Dios de Pisco', 'Dirección ficticia clínica 11', 'clinica11@example.test', '000000011', 1, '20900000010', 0, '30 días');
-
--- cuentas de acceso de clinicas y hospitales (contrasena de todos: BioKlam2026!)
 INSERT INTO cuenta_usuario
-(username, password_hash, email, nombres, apellidos, activo, id_clinica)
-SELECT v.username, v.password_hash, v.email, v.nombres, NULL, 1, c.id_cliente
-FROM (
-  SELECT 'lab.clinica.norte' AS username, 'pbkdf2-sha256$600000$cyHeag1i8a+zZBk92pgsDQ==$WXH/NkV79Op3H7rceq2h2q930sB9BnG9LXcnSrG5wIY=' AS password_hash, 'lab.clinica.norte@example.test' AS email, 'Clínica Académica Norte' AS nombres, '20900000001' AS ruc
- UNION ALL
-  SELECT 'lab.hospital.sur' AS username, 'pbkdf2-sha256$600000$nbGaavzkcZb8gP2UxyoPOQ==$0oeVGPE6dqiA36dCQ8/8nIsN5CaYfDouqJ6ry3sORnw=' AS password_hash, 'lab.hospital.sur@example.test' AS email, 'Hospital Simulado Sur' AS nombres, '20900000002' AS ruc
- UNION ALL
-  SELECT 'lab.clinica.sanfelipe' AS username, 'pbkdf2-sha256$600000$jXhUG7SNJ6XYn0W11XopWg==$/RhadWO0vGHSwkvPxRVdJXf7smYiCCaa1cQT9wbq1gA=' AS password_hash, 'lab.clinica.sanfelipe@example.test' AS email, 'Clínica San Felipe' AS nombres, '20900000003' AS ruc
- UNION ALL
-  SELECT 'lab.clinica.internacional' AS username, 'pbkdf2-sha256$600000$npM6PY2g3ZbDpUoxMojxww==$U8ycfrc8P8tGVacxu/FbWjbeFjz00MDlbVzIaJnXAzw=' AS password_hash, 'lab.clinica.internacional@example.test' AS email, 'Clínica Internacional' AS nombres, '20900000004' AS ruc
- UNION ALL
-  SELECT 'lab.clinica.vallesur' AS username, 'pbkdf2-sha256$600000$Fh/kWy92VHp9UdE8NHwo7A==$dtY+SUZ8Gf7i0ch4L2pUbjGYDExFcbt82LSCpVZEQfY=' AS password_hash, 'lab.clinica.vallesur@example.test' AS email, 'Clínica Auna Vallesur' AS nombres, '20900000005' AS ruc
- UNION ALL
-  SELECT 'lab.clinica.bellavista' AS username, 'pbkdf2-sha256$600000$L9ogPNK3ClX4JLDKBaX/Vg==$zwKAuy5Gm83cd5l5WXztQP3E98RZpQlVZ6LuI+Qj/AU=' AS password_hash, 'lab.clinica.bellavista@example.test' AS email, 'Clínica Auna Bellavista' AS nombres, '20900000006' AS ruc
- UNION ALL
-  SELECT 'lab.hospital.dosdemayo' AS username, 'pbkdf2-sha256$600000$BDRn7OtXsJq3rTiWXqzUXA==$K0gfxnrI7Txiv56dv9d0oYvUNF+QG6osm556TA1cuFs=' AS password_hash, 'lab.hospital.dosdemayo@example.test' AS email, 'Hospital Nacional Dos de Mayo' AS nombres, '20900000007' AS ruc
- UNION ALL
-  SELECT 'lab.hospital.loayza' AS username, 'pbkdf2-sha256$600000$E8Z5HV/hszzSbTleOL8ggA==$Qf/l2NeOQL22tpW9L/K9lEK+hn0jf7QElwQ0qntQMpQ=' AS password_hash, 'lab.hospital.loayza@example.test' AS email, 'Hospital Nacional Arzobispo Loayza' AS nombres, '20900000008' AS ruc
- UNION ALL
-  SELECT 'lab.hospital.cayetano' AS username, 'pbkdf2-sha256$600000$eIchG8rHPe9URelKoBHcRA==$pCl9bSQ6+YPSPw/xXMY5ID1PGn1d6b9eX+NxlE82CQg=' AS password_hash, 'lab.hospital.cayetano@example.test' AS email, 'Hospital Cayetano Heredia' AS nombres, '20900000009' AS ruc
- UNION ALL
-  SELECT 'lab.hospital.pisco' AS username, 'pbkdf2-sha256$600000$Xc8HHkGir2gMDg68dafuGA==$S03oyTTU6CErVNz3zUffWiVwZTzUb0GwzeTs21BNdjY=' AS password_hash, 'lab.hospital.pisco@example.test' AS email, 'Hospital San Juan de Dios de Pisco' AS nombres, '20900000010' AS ruc
-) v
-JOIN clinica_hospital c ON c.ruc = v.ruc
-ON DUPLICATE KEY UPDATE username = cuenta_usuario.username;
--- orden_compra
+(username, password_hash, email, nombres, apellidos, activo, id_paciente, id_clinica)
+VALUES
+    ('lab.clinica.norte',
+     'pbkdf2-sha256$600000$Kl/lylWb/4oK7UhzFV3chw==$WvpRqz18vlI0mLVe9VOhOdWsfwLoSvQijCdHXioxWRA=',
+     'acceso.norte@example.test', 'Usuario', 'de laboratorio', 1, NULL, 2),
+    ('lab.hospital.sur',
+     'pbkdf2-sha256$600000$SZiaFXdPWSUW+j22Fn1s7w==$OHmstkqoCRZ1F7TSUa4SR6ot951vvxxL9+rfCov6q1Y=',
+     'acceso.sur@example.test', 'Usuario', 'de laboratorio', 1, NULL, 3),
+    ('lab.clinica.sanfelipe',
+     'pbkdf2-sha256$600000$Z/2TB4Wlm2vC4MGxf75ruQ==$azaArPZwFEjA6OlcJEuoK1tDDppFZbq3HjLuWp1J2xM=',
+     'acceso.sanfelipe@example.test', 'Usuario', 'de laboratorio', 1, NULL, 4),
+    ('lab.clinica.internacional',
+     'pbkdf2-sha256$600000$QuO9dUXZknDsbj8ZBwM7zQ==$+2ILqxRDPbYazNEfwpqVQjnI3kyo/vwfdDZM9Suos/A=',
+     'acceso.internacional@example.test', 'Usuario', 'de laboratorio', 1, NULL, 5),
+    ('lab.clinica.vallesur',
+     'pbkdf2-sha256$600000$ZpzsWBNoo6Vv1sGHEzFxcg==$NUF7/ykxCMSgg785ygX2/ePNSGS8tvupkHIAPqggeUY=',
+     'acceso.vallesur@example.test', 'Usuario', 'de laboratorio', 1, NULL, 6),
+    ('lab.clinica.bellavista',
+     'pbkdf2-sha256$600000$+m25ECrKNcEPGmkA6goEXA==$eGA3Zz1VFMNax19lpz1vthKXHULjzCLm2go3ZYTxsBY=',
+     'acceso.bellavista@example.test', 'Usuario', 'de laboratorio', 1, NULL, 7),
+    ('lab.hospital.dosdemayo',
+     'pbkdf2-sha256$600000$FUifYl1sM3V4jWmxAo3iRg==$ndJwxMJ4MnWouOyMe1jsVS7KMsPNlASi5r9oyPdBmpY=',
+     'acceso.dosdemayo@example.test', 'Usuario', 'de laboratorio', 1, NULL, 8),
+    ('lab.hospital.loayza',
+     'pbkdf2-sha256$600000$NjX1+oSNOAT3DWaKwLDNLA==$paeer5sBa0SKakQNGYJ8Ji6rpFa+gJ/Tscxj099Ljpw=',
+     'acceso.loayza@example.test', 'Usuario', 'de laboratorio', 1, NULL, 9),
+    ('lab.hospital.cayetano',
+     'pbkdf2-sha256$600000$/HiTDbI9CrtgZXUtotm2Qg==$UyYZ5i1pTySFKdbUnb1DoTuREBm8G3h5Str2nVoh5Os=',
+     'acceso.cayetano@example.test', 'Usuario', 'de laboratorio', 1, NULL, 10),
+    ('lab.hospital.pisco',
+     'pbkdf2-sha256$600000$JYqv0xju8qEDRtrpheFjAQ==$apYqgfUSt4PLdyEEQAj8SswDwKwAv0BARAWhnije8/o=',
+     'acceso.pisco@example.test', 'Usuario', 'de laboratorio', 1, NULL, 11);
 
 INSERT INTO orden_compra
 (id_orden_compra, archivo_respaldo_path, fecha_recepcion, activo)
@@ -312,9 +281,6 @@ VALUES
      '2026-08-10 09:15:00',
      1);
 
--- ============================================================
--- DOCUMENTOS DE INGRESO
--- ============================================================
 INSERT INTO documento_ingreso
 (id_documento, tipo_documento, archivo_path, estado_validacion,
  fecha_carga, id_orden_compra, activo,
@@ -346,9 +312,6 @@ VALUES
      NULL,
      1,
      NULL, 2, NULL);
--- ============================================================
--- CIRUGIAS
--- ============================================================
 INSERT INTO cirugia
 (id_cirugia, fecha_hora_inicio, fecha_hora_fin,
  tipo_procedimiento, doctor_nombre, diagnostico, paciente_nombre, paciente_documento, motivo_cancelacion,
@@ -403,7 +366,6 @@ VALUES
      NULL,
      1),
 
-    -- Ejemplos de historial y bitacora que antes estaban en rol2_historial_auditoria.sql.
     (4, '2026-11-20 11:30:00', NULL, 'Cirugía de cráneo',
      'Dra. Silvia Ramos', '[DEMO R2] Lesión craneal de prueba',
      'Eric Huiza', '90000001', NULL, 'PROGRAMADA',
@@ -413,13 +375,10 @@ VALUES
      'Eric Huiza', '90000001', 'Paciente no apto', 'CANCELADA',
      NULL, 1, NULL, 1, 1);
 
--- Personalizacion prevista de una cirugia: no modifica la plantilla.
 INSERT INTO cirugia_consumible_previsto
 (id_cirugia, id_consumible, cantidad_prevista)
 VALUES (1, 1, 10), (1, 3, 4), (2, 4, 5);
 
--- Resultado final de la demostracion RF10/RF16. La bitacora conserva los
--- pasos previos; no se ejecutan UPDATE ni DELETE sobre datos de prueba.
 INSERT INTO auditoria_cirugia
 (id_auditoria, id_cirugia, fecha_hora, accion, responsable, detalle,
  valores_anteriores, valores_posteriores)
@@ -436,7 +395,6 @@ VALUES
     (4, 5, '2026-11-10 10:05:00', 'CANCELAR', 'Carlos Rojas Medina',
      'Cirugía cancelada: Paciente no apto',
      'estado=PROGRAMADA', 'estado=CANCELADA; motivoCancelacion=Paciente no apto');
--- cotizacion
 
 INSERT INTO cotizacion
 (id_cotizacion, id_cirugia, precio_pactado, estado, fecha_emision, activo)
@@ -444,10 +402,7 @@ VALUES
     (1, 1, 8500.00,  'ACEPTADA', '2026-08-05 12:00:00', 1),
     (2, 2, 12300.00, 'EMITIDA',  '2026-08-16 10:00:00', 1);
 
--- ============================================================
--- ============================================================
 
--- linea_orden_compra
 
 INSERT INTO linea_orden_compra
 (id_linea, id_orden_compra, id_consumible,
@@ -456,9 +411,6 @@ VALUES
     (1, 1, 2, NULL, 'Gasa estéril 10x10cm', 50, 5.50),
     (2, 1, 4, NULL, 'Cera para hueso 2.5g', 10, 35.00);
 
--- ============================================================
--- NOTIFICACIONES
--- ============================================================
 INSERT INTO notificacion
 (id_notificacion, fecha_hora, titulo, mensaje,
  estado_leida, id_administrador, id_vendedor, id_tecnico)

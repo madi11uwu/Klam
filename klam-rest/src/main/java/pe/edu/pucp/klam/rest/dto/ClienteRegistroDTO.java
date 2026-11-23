@@ -1,12 +1,6 @@
 package pe.edu.pucp.klam.rest.dto;
 
-/**
- * Alta y modificación de datos comerciales en /gestion-clientes.
- * Clínica: ruc, tieneConsignacion, periodoCredito. Paciente particular: dni, pagoConfirmado.
- * También es la forma del detalle (GET) y de la modificación (PUT).
- * La cuenta de acceso NO se crea aqui: se habilita por separado desde
- * POST /clientes/{tipo}/{id}/cuenta, que es lo que avisa al cliente por correo.
- */
+/** Datos comerciales del cliente; la cuenta de acceso se habilita por separado. */
 public class ClienteRegistroDTO {
     private int idCliente;          // solo en respuestas de detalle
     private boolean activo = true;

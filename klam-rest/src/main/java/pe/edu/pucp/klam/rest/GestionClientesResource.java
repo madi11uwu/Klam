@@ -17,15 +17,7 @@ import pe.edu.pucp.klam.rest.dto.ClienteResumenDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Gestión comercial de clientes por el ADMINISTRADOR, independiente de sus cuentas de acceso.
- * Ruta propia para no chocar con /clientes (búsqueda y alta del vendedor, RF08).
- *   GET  /gestion-clientes[?tipo=]       -> lista (solo administrador)
- *   POST /gestion-clientes               -> alta (solo administrador)
- *   GET  /gestion-clientes/{tipo}/{id}   -> detalle (solo administrador)
- *   PUT  /gestion-clientes/{tipo}/{id}   -> modifica datos (solo administrador; usuario y contraseña no se tocan)
- * {tipo} = CLINICA_HOSPITAL | PACIENTE_PARTICULAR. Nunca se devuelven credenciales.
- */
+/** Gestión comercial para administradores, separada de las cuentas y del alta de RF08. */
 @Path("/gestion-clientes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

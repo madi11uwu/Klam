@@ -26,17 +26,7 @@ import pe.edu.pucp.klam.modelo.usuariosPermisos.UsuarioPlataforma;
 import pe.edu.pucp.klam.modelo.usuariosPermisos.Vendedor;
 import pe.edu.pucp.klam.rest.dto.NotificacionDTO;
 
-/**
- * RF12: bandeja de avisos internos.
- *
- * GET  /notificaciones?rol=administrador|instrumentista&estado=no-leidas|leidas
- * GET  /notificaciones/resumen?rol=...            {total, noLeidas}
- * GET  /notificaciones/{id}                      detalle de un aviso
- * POST /notificaciones/{id}/lectura              marca un aviso como leído
- * PUT  /notificaciones/{id}/leida                marca un aviso como leído
- * POST /notificaciones/lectura?rol=...           marca avisos como leídos
- *
- **/
+/** RF12: bandeja, resumen y marcado de lectura de avisos internos. */
 
 
 @Path("/notificaciones")

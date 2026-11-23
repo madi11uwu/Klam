@@ -1,13 +1,6 @@
 package pe.edu.pucp.klam.rest.dto;
 
-/**
- * DTO de proyección para calendario, lista e historial (RF06, RF10, RF17).
- * Se arma desde las filas de CirugiaBL.buscarDetalle / buscarCalendarioMensual / historialPorCliente,
- * que ya traen clínica, paciente y equipo en una sola consulta.
- * 'estado' es el nombre del enum (PROGRAMADA, EN_PROCESO, FINALIZADA, CANCELADA) y
- * 'estadoEtiqueta' el texto de pantalla (Programada, En curso, Culminada, Cancelada).
- * Las fechas viajan en ISO-8601 (yyyy-MM-ddTHH:mm:ss).
- */
+/** Proyección de cirugía para calendario, lista e historial; fechas en ISO-8601. */
 public class CirugiaResumenDTO {
     private int idCirugia;
     private String fechaHoraInicio;

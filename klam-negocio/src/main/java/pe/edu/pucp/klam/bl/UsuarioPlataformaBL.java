@@ -19,15 +19,7 @@ public interface UsuarioPlataformaBL {
 
     int habilitarCuentaCliente(String tipo, int idCliente, String username, String password) throws BLException;
 
-    /**
-     * RF01 + RF03: el administrador habilita la cuenta de un cliente ya registrado.
-     * El sistema genera la contrasena temporal (nunca la teclea el administrador),
-     * crea la cuenta y le avisa al cliente por correo. Devuelve esa contrasena una
-     * sola vez para poder mostrarsela en pantalla, porque el envio de correo es
-     * asincrono y silencioso y no hay forma de recuperarla despues.
-     *
-     * @param username nombre de usuario; si viene vacio se usa el RUC o DNI del cliente.
-     */
+    /** Habilita la cuenta y devuelve una sola vez la contraseña temporal generada. */
     CredencialInicial habilitarCuentaClienteConCorreo(String tipo, int idCliente, String username) throws BLException;
 
     /** Credenciales recien generadas para un cliente. Solo viajan una vez. */

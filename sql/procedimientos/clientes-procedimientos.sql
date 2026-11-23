@@ -1,6 +1,3 @@
--- =========================================================
--- PROCEDIMIENTOS ALMACENADOS - ROL 4: CLIENTES
--- =========================================================
 USE `klam`;
 
 DROP PROCEDURE IF EXISTS insertar_clinica_hospital;
@@ -18,9 +15,6 @@ DROP PROCEDURE IF EXISTS buscar_paciente_particular_por_dni;
 
 DELIMITER $$
 
--- ---------------------------------------------------------
--- CLINICA_HOSPITAL  (ROL 4)
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_clinica_hospital(
     OUT p_id INT,
     IN  p_nombre VARCHAR(150),
@@ -33,7 +27,6 @@ CREATE PROCEDURE insertar_clinica_hospital(
     IN  p_activo TINYINT
 )
 BEGIN
-    -- id_cliente no es AUTO_INCREMENT: se genera el siguiente id
     SELECT COALESCE(MAX(id_cliente), 0) + 1 INTO p_id FROM clinica_hospital;
 
     INSERT INTO clinica_hospital (id_cliente, nombre, direccion, email_contacto, telefono, ruc, tiene_consignacion, periodo_credito, activo)
@@ -68,7 +61,6 @@ CREATE PROCEDURE eliminar_clinica_hospital(
     IN p_id INT
 )
 BEGIN
-    -- Baja logica
     UPDATE clinica_hospital
        SET activo = 0
      WHERE id_cliente = p_id;
@@ -105,9 +97,6 @@ BEGIN
      WHERE ruc = p_ruc;
 END$$
 
--- ---------------------------------------------------------
--- PACIENTE_PARTICULAR  (ROL 4)
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_paciente_particular(
     OUT p_id INT,
     IN  p_nombre VARCHAR(150),
@@ -119,7 +108,6 @@ CREATE PROCEDURE insertar_paciente_particular(
     IN  p_activo TINYINT
 )
 BEGIN
-    -- id_cliente no es AUTO_INCREMENT: se genera el siguiente id
     SELECT COALESCE(MAX(id_cliente), 0) + 1 INTO p_id FROM paciente_particular;
 
     INSERT INTO paciente_particular (id_cliente, nombre, direccion, email_contacto, telefono, dni, pago_confirmado, activo)
@@ -152,7 +140,6 @@ CREATE PROCEDURE eliminar_paciente_particular(
     IN p_id INT
 )
 BEGIN
-    -- Baja logica
     UPDATE paciente_particular
        SET activo = 0
      WHERE id_cliente = p_id;

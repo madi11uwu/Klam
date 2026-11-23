@@ -1,5 +1,3 @@
--- Instalacion nueva: esquema definitivo. No ejecutar sobre una base existente
--- como sustituto de las migraciones historicas.
 CREATE SCHEMA IF NOT EXISTS `klam` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
 
 USE `klam`;
@@ -140,7 +138,6 @@ CREATE TABLE IF NOT EXISTS `paciente_particular` (
                    UNIQUE KEY `uq_paciente_dni` (`dni`)
 );
 
--- Cuenta de acceso independiente del registro comercial del cliente (RF05).
 CREATE TABLE IF NOT EXISTS `cuenta_usuario` (
     `id_usuario` INT NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(50) NOT NULL,
@@ -164,8 +161,6 @@ CREATE TABLE IF NOT EXISTS `cuenta_usuario` (
          OR (`id_paciente` IS NULL AND `id_clinica` IS NOT NULL))
 );
 
--- Solicitud de cirugía (RF05, RF07, RF08). El solicitante es una clínica/hospital
--- o un paciente particular; la cirugía y el vendedor registrador son relaciones distintas.
 CREATE TABLE IF NOT EXISTS `solicitud_cirugia` (
        `id_solicitud` INT NOT NULL AUTO_INCREMENT,
        `id_clinica_solicitante` INT NULL,
@@ -233,7 +228,6 @@ NOT NULL DEFAULT 'PROGRAMADA',
        `id_solicitud_origen` INT NULL,
        `consumo_completo` TINYINT(1) NOT NULL DEFAULT 0,
        `activo` TINYINT(1) NOT NULL DEFAULT 1,
-       -- una solicitud solo puede tener UNA cirugia vigente (activa y no cancelada)
        `solicitud_vigente` INT GENERATED ALWAYS AS (
            CASE WHEN `activo` = 1 AND `estado` <> 'CANCELADA' THEN `id_solicitud_origen` ELSE NULL END
            ) STORED,
@@ -314,8 +308,6 @@ CREATE TABLE IF NOT EXISTS `orden_compra` (
             PRIMARY KEY (`id_orden_compra`)
 );
 
--- Un documento rechazado NUNCA se borra: la resubida inserta una nueva version
--- (mismo origen y tipo, version + 1), de modo que el historial queda completo.
 CREATE TABLE IF NOT EXISTS `documento_ingreso` (
                  `id_documento` INT NOT NULL AUTO_INCREMENT,
                  `tipo_documento` ENUM('DNI','RECETA_MEDICA','ORDEN_COMPRA','COMPROBANTE_PAGO') NOT NULL,
@@ -335,7 +327,6 @@ NOT NULL DEFAULT 'PENDIENTE',
                  `id_administrador` INT NULL,
                  `id_vendedor` INT NULL,
                  `id_tecnico` INT NULL,
-                 -- cuenta de cliente (clínica o paciente) que presentó el documento de su propia solicitud
                  `id_cuenta_usuario` INT NULL,
                  PRIMARY KEY (`id_documento`),
                  UNIQUE KEY `uq_documento_solicitud_version` (`id_solicitud`, `tipo_documento`, `version`),
@@ -365,8 +356,6 @@ NOT NULL DEFAULT 'PENDIENTE',
                      FOREIGN KEY (`id_cuenta_usuario`) REFERENCES `cuenta_usuario` (`id_usuario`)
                          ON DELETE RESTRICT ON UPDATE RESTRICT,
                  CONSTRAINT `chk_documento_version` CHECK (`version` >= 1),
-                 -- los clientes no tienen usuario en la plataforma: a lo sumo un usuario
-                 -- y, en su lugar, el nombre del responsable como texto
                  CONSTRAINT `chk_documento_ingreso_un_usuario` CHECK (
                      (`id_administrador` IS NOT NULL)
                          + (`id_vendedor` IS NOT NULL)
@@ -375,8 +364,6 @@ NOT NULL DEFAULT 'PENDIENTE',
                      )
 );
 
--- RF04: cada cambio documental genera un evento inmutable, separado de la bitacora RF16.
--- El responsable procede de la sesion REST; no se almacena contenido clinico ni tokens.
 CREATE TABLE IF NOT EXISTS `auditoria_documental` (
     `id_evento` INT NOT NULL AUTO_INCREMENT,
     `id_documento` INT NULL,
@@ -449,7 +436,6 @@ CREATE TABLE IF NOT EXISTS `notificacion` (
                 )
 );
 
--- Despacho y retorno (RF14). Sin clase Java: se maneja desde EquipoBL/EquipoDAO.
 CREATE TABLE IF NOT EXISTS `despacho` (
             `id_despacho` INT NOT NULL AUTO_INCREMENT,
             `codigo` VARCHAR(20) NOT NULL,
@@ -460,7 +446,6 @@ CREATE TABLE IF NOT EXISTS `despacho` (
             `fecha_retorno` DATETIME NULL,
             `estado` ENUM('DESPACHADO','RETORNADO') NOT NULL DEFAULT 'DESPACHADO',
             `activo` TINYINT(1) NOT NULL DEFAULT 1,
-            -- un solo despacho pendiente de retorno por cirugia y por equipo
             `pendiente_cirugia` INT GENERATED ALWAYS AS (
                 CASE WHEN `fecha_retorno` IS NULL AND `activo` = 1 THEN `id_cirugia` ELSE NULL END
                 ) STORED,
@@ -490,8 +475,6 @@ CREATE TABLE IF NOT EXISTS `despacho` (
                 )
 );
 
--- Bitacora de auditoria de cirugias (RF16). Sin clase Java: se maneja desde
--- CirugiaBL/CirugiaDAO. Los valores anterior/posterior se guardan como lineas campo=valor.
 CREATE TABLE IF NOT EXISTS `cirugia_consumible_previsto` (
     `id_cirugia` INT NOT NULL,
     `id_consumible` INT NOT NULL,
@@ -502,8 +485,6 @@ CREATE TABLE IF NOT EXISTS `cirugia_consumible_previsto` (
     CONSTRAINT `chk_ccp_cantidad` CHECK (`cantidad_prevista` > 0)
 );
 
--- Despacho y consumo efectivos de cada cirugía. La plantilla de bandeja se
--- puede reutilizar; sus cantidades históricas no se atribuyen a otra cirugía.
 CREATE TABLE IF NOT EXISTS `cirugia_consumible_real` (
     `id_cirugia` INT NOT NULL,
     `id_consumible` INT NOT NULL,

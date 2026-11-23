@@ -1,12 +1,5 @@
--- =========================================================
--- PROCEDIMIENTOS ALMACENADOS - INVENTARIO (EXTRA)
--- Bandejas disponibles, composicion de bandejas, consumos (RF15),
--- despacho y retorno (RF14).
--- Se puede ejecutar varias veces (DROP PROCEDURE IF EXISTS).
--- =========================================================
 USE `klam`;
 
--- Nombres anteriores (SP_*), reemplazados por los de este script
 DROP PROCEDURE IF EXISTS SP_EQUIPO_LISTAR_DISPONIBLES;
 DROP PROCEDURE IF EXISTS SP_EQUIPO_REGISTRAR_RETORNO;
 DROP PROCEDURE IF EXISTS SP_BANDEJA_ASOCIAR_CONSUMIBLE;
@@ -32,7 +25,6 @@ DROP PROCEDURE IF EXISTS buscar_despachos;
 
 DELIMITER $$
 
--- ================= EQUIPOS =================
 CREATE PROCEDURE listar_equipos_disponibles()
 BEGIN
     SELECT id_equipo, nombre, categoria, disponible, activo
@@ -50,10 +42,7 @@ BEGIN
      WHERE id_equipo = p_id_equipo;
 END$$
 
--- ================= BANDEJAS =================
 
--- Bandejas activas, esterilizadas y NO asignadas a ninguna cirugia.
--- p_procedimiento es opcional (NULL = todos los procedimientos).
 CREATE PROCEDURE listar_bandejas_disponibles(
     IN p_procedimiento VARCHAR(100)
 )
@@ -77,7 +66,6 @@ BEGIN
      ORDER BY id_bandeja;
 END$$
 
--- Cirugia a la que esta asignada una bandeja fisica (0 o 1 fila)
 CREATE PROCEDURE buscar_cirugia_de_bandeja(
     IN p_id_bandeja INT
 )
@@ -87,7 +75,6 @@ BEGIN
      WHERE id_bandeja = p_id_bandeja;
 END$$
 
--- La composicion despachada no se puede modificar si ya hay consumo registrado
 CREATE PROCEDURE bandeja_tiene_consumo(
     IN  p_id_bandeja INT,
     OUT p_tiene TINYINT
@@ -100,7 +87,6 @@ BEGIN
       INTO p_tiene;
 END$$
 
--- ================= CONSUMIBLES DE LA BANDEJA =================
 CREATE PROCEDURE asociar_consumible_bandeja(
     IN p_id_bandeja INT,
     IN p_id_consumible INT,
@@ -116,7 +102,6 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cantidad despachada debe ser mayor que cero';
     END IF;
 
-    -- si el consumible ya esta en la bandeja la PK lo rechaza (no se duplica)
     INSERT INTO bandeja_consumible (id_bandeja, id_consumible, cantidad_despachada, cantidad_consumida)
     VALUES (p_id_bandeja, p_id_consumible, p_cantidad_despachada, 0);
 END$$
@@ -156,9 +141,6 @@ BEGIN
      WHERE id_bandeja = p_id_bandeja AND id_consumible = p_id_consumible;
 END$$
 
--- ================= CONSUMO REAL (RF15) =================
--- Validaciones de datos tambien aqui (ademas de la BL): cirugia finalizada,
--- consumo no cerrado, consumible despachado a esa cirugia y 0 <= consumido <= despachado.
 CREATE PROCEDURE registrar_consumo_bandeja(
     IN p_id_cirugia INT,
     IN p_id_consumible INT,
@@ -169,7 +151,6 @@ BEGIN
     DECLARE v_completo TINYINT;
     DECLARE v_despachada INT;
 
-    -- El consumo pertenece a la cirugia indicada, nunca a la plantilla compartida.
     SELECT estado, consumo_completo INTO v_estado, v_completo
       FROM cirugia
      WHERE id_cirugia = p_id_cirugia AND activo = 1 FOR UPDATE;
@@ -203,9 +184,6 @@ BEGIN
      WHERE id_cirugia = p_id_cirugia AND id_consumible = p_id_consumible;
 END$$
 
--- Despachado / consumido / diferencia por consumible. Filtros opcionales:
--- cirugia, cliente (tipo + id) y rango de fechas de la cirugia.
--- Solo cirugias FINALIZADAS (flujo de cierre).
 CREATE PROCEDURE buscar_consumos(
     IN p_id_cirugia   INT,
     IN p_tipo_cliente VARCHAR(20),
@@ -244,9 +222,6 @@ BEGIN
      ORDER BY c.fecha_hora_inicio, c.id_cirugia, k.nombre_comercial;
 END$$
 
--- ================= DESPACHO Y RETORNO (RF14) =================
--- Solo se despachan los recursos ASOCIADOS a la cirugia. El equipo debe estar
--- disponible; la bandeja debe ser la de esa cirugia; no hay doble despacho.
 CREATE PROCEDURE insertar_despacho(
     OUT p_id INT,
     IN  p_id_cirugia INT,
@@ -306,10 +281,6 @@ BEGIN
        SET codigo = CONCAT('DSP-', LPAD(p_id, 4, '0'))
      WHERE id_despacho = p_id;
 
-    -- Fotografia del despacho de esta cirugia. No se copian consumos antiguos
-    -- de la plantilla ni se modifica su configuracion estandar.
-    -- Se despacha lo previsto para la cirugia; si no hay previsión, la composicion
-    -- estandar de la plantilla (la que se edita en Plantillas de bandejas).
     IF p_id_bandeja IS NOT NULL THEN
         DELETE FROM cirugia_consumible_real WHERE id_cirugia = p_id_cirugia;
         IF EXISTS (SELECT 1 FROM cirugia_consumible_previsto WHERE id_cirugia = p_id_cirugia) THEN
@@ -347,7 +318,6 @@ BEGIN
        AND fecha_retorno IS NULL;
 END$$
 
--- Una sola consulta: por id, por codigo, por cirugia, todos o solo pendientes.
 CREATE PROCEDURE buscar_despachos(
     IN p_id_despacho    INT,
     IN p_codigo         VARCHAR(20),

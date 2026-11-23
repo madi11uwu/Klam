@@ -4,20 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * RF15: consumo real y cierre por cirugía. Reúne en un solo punto lo que necesita la pantalla de
- * consumos (y los reportes RF18/RF19): cirugías finalizadas con el estado de su documentación de
- * cierre y de su consumo, el despachado/consumido/diferencia por consumible, y el guardado.
- */
+/** RF15: consulta y cierre del consumo real por cirugía. */
 public interface ConsumoBL {
 
-    /**
-     * Cirugías FINALIZADAS (clínicas/hospitales y pacientes particulares), más antiguas primero.
-     * Filtros opcionales: texto (CIR-001 o parte del nombre del cliente) y rango de fechas de la cirugía.
-     * Claves: idCirugia, fechaHoraInicio, tipoProcedimiento, tipoCliente, clienteNombre, idBandeja,
-     * requiereOrdenCompra, estadoOrdenCompra (NO_APLICA | POR_ADJUNTAR | PENDIENTE | VALIDADO | RECHAZADO),
-     * documentacionCierreCompleta, estadoConsumo (NO_DISPONIBLE | POR_REGISTRAR | COMPLETO).
-     */
+    /** Lista cirugías finalizadas con filtros opcionales y estado de cierre. */
     List<Map<String, Object>> listar(String texto, LocalDateTime desde, LocalDateTime hasta) throws BLException;
 
     /**

@@ -1,17 +1,13 @@
--- =========================================================
--- PROCEDIMIENTOS ALMACENADOS - CIRUGIAS, SOLICITUDES, AUDITORIA Y COTIZACION
--- Se puede ejecutar varias veces (DROP PROCEDURE IF EXISTS).
--- =========================================================
 USE `klam`;
 
 DROP PROCEDURE IF EXISTS insertar_cirugia;
 DROP PROCEDURE IF EXISTS modificar_cirugia;
 DROP PROCEDURE IF EXISTS eliminar_cirugia;
-DROP PROCEDURE IF EXISTS listar_cirugias;                    -- reemplazado por buscar_cirugias
+DROP PROCEDURE IF EXISTS listar_cirugias;
 DROP PROCEDURE IF EXISTS buscar_cirugia_por_id;
 DROP PROCEDURE IF EXISTS cancelar_cirugia;
-DROP PROCEDURE IF EXISTS listar_cirugias_por_estado;         -- reemplazado por buscar_cirugias
-DROP PROCEDURE IF EXISTS listar_cirugias_por_rango_fechas;   -- reemplazado por buscar_cirugias
+DROP PROCEDURE IF EXISTS listar_cirugias_por_estado;
+DROP PROCEDURE IF EXISTS listar_cirugias_por_rango_fechas;
 DROP PROCEDURE IF EXISTS buscar_cirugias;
 DROP PROCEDURE IF EXISTS cambiar_estado_cirugia;
 DROP PROCEDURE IF EXISTS marcar_consumo_completo;
@@ -36,12 +32,7 @@ DROP PROCEDURE IF EXISTS buscar_cotizacion_vigente_solicitud;
 
 DELIMITER $$
 
--- ---------------------------------------------------------
--- REGLAS COMPARTIDAS (una sola definicion para BL, DAO y SQL)
--- ---------------------------------------------------------
 
--- Cruce de horario de un equipo con otra cirugia vigente. Si una cirugia
--- no tiene fecha de fin se asume una duracion de 4 horas.
 CREATE PROCEDURE existe_cruce_equipo(
     IN  p_id_equipo        INT,
     IN  p_fecha_hora_inicio DATETIME,
@@ -65,7 +56,6 @@ BEGIN
     ) INTO p_hay_cruce;
 END$$
 
--- Una bandeja fisica solo puede pertenecer a una cirugia.
 CREATE PROCEDURE bandeja_asignada_a_otra_cirugia(
     IN  p_id_bandeja       INT,
     IN  p_id_cirugia_excluir INT,
@@ -80,9 +70,6 @@ BEGIN
     ) INTO p_asignada;
 END$$
 
--- ---------------------------------------------------------
--- CIRUGIA
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_cirugia(
     OUT p_id INT,
     IN  p_fecha_hora_inicio DATETIME,
@@ -168,7 +155,6 @@ BEGIN
      WHERE id_cirugia = p_id;
 END$$
 
--- Baja lógica. Conserva la plantilla para el historial de la cirugía.
 CREATE PROCEDURE eliminar_cirugia(
     IN p_id INT
 )
@@ -178,7 +164,6 @@ BEGIN
      WHERE id_cirugia = p_id;
 END$$
 
--- Cancelar conserva la plantilla asociada a la cirugía.
 CREATE PROCEDURE cancelar_cirugia(
     IN p_id INT,
     IN p_motivo_cancelacion VARCHAR(200)
@@ -228,10 +213,6 @@ BEGIN
      WHERE id_cirugia = p_id;
 END$$
 
--- Unica consulta de filtros (calendario, lista e historial). Todos los
--- parametros son opcionales: NULL = sin filtrar.
---   p_tipo_cliente: 'CLINICA_HOSPITAL' o 'PACIENTE_PARTICULAR'
---   p_id_cliente  : requiere p_tipo_cliente (los ids de ambas tablas se solapan)
 CREATE PROCEDURE buscar_cirugias(
     IN p_desde        DATETIME,
     IN p_hasta        DATETIME,
@@ -293,9 +274,6 @@ BEGIN
        AND estado <> 'CANCELADA';
 END$$
 
--- ---------------------------------------------------------
--- SOLICITUD DE CIRUGIA
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_solicitud_cirugia(
     OUT p_id INT,
     IN  p_id_clinica_solicitante INT,
@@ -324,8 +302,6 @@ BEGIN
     SET p_id = LAST_INSERT_ID();
 END$$
 
--- Una sola consulta para buscar por id, listar y listar por cliente.
--- Todos los parametros son opcionales.
 CREATE PROCEDURE buscar_solicitudes(
     IN p_id_solicitud INT,
     IN p_estado       VARCHAR(30),
@@ -379,9 +355,6 @@ BEGIN
        AND activo = 1;
 END$$
 
--- ---------------------------------------------------------
--- AUDITORIA DE CIRUGIAS (RF16)
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_auditoria_cirugia(
     OUT p_id INT,
     IN  p_id_cirugia INT,
@@ -401,7 +374,6 @@ BEGIN
     SET p_id = LAST_INSERT_ID();
 END$$
 
--- Bitacora completa, por cirugia, detalle de una entrada y filtros: todo opcional.
 CREATE PROCEDURE buscar_auditoria_cirugia(
     IN p_id_auditoria INT,
     IN p_id_cirugia   INT,
@@ -423,9 +395,6 @@ BEGIN
      ORDER BY fecha_hora DESC, id_auditoria DESC;
 END$$
 
--- ---------------------------------------------------------
--- COTIZACION  (ROL 3)
--- ---------------------------------------------------------
 CREATE PROCEDURE insertar_cotizacion(
     OUT p_id INT,
     IN  p_id_cirugia INT,
@@ -463,7 +432,6 @@ CREATE PROCEDURE eliminar_cotizacion(
     IN p_id INT
 )
 BEGIN
-    -- Baja logica
     UPDATE cotizacion
        SET activo = 0
      WHERE id_cotizacion = p_id;

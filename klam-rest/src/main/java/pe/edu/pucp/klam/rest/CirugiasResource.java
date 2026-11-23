@@ -49,24 +49,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Cirugías.
- * Consultas (rol 1): RF06 calendario y detalle, RF17 filtros, RF10 historial por cliente.
- * Gestión (rol 5):   RF02 registrar, modificar, cambiar estado, cancelar y eliminar lógicamente.
- *
- * GET    /api/v1/cirugias                 -> lista filtrada (CirugiaResumenDTO)
- * GET    /api/v1/cirugias/calendario      -> cirugías de un mes (CirugiaResumenDTO)
- * GET    /api/v1/cirugias/{id}            -> detalle (CirugiaDetalleDTO)
- * GET    /api/v1/cirugias/opciones        -> listas del formulario (clientes, equipos, procedimientos y plantillas)
- * POST   /api/v1/cirugias                 -> registra (CirugiaFormDTO, responde CirugiaDTO)
- * PUT    /api/v1/cirugias/{id}            -> modifica datos (no el estado)
- * POST   /api/v1/cirugias/{id}/estado     -> PROGRAMADA -> EN_PROCESO -> FINALIZADA
- * POST   /api/v1/cirugias/{id}/cancelacion-> cancela con motivo
- * DELETE /api/v1/cirugias/{id}            -> eliminación lógica
- *
- * Las reglas de integridad, compatibilidad y estados están en CirugiaBL.
- * BLException sin causa = regla de negocio (400); con causa = error de base de datos (500).
- */
+/** Consultas y gestión de cirugías (RF02, RF06, RF10 y RF17). Las reglas están en CirugiaBL. */
 @Path("/cirugias")
 @Produces("application/json")
 @Consumes("application/json")
@@ -174,13 +157,7 @@ public class CirugiasResource {
         this.bandejaBL = new BandejaInstrumentalBLImpl();
     }
 
-    /**
-     * Lista de cirugías con filtros combinables (todos opcionales):
-     * desde / hasta (yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss), tipoCliente (CLINICA_HOSPITAL | PACIENTE_PARTICULAR),
-     * idCliente (requiere tipoCliente), idEquipo y estado (PROGRAMADA, EN_PROCESO, FINALIZADA, CANCELADA
-     * o su etiqueta: Programada, En curso, Culminada, Cancelada).
-     * Sin resultados responde 200 con una lista vacía.
-     */
+    /** Lista cirugías con filtros opcionales; idCliente requiere tipoCliente. */
     @GET
     public Response buscar(@QueryParam("desde") String desde,
                            @QueryParam("hasta") String hasta,

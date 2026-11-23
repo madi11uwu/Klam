@@ -36,17 +36,7 @@ import pe.edu.pucp.klam.rest.dto.DespachoDTO;
 import pe.edu.pucp.klam.rest.dto.DespachoDetalleDTO;
 import pe.edu.pucp.klam.rest.dto.NuevoDespachoDTO;
 
-/**
- * RF14: despacho de equipos y kits hacia el establecimiento, retorno al almacén y consulta de
- * despachos pendientes de retorno.
- *
- * GET  /despachos?estado=pendientes|retornados|todos&q=texto   lista (más recientes primero)
- * GET  /despachos/{codigo}                                     detalle con consumibles del kit
- * POST /despachos                  {"idCirugia": n}            registra el despacho (201 {codigo})
- * POST /despachos/{codigo}/retorno                             registra el retorno (204)
- * GET  /despachos/cirugias-despachables                        cirugías programadas/en curso
- * GET  /despachos/disponibilidad                               equipos y bandejas libres
- */
+/** RF14: consulta de despachos, registro de salida y retorno de equipos y kits. */
 
 @Path("/despachos")
 @Produces(MediaType.APPLICATION_JSON)

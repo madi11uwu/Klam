@@ -1,11 +1,7 @@
--- DESTRUCTIVO: elimina todas las tablas y sus datos. Solo para desmontaje
--- manual de una instalacion desechable; nunca forma parte de la instalacion.
 USE `klam`;
 
--- Desactivar temporalmente la comprobación de llaves foráneas
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Eliminar tablas transaccionales y de detalle (hijas)
 DROP TABLE IF EXISTS `auditoria_cirugia`;
 DROP TABLE IF EXISTS `auditoria_documental`;
 DROP TABLE IF EXISTS `despacho`;
@@ -17,7 +13,6 @@ DROP TABLE IF EXISTS `documento_ingreso`;
 DROP TABLE IF EXISTS `orden_compra`;
 DROP TABLE IF EXISTS `cotizacion`;
 
--- Eliminar tablas operativas intermedias
 DROP TABLE IF EXISTS `cirugia`;
 DROP TABLE IF EXISTS `solicitud_cirugia`;
 DROP TABLE IF EXISTS `bandeja_consumible`;
@@ -31,10 +26,8 @@ DROP TABLE IF EXISTS `equipo`;
 DROP TABLE IF EXISTS `consumible`;
 DROP TABLE IF EXISTS `bandeja_instrumental`;
 
--- Eliminar tablas de usuarios
 DROP TABLE IF EXISTS `tecnico_instrumentista`;
 DROP TABLE IF EXISTS `vendedor`;
 DROP TABLE IF EXISTS `administrador`;
 
--- Reactivar la comprobación de llaves foráneas
 SET FOREIGN_KEY_CHECKS = 1;

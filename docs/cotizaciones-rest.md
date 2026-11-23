@@ -1,6 +1,6 @@
 # Contratos REST de cotizaciones (etapa 3C)
 
-Las rutas de la tabla son relativas a `/api/v1`. Todas las rutas requieren `Authorization: Bearer <token>` de `POST /login`. No se aceptan IDs de cliente o usuario en el cuerpo como prueba de identidad. Los errores usan `{"error":"mensaje"}`. La base debe tener aplicada previamente `sql/cotizaciones-solicitud-incremental.sql` en un entorno autorizado; este cambio no ejecuta la migración.
+Las rutas de la tabla son relativas a `/api/v1`. Todas las rutas requieren `Authorization: Bearer <token>` de `POST /login`. No se aceptan IDs de cliente o usuario en el cuerpo como prueba de identidad. Los errores usan `{"error":"mensaje"}`. La base debe tener el esquema de cotizaciones definido en `sql/DDL_KLAM.sql`.
 
 | Método y ruta | Rol | Entrada | Éxito | Errores |
 | --- | --- | --- | --- | --- |

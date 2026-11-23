@@ -23,13 +23,7 @@ import java.util.Map;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
-/**
- * RF05: el CLIENTE registra y consulta sus propias solicitudes de cirugía.
- * El solicitante sale de la sesión (token de /login), no del cuerpo: un cliente no puede actuar por otro.
- * (Las solicitudes que registra un vendedor, RF08, siguen en /solicitudes.)
- *   POST /cliente/solicitudes   -> registra (201)
- *   GET  /cliente/solicitudes   -> lista las propias
- */
+/** RF05: el cliente registra y consulta sus solicitudes; la identidad sale de la sesión. */
 @Path("/cliente/solicitudes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

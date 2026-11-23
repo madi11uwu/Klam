@@ -1,21 +1,9 @@
--- =========================================================
--- PROCEDIMIENTOS ALMACENADOS - REPORTES (RF18 y RF19)
--- Fuente unica de consumo para los reportes: cirugia_consumible_real.cantidad_consumida
--- (consumo real, RF15). Nunca usa cantidades previstas (cirugia_consumible_previsto).
--- Solo cuenta cirugias FINALIZADAS con consumo_completo = 1: un consumo parcial
--- subreportaria el uso de insumos.
--- Se puede ejecutar varias veces (DROP PROCEDURE IF EXISTS).
--- =========================================================
 USE `klam`;
 
 DROP PROCEDURE IF EXISTS buscar_consumos_reporte;
 
 DELIMITER $$
 
--- Una fila por cirugia y consumible de su bandeja. Todos los filtros son opcionales (NULL = sin filtro).
---   p_tipo_procedimiento : tipo de cirugia (texto exacto, p. ej. 'Artroscopia de rodilla')
---   p_id_consumible      : consumible exacto
---   p_medida             : medida exacta (p. ej. '70 mm')
 CREATE PROCEDURE buscar_consumos_reporte(
     IN p_id_cirugia         INT,
     IN p_tipo_cliente       VARCHAR(20),
@@ -71,9 +59,6 @@ DELIMITER ;
 
 USE `klam`;
 
--- =========================================================================
--- REPORTE 1: RF18 - USO DE INSUMOS
--- =========================================================================
 DROP PROCEDURE IF EXISTS reporte_uso_insumos;
 
 DELIMITER $$
@@ -87,7 +72,7 @@ SELECT
     k.medida                                                  AS medida,
     c.tipo_procedimiento                                      AS tipo_cirugia,
     SUM(bc.cantidad_consumida)                                AS cantidad_utilizada,
-    COUNT(DISTINCT c.id_cirugia)                              AS frecuencia
+    COUNT(DISTINCT CASE WHEN bc.cantidad_consumida > 0 THEN c.id_cirugia END) AS frecuencia
 FROM cirugia c
          JOIN cirugia_consumible_real bc  ON bc.id_cirugia = c.id_cirugia
          JOIN consumible k                ON k.id_consumible = bc.id_consumible
@@ -97,16 +82,12 @@ WHERE c.activo = 1
   AND (p_desde IS NULL OR c.fecha_hora_inicio >= p_desde)
   AND (p_hasta IS NULL OR c.fecha_hora_inicio <= p_hasta)
 GROUP BY k.id_consumible, k.nombre_comercial, k.medida, c.tipo_procedimiento
-ORDER BY k.nombre_comercial;
+ORDER BY cantidad_utilizada DESC, insumo, tipo_cirugia;
 END$$
 DELIMITER ;
 
 
--- =========================================================================
--- REPORTE 2: RF19 - COMPARATIVO POR CIRUGÍA (Cabecera y Subreporte)
--- =========================================================================
 
--- Maestro: Cabecera de la cirugía
 DROP PROCEDURE IF EXISTS reporte_comparativo_cirugia;
 
 DELIMITER $$
@@ -132,7 +113,6 @@ WHERE c.id_cirugia = p_id_cirugia
 END$$
 DELIMITER ;
 
--- Subreporte: Detalle de insumos consumidos vs despachados
 DROP PROCEDURE IF EXISTS reporte_comparativo_detalle;
 
 DELIMITER $$

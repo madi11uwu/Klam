@@ -19,15 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Catálogo de equipos para el filtro de maquinaria (RF17) y para la logística (RF14).
- *
- * GET /api/v1/equipos                         -> todos los equipos activos
- * GET /api/v1/equipos?soloDisponibles=true    -> solo los disponibles para despacho
- * GET /api/v1/equipos?categoria=CRANEOTOMO    -> por categoría (CRANEOTOMO, NAVEGADOR, MICROSCOPIO, OTRO)
- *
- * Cada equipo incluye sus especificaciones (clave/valor), entre ellas la "marca".
- */
+/** Catálogo de equipos con filtros para RF14 y RF17; incluye sus especificaciones. */
 @Path("/equipos")
 @Produces("application/json")
 public class EquiposResource {

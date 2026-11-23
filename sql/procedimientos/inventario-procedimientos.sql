@@ -1,7 +1,3 @@
--- =========================================================
--- PROCEDIMIENTOS ALMACENADOS - INVENTARIO (ROL 2)
--- Equipo + especificaciones
--- =========================================================
 USE `klam`;
 
 DROP PROCEDURE IF EXISTS insertar_equipo;
@@ -15,9 +11,6 @@ DROP PROCEDURE IF EXISTS eliminar_especificaciones_equipo;
 
 DELIMITER $$
 
--- ---------------------------------------------------------
--- EQUIPO
--- ---------------------------------------------------------
 
 CREATE PROCEDURE insertar_equipo(
     OUT p_id         INT,
@@ -48,7 +41,6 @@ BEGIN
      WHERE id_equipo = p_id;
 END$$
 
--- Baja logica: el equipo se conserva (Cirugia lo referencia)
 CREATE PROCEDURE eliminar_equipo(
     IN p_id INT
 )
@@ -74,9 +66,6 @@ BEGIN
      WHERE id_equipo = p_id;
 END$$
 
--- ---------------------------------------------------------
--- EQUIPO_ESPECIFICACION (detalle de Equipo)
--- ---------------------------------------------------------
 
 CREATE PROCEDURE listar_especificaciones_equipo(
     IN p_id_equipo INT
@@ -97,7 +86,6 @@ BEGIN
     VALUES (p_id_equipo, p_clave, p_valor);
 END$$
 
--- Se usa al modificar: borrar todas y volver a insertar (en una transaccion desde BL)
 CREATE PROCEDURE eliminar_especificaciones_equipo(
     IN p_id_equipo INT
 )
@@ -108,9 +96,6 @@ END$$
 
 DELIMITER ;
 
--- ---------------------------------------------------------
--- CONSUMIBLE
--- ---------------------------------------------------------
 DROP PROCEDURE IF EXISTS insertar_consumible;
 DROP PROCEDURE IF EXISTS modificar_consumible;
 DROP PROCEDURE IF EXISTS eliminar_consumible;
@@ -149,7 +134,6 @@ SET nombre_comercial = p_nombre_comercial,
 WHERE id_consumible = p_id;
 END$$
 
--- Baja logica: bandejas y lineas de documentos lo referencian
 CREATE PROCEDURE eliminar_consumible(
     IN p_id INT
 )
@@ -175,7 +159,6 @@ FROM consumible
 WHERE id_consumible = p_id;
 END$$
 
--- Busqueda parcial: 'gasa' encuentra 'Gasa esteril 10x10'
 CREATE PROCEDURE buscar_consumibles_por_nombre(
     IN p_nombre VARCHAR(150)
 )
@@ -188,9 +171,6 @@ END$$
 
 DELIMITER ;
 
--- ---------------------------------------------------------
--- BANDEJA INSTRUMENTAL
--- ---------------------------------------------------------
 DROP PROCEDURE IF EXISTS insertar_bandeja;
 DROP PROCEDURE IF EXISTS modificar_bandeja;
 DROP PROCEDURE IF EXISTS eliminar_bandeja;
@@ -231,7 +211,6 @@ SET tipo          = p_tipo,
 WHERE id_bandeja = p_id;
 END$$
 
--- Baja logica: cirugia referencia a la bandeja
 CREATE PROCEDURE eliminar_bandeja(
     IN p_id INT
 )
@@ -257,11 +236,7 @@ FROM bandeja_instrumental
 WHERE id_bandeja = p_id;
 END$$
 
--- ---------------------------------------------------------
--- BANDEJA_CONSUMIBLE (detalle de BandejaInstrumental)
--- ---------------------------------------------------------
 
--- Trae los datos del consumible + sus cantidades en la bandeja
 CREATE PROCEDURE listar_consumibles_bandeja(
     IN p_id_bandeja INT
 )
@@ -286,7 +261,6 @@ VALUES
     (p_id_bandeja, p_id_consumible, p_cantidad_despachada, p_cantidad_consumida);
 END$$
 
--- Se usa al modificar: borrar todo el detalle y volver a insertarlo
 CREATE PROCEDURE eliminar_consumibles_bandeja(
     IN p_id_bandeja INT
 )
