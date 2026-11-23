@@ -61,12 +61,12 @@ public final class ExportadorJasper {
     // .jasper que venian en el repositorio estaban compilados de una version
     // anterior del diseno, sin los parametros logo, id_cirugia ni subreporte, y por
     // eso el PDF de uso de insumos fallaba y el comparativo salia en blanco.
-    private static final String USO_INSUMOS = "reportes/Reporte_UsoInsumos.jrxml";
-    private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumo.jrxml";
+    private static final String USO_INSUMOS = "reportes/ReporteUso_Insumo.jrxml";
+    private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumoFinal.jrxml";
     // El subreporte es la excepcion: la plantilla maestra lo nombra por ruta en
     // $P{subreporte} y Jasper espera ahi un archivo ya compilado. Si se edita
     // Reporte_DetalleDespachoConsumo.jrxml hay que volver a exportar su .jasper.
-    private static final String COMPARATIVO_DETALLE = "reportes/Reporte_DetalleDespachoConsumo.jasper";
+    private static final String COMPARATIVO_DETALLE = "reportes/Reporte_DetalleDespachoConsumoFinal.jasper";
 
     // Plantillas de respaldo para el caso sin datos.
     private static final String USO_INSUMOS_VACIO = "reportes/reporte_uso_insumos.jrxml";

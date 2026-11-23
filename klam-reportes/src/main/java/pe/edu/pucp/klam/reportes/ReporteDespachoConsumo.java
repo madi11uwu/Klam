@@ -24,8 +24,8 @@ import net.sf.jasperreports.engine.JasperPrint;
 
 @WebServlet(name = "ReporteDespachoConsumo", urlPatterns = { "/reportes/despacho-consumo" })
 public class ReporteDespachoConsumo extends HttpServlet {
-    private final String NOMBRE_REPORTE = "reportes/Reporte_DespachoConsumo.jasper";
-    private final String SUB_REPORTE = "reportes/Reporte_DetalleDespachoConsumo.jasper";
+    private final String NOMBRE_REPORTE = "reportes/Reporte_DespachoConsumoFinal.jasper";
+    private final String SUB_REPORTE = "reportes/Reporte_DetalleDespachoConsumoFinal.jasper";
     private final String NOMBRE_LOGO = "imagenes/bioklam-logo.png";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
