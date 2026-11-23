@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class ExportadorJasper {
 
     // Plantillas de Studio compiladas e incluidas en el módulo de reportes.
-    private static final String USO_INSUMOS = "reportes/ReporteUso_Insumo.jasper";
+    private static final String USO_INSUMOS = "reportes/ReporteUso_Insumo.jrxml";
     private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumoFinal.jasper";
     // El maestro RF19 requiere la ruta del subreporte ya compilado.
     private static final String COMPARATIVO_DETALLE = "reportes/Reporte_DetalleDespachoConsumoFinal.jasper";
@@ -74,27 +74,12 @@ public final class ExportadorJasper {
                 fila.put("insumo", insumo.nombre());
                 fila.put("medida", insumo.medida());
                 fila.put("tipo_cirugia", insumo.tipoProcedimiento());
-                // La plantilla declara estos dos campos como Long, no como Integer.
                 fila.put("cantidad_utilizada", (long) insumo.cantidadUtilizada());
                 fila.put("frecuencia", (long) insumo.frecuencia());
                 filas.add(fila);
             }
 
-            Map<String, Object> parametros = new HashMap<>();
-            parametros.put("logo", obtenerLogo());
-            // Parametros que declara la plantilla de Studio. Las fechas no pueden ser null
-            // porque la plantilla las formatea; sin filtro se usa la fecha de generacion.
-            LocalDateTime generado = reporte.generado() != null ? reporte.generado() : LocalDateTime.now();
-            var filtro = reporte.filtro();
-            parametros.put("fechaGeneracion", aFecha(generado.toLocalDate()));
-            parametros.put("fechaInicio", aFecha(filtro != null && filtro.desde() != null
-                    ? filtro.desde() : generado.toLocalDate()));
-            parametros.put("fechaFin", aFecha(filtro != null && filtro.hasta() != null
-                    ? filtro.hasta() : generado.toLocalDate()));
-            parametros.put("tipoCirugia", filtro == null ? null : filtro.tipoProcedimiento());
-            parametros.put("tipoInsumo", filtro == null || filtro.idConsumible() == null
-                    ? null : "ID " + filtro.idConsumible());
-            parametros.put("medida", filtro == null ? null : filtro.medida());
+            Map<String, Object> parametros = construirParametrosCabecera(cabecera);
 
             JasperPrint jp = JasperFillManager.fillReport(jr, parametros, new JRMapCollectionDataSource(filas));
             return JasperExportManager.exportReportToPdf(jp);
