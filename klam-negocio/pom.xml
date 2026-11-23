@@ -6,7 +6,7 @@
     <parent>
         <groupId>pe.edu.pucp.softprog</groupId>
         <artifactId>Klam</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>klam-negocio</artifactId>
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>pe.edu.pucp.softprog</groupId>
             <artifactId>klam-accesodatos</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0</version>
         </dependency>
         <!-- RF11: correo automático. GlassFish ya trae Jakarta Mail (modules/jakarta.mail-api.jar) -->
         <dependency>

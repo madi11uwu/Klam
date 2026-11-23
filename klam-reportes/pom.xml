@@ -6,7 +6,7 @@
     <parent>
       <groupId>pe.edu.pucp.softprog</groupId>
       <artifactId>Klam</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
     </parent>
 
   <artifactId>klam-reportes</artifactId>
@@ -66,7 +66,7 @@
           <dependency>
               <groupId>pe.edu.pucp.softprog</groupId>
               <artifactId>klam-dbmanager</artifactId>
-              <version>1.0-SNAPSHOT</version>
+              <version>1.0</version>
           </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
