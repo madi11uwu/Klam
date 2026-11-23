@@ -26,7 +26,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 public class ReporteDespachoConsumo extends HttpServlet {
     private final String NOMBRE_REPORTE = "reportes/Reporte_DespachoConsumoFinal.jasper";
     private final String SUB_REPORTE = "reportes/Reporte_DetalleDespachoConsumoFinal.jasper";
-    private final String NOMBRE_LOGO = "imagenes/bioklam-logo.png";
+    private final String NOMBRE_LOGO = "imagenes/bioklam.png";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

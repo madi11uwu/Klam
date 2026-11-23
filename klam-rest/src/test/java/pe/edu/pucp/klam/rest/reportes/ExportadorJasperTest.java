@@ -10,6 +10,7 @@ import pe.edu.pucp.klam.bl.reportes.ReporteUsoInsumos;
 import pe.edu.pucp.klam.bl.reportes.ResumenUsoInsumo;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,11 +21,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class ExportadorJasperTest {
 
     @Test
+    void testPlantillaUsoInsumosCompila() throws Exception {
+        try (InputStream fuente = getClass().getClassLoader()
+                .getResourceAsStream("reportes/ReporteUso_Insumo.jrxml")) {
+            assertNotNull(fuente);
+            assertNotNull(net.sf.jasperreports.engine.JasperCompileManager.compileReport(fuente));
+        }
+    }
+
+    @Test
     void testUsoInsumosConDatos() throws IOException {
         FiltroConsumo filtro = new FiltroConsumo(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31),
                 "Traumatología", 1, "Unidad", null, null, null);
         ResumenUsoInsumo insumo = new ResumenUsoInsumo("Gasa estéril 10x10", "Sobre", "Artroscopía de rodilla", 15, 4);
-        ReporteUsoInsumos reporte = new ReporteUsoInsumos(LocalDateTime.now(), filtro, 4, List.of(insumo));
+        ReporteUsoInsumos reporte = new ReporteUsoInsumos(LocalDateTime.of(2026, 11, 21, 19, 0), filtro, 4, List.of(insumo));
         CabeceraReporte cabecera = new CabeceraReporte("Insumos más utilizados (RF18)", "21/11/2026 19:00",
                 "01/01/2026 – 31/01/2026", List.of("Tipo de cirugía: Traumatología", "Tipo de consumible: Gasa estéril"));
 
@@ -36,6 +46,10 @@ class ExportadorJasperTest {
 
         com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdf);
         assertTrue(reader.getNumberOfPages() >= 1);
+        String contenido = new com.lowagie.text.pdf.parser.PdfTextExtractor(reader).getTextFromPage(1);
+        assertTrue(contenido.contains("21/11/2026"));
+        assertTrue(contenido.contains("01/01/2026"));
+        assertTrue(contenido.contains("Traumatolog"));
         reader.close();
     }
 

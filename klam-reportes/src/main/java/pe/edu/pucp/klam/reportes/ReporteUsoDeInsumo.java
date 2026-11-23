@@ -25,7 +25,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 @WebServlet(name = "ReporteUsoDeInsumo", urlPatterns = { "/reportes/uso-de-insumo" })
 public class ReporteUsoDeInsumo extends HttpServlet {
     private final String NOMBRE_REPORTE = "reportes/ReporteUso_Insumo.jasper";
-    private final String NOMBRE_LOGO = "imagenes/bioklam-logo.png";
+    private final String NOMBRE_LOGO = "imagenes/bioklam.png";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

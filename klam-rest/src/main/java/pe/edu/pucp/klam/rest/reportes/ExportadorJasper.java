@@ -32,40 +32,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Genera los PDF de RF18 y RF19 con las plantillas de Jaspersoft Studio que vienen
- * del modulo klam-reportes (Reporte_UsoInsumos y Reporte_DespachoConsumo), que son
- * las que llevan la identidad de Bioklam.
- *
- * Cada plantilla se alimenta como fue disenada:
- *
- *  - Uso de insumos no tiene subreportes, asi que se llena con los datos que ya
- *    trajo la capa de negocio. Su consulta interna queda sin usar, y a cambio el
- *    PDF respeta TODOS los filtros de la pantalla (periodo, tipo de cirugia,
- *    consumible y medida), no solo las dos fechas del procedimiento almacenado,
- *    y muestra exactamente los mismos numeros que la tabla.
- *
- *  - El comparativo si necesita conexion: su subreporte de lineas se llena con
- *    $P{REPORT_CONNECTION}. La plantilla esta hecha para una cirugia, asi que se
- *    llena una vez por cada cirugia que haya pasado los filtros y las paginas se
- *    unen en un solo PDF. Los filtros se respetan porque deciden que cirugias
- *    entran en esa lista.
- *
- * Cuando no hay datos se usan las plantillas sencillas de este modulo: las de
- * Studio no tienen banda "sin datos" y un reporte vacio saldria sin paginas.
- */
+/** Exporta RF18 con datos de BL y RF19 con su subreporte por cirugía. */
 public final class ExportadorJasper {
 
-    // Plantillas de Jaspersoft Studio. Se leen del .jrxml, que es el archivo que se
-    // edita en Studio, y se compilan al vuelo: asi no se pueden quedar atras. Los
-    // .jasper que venian en el repositorio estaban compilados de una version
-    // anterior del diseno, sin los parametros logo, id_cirugia ni subreporte, y por
-    // eso el PDF de uso de insumos fallaba y el comparativo salia en blanco.
+    // Plantillas de Studio compiladas e incluidas en el módulo de reportes.
     private static final String USO_INSUMOS = "reportes/ReporteUso_Insumo.jasper";
     private static final String COMPARATIVO = "reportes/Reporte_DespachoConsumoFinal.jasper";
-    // El subreporte es la excepcion: la plantilla maestra lo nombra por ruta en
-    // $P{subreporte} y Jasper espera ahi un archivo ya compilado. Si se edita
-    // Reporte_DetalleDespachoConsumo.jrxml hay que volver a exportar su .jasper.
+    // El maestro RF19 requiere la ruta del subreporte ya compilado.
     private static final String COMPARATIVO_DETALLE = "reportes/Reporte_DetalleDespachoConsumoFinal.jasper";
 
     // Plantillas de respaldo para el caso sin datos.
@@ -73,7 +46,7 @@ public final class ExportadorJasper {
     private static final String COMPARATIVO_VACIO = "reportes/reporte_comparativo.jrxml";
     private static final String COMPARATIVO_VACIO_LINEAS = "reportes/reporte_comparativo_lineas.jrxml";
 
-    private static final String RUTA_LOGO = "imagenes/bioklam-logo.png";
+    private static final String RUTA_LOGO = "imagenes/bioklam.png";
 
     private static final Map<String, JasperReport> CACHE = new ConcurrentHashMap<>();
     private static Image logoCache;
