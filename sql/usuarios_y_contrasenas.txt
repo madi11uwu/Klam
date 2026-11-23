@@ -1,0 +1,87 @@
+KLAM / BIOKLAM - USUARIOS DE ACCESO AL SISTEMA
+===============================================
+
+1) ADMINISTRADORES
+   Contrasena de todos: Klam2026!
+
+   Nombre                                    Usuario
+   ----------------------------------------  ----------------
+   Isabela Zegarra Becerra                   izegarra
+   Ana Mendoza Rios                          admin.mendoza
+   Ricardo Vargas Paredes                    admin.vargas
+   Patricia Delgado Nunez                    admin.delgado
+   Fernando Gutierrez Lazo                   admin.gutierrez
+   Claudia Benavides Pinto                   admin.benavides
+   Javier Montoya Ruiz                       admin.montoya
+   Rosa Espinoza Cardenas                    admin.espinoza
+   Alvaro Linares Vidal                      admin.linares
+   Gabriela Tapia Zuniga                     admin.tapia
+   Hector Valdivia Mora                      admin.valdivia
+
+2) VENDEDORES
+   Contrasena de todos: Klam2026!
+
+   Nombre                                    Usuario
+   ----------------------------------------  ----------------
+   Madison Obregon Cruz                      mobregon
+   Jose Felipe Sebastian Parra Salazar       jparra
+   Sofia Castillo Ramos                      vend.castillo
+   Diego Huaman Flores                       vend.huaman
+   Valeria Salas Ortega                      vend.salas
+   Renzo Aguirre Palma                       vend.aguirre
+   Camila Quiroz Beltran                     vend.quiroz
+   Mateo Ccori Mamani                        vend.ccori
+   Daniela Rivas Cornejo                     vend.rivas
+   Bruno Ledesma Arce                        vend.ledesma
+   Fiorella Pacheco Gamarra                  vend.pacheco
+   Joaquin Neyra Bustamante                  vend.neyra
+
+3) TECNICOS INSTRUMENTISTAS
+   Contrasena de todos: Klam2026!
+
+   Nombre                                    Usuario
+   ----------------------------------------  ----------------
+   Halim Cabello Mendoza                     hcabello
+   Maria Fernanda Romero Ilave               mromero
+   Andres Ramos Cueva                        tec.ramos
+   Lucero Chavez Soto                        tec.chavez
+   Cesar Paredes Luna                        tec.paredes
+   Milagros Ayala Torre                      tec.ayala
+   Oscar Zavala Meza                         tec.zavala
+   Karen Villanueva Roca                     tec.villanueva
+   Walter Condori Apaza                      tec.condori
+   Estefany Rojas Camacho                    tec.rojas
+   Luis Maguina Ponce                        tec.maguina
+   Nataly Santos Egoavil                     tec.santos
+
+4) CLIENTES (pacientes particulares)
+   Contrasena de todos: Klam2026!
+
+   Nombre                                    Usuario
+   ----------------------------------------  ----------------
+   Miguel Bazan Montenegro                   mbazan
+   Freddy Paz                                fpaz
+   Rony Cueva                                rcueva
+   Erasmo Gomez                              egomez
+   David Allasi                              dallasi
+   Jose Luis Corcuera                        jcorcuera
+   Miguel Guanira                            mguanira
+   Viktor Khlebnikov                         vkhlebnikov
+   Luis Muroya                               lmuroya
+   Carla Medina                              cmedina
+
+5) CLINICAS Y HOSPITALES (clientes)
+   Contrasena de todos: BioKlam2026!
+
+   Usuario                      Cliente
+   ---------------------------  ------------------------------------
+   lab.clinica.norte            Clinica Academica Norte
+   lab.hospital.sur             Hospital Simulado Sur
+   lab.clinica.sanfelipe        Clinica San Felipe
+   lab.clinica.internacional    Clinica Internacional
+   lab.clinica.vallesur         Clinica Auna Vallesur
+   lab.clinica.bellavista       Clinica Auna Bellavista
+   lab.hospital.dosdemayo       Hospital Nacional Dos de Mayo
+   lab.hospital.loayza          Hospital Nacional Arzobispo Loayza
+   lab.hospital.cayetano        Hospital Cayetano Heredia
+   lab.hospital.pisco           Hospital San Juan de Dios de Pisco
