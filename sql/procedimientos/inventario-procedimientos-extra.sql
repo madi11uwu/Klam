@@ -308,13 +308,23 @@ BEGIN
 
     -- Fotografia del despacho de esta cirugia. No se copian consumos antiguos
     -- de la plantilla ni se modifica su configuracion estandar.
+    -- Se despacha lo previsto para la cirugia; si no hay previsión, la composicion
+    -- estandar de la plantilla (la que se edita en Plantillas de bandejas).
     IF p_id_bandeja IS NOT NULL THEN
         DELETE FROM cirugia_consumible_real WHERE id_cirugia = p_id_cirugia;
-        INSERT INTO cirugia_consumible_real
-            (id_cirugia, id_consumible, cantidad_despachada, cantidad_consumida)
-        SELECT p_id_cirugia, id_consumible, cantidad_despachada, 0
-          FROM bandeja_consumible
-         WHERE id_bandeja = p_id_bandeja;
+        IF EXISTS (SELECT 1 FROM cirugia_consumible_previsto WHERE id_cirugia = p_id_cirugia) THEN
+            INSERT INTO cirugia_consumible_real
+                (id_cirugia, id_consumible, cantidad_despachada, cantidad_consumida)
+            SELECT p_id_cirugia, id_consumible, cantidad_prevista, 0
+              FROM cirugia_consumible_previsto
+             WHERE id_cirugia = p_id_cirugia AND cantidad_prevista > 0;
+        ELSE
+            INSERT INTO cirugia_consumible_real
+                (id_cirugia, id_consumible, cantidad_despachada, cantidad_consumida)
+            SELECT p_id_cirugia, id_consumible, cantidad_estandar, 0
+              FROM bandeja_consumible_estandar
+             WHERE id_bandeja = p_id_bandeja AND cantidad_estandar > 0;
+        END IF;
     END IF;
 END$$
 
