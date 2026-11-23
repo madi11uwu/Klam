@@ -45,17 +45,41 @@ final class CuentaInicialCliente {
                 cuerpoCredenciales(nombre, usuario, passwordTemporal));
     }
 
-    /** Dirección de la plataforma (clave app.url de correo.properties); por defecto la de desarrollo. */
+    /**
+     * Dirección de la plataforma para el enlace del correo. Se lee en cada envío, en este orden:
+     * 1) primera línea del archivo klam-app-url.txt en la carpeta del usuario que corre el servidor
+     * (se puede cambiar sin reiniciar); 2) propiedad de JVM app.url; 3) variable de entorno APP_URL;
+     * 4) clave app.url de correo.properties; 5) la dirección de desarrollo.
+     */
     private static String urlAcceso() {
-        String base = "http://localhost:5153";
-        try {
-            String configurada = ResourceBundle.getBundle("correo").getString("app.url").trim();
-            if (!configurada.isEmpty()) base = configurada;
-        } catch (MissingResourceException ex) {
-            // se usa la dirección por defecto
+        String base = leerArchivoUrl();
+        if (base == null) base = vacioANulo(System.getProperty("app.url"));
+        if (base == null) base = vacioANulo(System.getenv("APP_URL"));
+        if (base == null) {
+            try {
+                base = vacioANulo(ResourceBundle.getBundle("correo").getString("app.url"));
+            } catch (MissingResourceException ex) {
+                // se usa la dirección por defecto
+            }
         }
+        if (base == null) base = "http://localhost:5153";
         while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
         return base + "/login";
+    }
+
+    private static String leerArchivoUrl() {
+        try {
+            java.nio.file.Path ruta = java.nio.file.Paths.get(System.getProperty("user.home"), "klam-app-url.txt");
+            if (!java.nio.file.Files.isRegularFile(ruta)) return null;
+            java.util.List<String> lineas = java.nio.file.Files.readAllLines(ruta);
+            return lineas.isEmpty() ? null : vacioANulo(lineas.get(0));
+        } catch (java.io.IOException | RuntimeException ex) {
+            return null;
+        }
+    }
+
+    private static String vacioANulo(String valor) {
+        return valor == null || valor.trim().isEmpty() ? null : valor.trim();
     }
 
     private static String cuerpoCredenciales(String nombre, String usuario, String passwordTemporal) {
