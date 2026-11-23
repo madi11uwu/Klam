@@ -1,0 +1,50 @@
+<!-- Created with Jaspersoft Studio version 7.0.8.final using JasperReports Library version 7.0.8-6f896111  -->
+<jasperReport name="Reporte_DespachoConsumoFinal" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6333c3c0-8e4b-4492-8faa-a9a20ce358a9">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="KlamReportes"/>
+	<query language="SQL"><![CDATA[call reporte_comparativo_cirugia(10);
+]]></query>
+	<field name="id_cirugia" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="id_cirugia"/>
+		<property name="com.jaspersoft.studio.field.label" value="id_cirugia"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="cirugia"/>
+	</field>
+	<field name="fecha" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="fecha"/>
+		<property name="com.jaspersoft.studio.field.label" value="fecha"/>
+	</field>
+	<field name="tipo_procedimiento" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="tipo_procedimiento"/>
+		<property name="com.jaspersoft.studio.field.label" value="tipo_procedimiento"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="cirugia"/>
+	</field>
+	<field name="medico" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="doctor_nombre"/>
+		<property name="com.jaspersoft.studio.field.label" value="medico"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="cirugia"/>
+	</field>
+	<field name="paciente" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="paciente_nombre"/>
+		<property name="com.jaspersoft.studio.field.label" value="paciente"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="cirugia"/>
+	</field>
+	<field name="documento_paciente" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="paciente_documento"/>
+		<property name="com.jaspersoft.studio.field.label" value="documento_paciente"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="cirugia"/>
+	</field>
+	<field name="cliente" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="cliente"/>
+		<property name="com.jaspersoft.studio.field.label" value="cliente"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="79" splitType="Stretch"/>
+	<pageHeader height="35" splitType="Stretch"/>
+	<columnHeader height="61" splitType="Stretch"/>
+	<detail>
+		<band height="125" splitType="Stretch"/>
+	</detail>
+	<columnFooter height="45" splitType="Stretch"/>
+	<pageFooter height="54" splitType="Stretch"/>
+	<summary height="42" splitType="Stretch"/>
+</jasperReport>

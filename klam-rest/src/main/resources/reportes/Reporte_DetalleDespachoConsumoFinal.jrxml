@@ -1,0 +1,41 @@
+<!-- Created with Jaspersoft Studio version 7.0.8.final using JasperReports Library version 7.0.8-6f896111  -->
+<jasperReport name="Reporte_DetalleDespachoConsumoFinal" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dee609b2-9420-46d5-91d6-7c6e007f4e7a">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="KlamReportes"/>
+	<query language="SQL"><![CDATA[call reporte_comparativo_detalle(10);
+]]></query>
+	<field name="insumo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nombre_comercial"/>
+		<property name="com.jaspersoft.studio.field.label" value="insumo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="consumible"/>
+	</field>
+	<field name="medida" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="medida"/>
+		<property name="com.jaspersoft.studio.field.label" value="medida"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="consumible"/>
+	</field>
+	<field name="despachada" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="cantidad_despachada"/>
+		<property name="com.jaspersoft.studio.field.label" value="despachada"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="cirugia_consumible_real"/>
+	</field>
+	<field name="consumida" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="cantidad_consumida"/>
+		<property name="com.jaspersoft.studio.field.label" value="consumida"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="cirugia_consumible_real"/>
+	</field>
+	<field name="diferencia" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="diferencia"/>
+		<property name="com.jaspersoft.studio.field.label" value="diferencia"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="79" splitType="Stretch"/>
+	<pageHeader height="35" splitType="Stretch"/>
+	<columnHeader height="61" splitType="Stretch"/>
+	<detail>
+		<band height="125" splitType="Stretch"/>
+	</detail>
+	<columnFooter height="45" splitType="Stretch"/>
+	<pageFooter height="54" splitType="Stretch"/>
+	<summary height="42" splitType="Stretch"/>
+</jasperReport>

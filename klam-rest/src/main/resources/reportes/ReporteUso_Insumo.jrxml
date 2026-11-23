@@ -1,0 +1,44 @@
+<!-- Created with Jaspersoft Studio version 7.0.8.final using JasperReports Library version 7.0.8-6f896111  -->
+<jasperReport name="ReporteUso_Insumo" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6938721e-e00a-43b4-b5b4-286b1b2445f5">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="KlamReportes"/>
+	<query language="SQL"><![CDATA[call reporte_uso_insumos_jasper('2026-11-01','2026-11-22',NULL,NULL,NULL)]]></query>
+	<field name="id_consumible" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="id_consumible"/>
+		<property name="com.jaspersoft.studio.field.label" value="id_consumible"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="consumible"/>
+	</field>
+	<field name="insumo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nombre_comercial"/>
+		<property name="com.jaspersoft.studio.field.label" value="insumo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="consumible"/>
+	</field>
+	<field name="marca" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="marca"/>
+		<property name="com.jaspersoft.studio.field.label" value="marca"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="consumible"/>
+	</field>
+	<field name="medida" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="medida"/>
+		<property name="com.jaspersoft.studio.field.label" value="medida"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="consumible"/>
+	</field>
+	<field name="cantidad_utilizada" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="cantidad_utilizada"/>
+		<property name="com.jaspersoft.studio.field.label" value="cantidad_utilizada"/>
+	</field>
+	<field name="frecuencia" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="frecuencia"/>
+		<property name="com.jaspersoft.studio.field.label" value="frecuencia"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="79" splitType="Stretch"/>
+	<pageHeader height="35" splitType="Stretch"/>
+	<columnHeader height="61" splitType="Stretch"/>
+	<detail>
+		<band height="125" splitType="Stretch"/>
+	</detail>
+	<columnFooter height="45" splitType="Stretch"/>
+	<pageFooter height="54" splitType="Stretch"/>
+	<summary height="42" splitType="Stretch"/>
+</jasperReport>
