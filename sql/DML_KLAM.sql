@@ -24,6 +24,7 @@ VALUES
 INSERT INTO administrador
 (username, password_hash, email, nombres, apellidos, rol, activo)
 VALUES
+    ('izegarra', 'pbkdf2-sha256$600000$iCxYYFDoFbqZAGDsZH7xGg==$kcj37yQQKwchG2D8NFF8QiNn+J2REaTsvsZk4mTUvjQ=', 'izegarra@bioklam.com', 'Isabela', 'Zegarra Becerra', 'ADMINISTRADOR', 1),
     ('admin.mendoza', 'pbkdf2-sha256$600000$GC8kfSUiFXYkIt2XFPw1QQ==$D89tuPnKqn+/d/TJoBanasxOmIAu7xjUmMOH6jMKI/4=', 'amendoza@bioklam.com', 'Ana', 'Mendoza Rios', 'ADMINISTRADOR', 1),
     ('admin.vargas', 'pbkdf2-sha256$600000$YnvAOdfUus+N5HFgtwa+6Q==$TL4l3Uel1I9Z1JyR+sXkJo6Yh8/qV8u1gfDGXTLF818=', 'rvargas@bioklam.com', 'Ricardo', 'Vargas Paredes', 'ADMINISTRADOR', 1),
     ('admin.delgado', 'pbkdf2-sha256$600000$jNdD9jPQx9cK80Jn2Uu/7w==$MvGcfDHdHZPskEgU2TTMcYknOsqmUFTPnCj3flyTE58=', 'pdelgado@bioklam.com', 'Patricia', 'Delgado Núñez', 'ADMINISTRADOR', 1),
@@ -64,6 +65,8 @@ VALUES
 INSERT INTO vendedor
 (username, password_hash, email, nombres, apellidos, rol, activo, comision_acumulada)
 VALUES
+    ('mobregon', 'pbkdf2-sha256$600000$rgZ6Qg4PEm3k4L7H+z6dpA==$Q/to4TQtbdWQxRs3qZkLUEtFdYGf0z0MPK8ven6qHz0=', 'mobregon@bioklam.com', 'Madison', 'Obregón Cruz', 'VENDEDOR', 1, 0.00),
+    ('jparra', 'pbkdf2-sha256$600000$7EBEOa7wlnLBRB2TfwfOEA==$ShgpVb0ssbBaO4P5d2Nz2tDtg6TtiJPfq6oTbjLsA5k=', 'jparra@bioklam.com', 'José Felipe Sebastián', 'Parra Salazar', 'VENDEDOR', 1, 0.00),
     ('vend.castillo', 'pbkdf2-sha256$600000$KrTqCeIeh/fW5Bt7rl3jig==$1PUc4ABUwYf3ua1fFOUm7/zY0gcGURRSJf7WYk+ebKs=', 'scastillo@bioklam.com', 'Sofía', 'Castillo Ramos', 'VENDEDOR', 1, 0.00),
     ('vend.huaman', 'pbkdf2-sha256$600000$q5prhKj06bT6z7a2kMA6Ig==$GOHWheGUCnRJDVXFZuw7DzaNoiG3OqLSg9qxJrn+Beg=', 'dhuaman@bioklam.com', 'Diego', 'Huamán Flores', 'VENDEDOR', 1, 0.00),
     ('vend.salas', 'pbkdf2-sha256$600000$7IcqlA3ArvQlafphXsfBRg==$XEVGzZiJCaIjEGuBHn7FImHbfU2SwGTm5QX6/foJ2qE=', 'vsalas@bioklam.com', 'Valeria', 'Salas Ortega', 'VENDEDOR', 1, 0.00),
@@ -103,6 +106,8 @@ VALUES
 INSERT INTO tecnico_instrumentista
 (username, password_hash, email, nombres, apellidos, rol, activo, especialidad)
 VALUES
+    ('hcabello', 'pbkdf2-sha256$600000$QNaNohACGfuMo5VhAzYLvQ==$074VByX7QocMjUOlv5rBYMB2s+j9oNcf/b9pIH+1bKY=', 'hcabello@bioklam.com', 'Halím', 'Cabello Mendoza', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
+    ('mromero', 'pbkdf2-sha256$600000$/5rzQs99DlL6Q38oPgBlQw==$PIaPkHQcKVhBig6a+uHPt4crJr3TdEr8jbhh+bHukC8=', 'mromero@bioklam.com', 'María Fernanda', 'Romero Ilave', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general'),
     ('tec.ramos', 'pbkdf2-sha256$600000$byfO6bSa3IlNNG2Wr97IVw==$tSvrso2wpBCinOb4v5jgcMlepDHNsePJJW7c/CjAz0s=', 'aramos@bioklam.com', 'Andrés', 'Ramos Cueva', 'TECNICO_INSTRUMENTISTA', 1, 'Neurocirugía'),
     ('tec.chavez', 'pbkdf2-sha256$600000$j5HYPnUJi8O8xWGL2XsLzQ==$3QVKHjSJT4cdzk2p6/H7aNdl7ueNZRAbAPWKhnfS0Yg=', 'lchavez@bioklam.com', 'Lucero', 'Chávez Soto', 'TECNICO_INSTRUMENTISTA', 1, 'Cirugía general'),
     ('tec.paredes', 'pbkdf2-sha256$600000$8auJFrOXhPmG7X5YkzXziw==$dToJZpnMca9aq/DtWvLpQwh3O8gMyexnFcKKWtA7RsY=', 'cparedes@bioklam.com', 'César', 'Paredes Luna', 'TECNICO_INSTRUMENTISTA', 1, 'Traumatología'),
@@ -199,6 +204,13 @@ VALUES
     (9, 'Luis Muroya', 'Dirección ficticia 09', 'paciente09@example.test', '000000009', 1, '90000009', 0),
     (10, 'Carla Medina', 'Dirección ficticia 10', 'paciente10@example.test', '000000010', 1, '90000010', 0);
 
+-- cuenta del cliente mbazan, ligada al paciente 1
+INSERT INTO cuenta_usuario
+(username, password_hash, email, nombres, apellidos, activo, id_paciente)
+SELECT 'mbazan', 'pbkdf2-sha256$600000$JoQZRhDgNrsYqtj3T2hdkQ==$FX0h5FwMdhcU5t3fdzXZVhf7d221hqb5NYTng5kZOvM=', 'mbazan@example.test', 'Miguel', 'Bazán Montenegro', 1, id_cliente
+FROM paciente_particular WHERE dni = '90000001'
+ON DUPLICATE KEY UPDATE username = cuenta_usuario.username;
+
 -- cuentas de acceso de pacientes particulares (contrasena de todos: Klam2026!)
 INSERT INTO cuenta_usuario
 (username, password_hash, email, nombres, apellidos, activo, id_paciente)
@@ -249,6 +261,47 @@ VALUES
      '20900000002',
      0,
      '60 días');
+
+-- clinicas y hospitales adicionales
+INSERT INTO clinica_hospital
+(id_cliente, nombre, direccion, email_contacto, telefono, activo, ruc, tiene_consignacion, periodo_credito)
+VALUES
+    (4, 'Clínica San Felipe', 'Dirección ficticia clínica 04', 'clinica04@example.test', '000000004', 1, '20900000003', 0, '30 días'),
+    (5, 'Clínica Internacional', 'Dirección ficticia clínica 05', 'clinica05@example.test', '000000005', 1, '20900000004', 0, '30 días'),
+    (6, 'Clínica Auna Vallesur', 'Dirección ficticia clínica 06', 'clinica06@example.test', '000000006', 1, '20900000005', 0, '30 días'),
+    (7, 'Clínica Auna Bellavista', 'Dirección ficticia clínica 07', 'clinica07@example.test', '000000007', 1, '20900000006', 0, '30 días'),
+    (8, 'Hospital Nacional Dos de Mayo', 'Dirección ficticia clínica 08', 'clinica08@example.test', '000000008', 1, '20900000007', 0, '30 días'),
+    (9, 'Hospital Nacional Arzobispo Loayza', 'Dirección ficticia clínica 09', 'clinica09@example.test', '000000009', 1, '20900000008', 0, '30 días'),
+    (10, 'Hospital Cayetano Heredia', 'Dirección ficticia clínica 10', 'clinica10@example.test', '000000010', 1, '20900000009', 0, '30 días'),
+    (11, 'Hospital San Juan de Dios de Pisco', 'Dirección ficticia clínica 11', 'clinica11@example.test', '000000011', 1, '20900000010', 0, '30 días');
+
+-- cuentas de acceso de clinicas y hospitales (contrasena de todos: BioKlam2026!)
+INSERT INTO cuenta_usuario
+(username, password_hash, email, nombres, apellidos, activo, id_clinica)
+SELECT v.username, v.password_hash, v.email, v.nombres, NULL, 1, c.id_cliente
+FROM (
+  SELECT 'lab.clinica.norte' AS username, 'pbkdf2-sha256$600000$cyHeag1i8a+zZBk92pgsDQ==$WXH/NkV79Op3H7rceq2h2q930sB9BnG9LXcnSrG5wIY=' AS password_hash, 'lab.clinica.norte@example.test' AS email, 'Clínica Académica Norte' AS nombres, '20900000001' AS ruc
+ UNION ALL
+  SELECT 'lab.hospital.sur' AS username, 'pbkdf2-sha256$600000$nbGaavzkcZb8gP2UxyoPOQ==$0oeVGPE6dqiA36dCQ8/8nIsN5CaYfDouqJ6ry3sORnw=' AS password_hash, 'lab.hospital.sur@example.test' AS email, 'Hospital Simulado Sur' AS nombres, '20900000002' AS ruc
+ UNION ALL
+  SELECT 'lab.clinica.sanfelipe' AS username, 'pbkdf2-sha256$600000$jXhUG7SNJ6XYn0W11XopWg==$/RhadWO0vGHSwkvPxRVdJXf7smYiCCaa1cQT9wbq1gA=' AS password_hash, 'lab.clinica.sanfelipe@example.test' AS email, 'Clínica San Felipe' AS nombres, '20900000003' AS ruc
+ UNION ALL
+  SELECT 'lab.clinica.internacional' AS username, 'pbkdf2-sha256$600000$npM6PY2g3ZbDpUoxMojxww==$U8ycfrc8P8tGVacxu/FbWjbeFjz00MDlbVzIaJnXAzw=' AS password_hash, 'lab.clinica.internacional@example.test' AS email, 'Clínica Internacional' AS nombres, '20900000004' AS ruc
+ UNION ALL
+  SELECT 'lab.clinica.vallesur' AS username, 'pbkdf2-sha256$600000$Fh/kWy92VHp9UdE8NHwo7A==$dtY+SUZ8Gf7i0ch4L2pUbjGYDExFcbt82LSCpVZEQfY=' AS password_hash, 'lab.clinica.vallesur@example.test' AS email, 'Clínica Auna Vallesur' AS nombres, '20900000005' AS ruc
+ UNION ALL
+  SELECT 'lab.clinica.bellavista' AS username, 'pbkdf2-sha256$600000$L9ogPNK3ClX4JLDKBaX/Vg==$zwKAuy5Gm83cd5l5WXztQP3E98RZpQlVZ6LuI+Qj/AU=' AS password_hash, 'lab.clinica.bellavista@example.test' AS email, 'Clínica Auna Bellavista' AS nombres, '20900000006' AS ruc
+ UNION ALL
+  SELECT 'lab.hospital.dosdemayo' AS username, 'pbkdf2-sha256$600000$BDRn7OtXsJq3rTiWXqzUXA==$K0gfxnrI7Txiv56dv9d0oYvUNF+QG6osm556TA1cuFs=' AS password_hash, 'lab.hospital.dosdemayo@example.test' AS email, 'Hospital Nacional Dos de Mayo' AS nombres, '20900000007' AS ruc
+ UNION ALL
+  SELECT 'lab.hospital.loayza' AS username, 'pbkdf2-sha256$600000$E8Z5HV/hszzSbTleOL8ggA==$Qf/l2NeOQL22tpW9L/K9lEK+hn0jf7QElwQ0qntQMpQ=' AS password_hash, 'lab.hospital.loayza@example.test' AS email, 'Hospital Nacional Arzobispo Loayza' AS nombres, '20900000008' AS ruc
+ UNION ALL
+  SELECT 'lab.hospital.cayetano' AS username, 'pbkdf2-sha256$600000$eIchG8rHPe9URelKoBHcRA==$pCl9bSQ6+YPSPw/xXMY5ID1PGn1d6b9eX+NxlE82CQg=' AS password_hash, 'lab.hospital.cayetano@example.test' AS email, 'Hospital Cayetano Heredia' AS nombres, '20900000009' AS ruc
+ UNION ALL
+  SELECT 'lab.hospital.pisco' AS username, 'pbkdf2-sha256$600000$Xc8HHkGir2gMDg68dafuGA==$S03oyTTU6CErVNz3zUffWiVwZTzUb0GwzeTs21BNdjY=' AS password_hash, 'lab.hospital.pisco@example.test' AS email, 'Hospital San Juan de Dios de Pisco' AS nombres, '20900000010' AS ruc
+) v
+JOIN clinica_hospital c ON c.ruc = v.ruc
+ON DUPLICATE KEY UPDATE username = cuenta_usuario.username;
 -- orden_compra
 
 INSERT INTO orden_compra
