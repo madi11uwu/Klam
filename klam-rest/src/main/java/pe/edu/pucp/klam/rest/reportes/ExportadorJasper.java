@@ -109,6 +109,19 @@ public final class ExportadorJasper {
 
             Map<String, Object> parametros = new HashMap<>();
             parametros.put("logo", obtenerLogo());
+            // Parametros que declara la plantilla de Studio. Las fechas no pueden ser null
+            // porque la plantilla las formatea; sin filtro se usa la fecha de generacion.
+            LocalDateTime generado = reporte.generado() != null ? reporte.generado() : LocalDateTime.now();
+            var filtro = reporte.filtro();
+            parametros.put("fechaGeneracion", aFecha(generado.toLocalDate()));
+            parametros.put("fechaInicio", aFecha(filtro != null && filtro.desde() != null
+                    ? filtro.desde() : generado.toLocalDate()));
+            parametros.put("fechaFin", aFecha(filtro != null && filtro.hasta() != null
+                    ? filtro.hasta() : generado.toLocalDate()));
+            parametros.put("tipoCirugia", filtro == null ? null : filtro.tipoProcedimiento());
+            parametros.put("tipoInsumo", filtro == null || filtro.idConsumible() == null
+                    ? null : "ID " + filtro.idConsumible());
+            parametros.put("medida", filtro == null ? null : filtro.medida());
 
             JasperPrint jp = JasperFillManager.fillReport(jr, parametros, new JRMapCollectionDataSource(filas));
             return JasperExportManager.exportReportToPdf(jp);
@@ -245,6 +258,10 @@ public final class ExportadorJasper {
             CACHE.put(ruta, jr);
             return jr;
         }
+    }
+
+    private static java.util.Date aFecha(java.time.LocalDate d) {
+        return java.util.Date.from(d.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
     }
 
     private static InputStream recurso(String ruta) throws IOException {
